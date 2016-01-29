@@ -1,0 +1,18 @@
+{
+    "text": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "text_transliterate": {
+        "type": "string",
+        "index": "analyzed",
+        "analyzer": "ctsearch_ac_transliterate",
+        "store": true
+    },
+    "counter": {
+        "type": "long",
+        "index": "not_analyzed",
+        "store": true
+    }
+}

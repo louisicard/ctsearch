@@ -1,0 +1,24 @@
+.search-page-radiofrance .excerp-part,
+.search-page-radiofrance .excerp-part .excerp-content-emission,
+.search-page-radiofrance .excerp-part .excerp-content-date{
+  display:inline;
+}
+.search-page-radiofrance .excerp-part .excerp-label-emission,
+.search-page-radiofrance .excerp-part .excerp-label-date{
+  display:none;
+}
+.search-page-radiofrance .excerp-part .excerp-content-emission,
+.search-page-radiofrance .excerp-part .excerp-content-date{
+  text-transform:uppercase;
+  padding-right:10px;
+}
+.search-page-radiofrance .excerp-part .excerp-content-emission{
+  color:#777;
+}
+.search-page-radiofrance .excerp-part .excerp-content-date{
+  color:#bbb;
+}
+.search-page-radiofrance .excerp-part .excerp-content-date:before{
+  content:"Publié le ";
+  text-transform: none;
+}

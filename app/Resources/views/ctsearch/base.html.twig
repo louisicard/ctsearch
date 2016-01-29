@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+  {{title}}
+{% endblock %}
+
+
+{% block body %}
+  <header>
+    <figure id="logo">
+      <a href="{{path('homepage')}}" title="{{'Home'|trans}}"><img src="{{asset('images/logo.png')}}" alt="Ct search" /></a>
+      <figcaption class="element-invisible">Logo Ct search</figcaption>
+    </figure>
+    <nav id="main-menu" class="clearfix">
+      <ul>
+        <li{%if main_menu_item=='home'%} class="active"{%endif%}><a href="{{path('homepage')}}" title="{{'Home'|trans}}">{{'Home'|trans}}</a></li>
+        <li{%if main_menu_item=='indexes'%} class="active"{%endif%}><a href="{{path('indexes')}}" title="{{'Indexes'|trans}}">{{'Indexes'|trans}}</a></li>
+        <li{%if main_menu_item=='datasources'%} class="active"{%endif%}><a href="{{path('datasources')}}" title="{{'Datasources'|trans}}">{{'Datasources'|trans}}</a></li>
+        <li{%if main_menu_item=='matching-lists'%} class="active"{%endif%}><a href="{{path('matching-lists')}}" title="{{'Matching lists'|trans}}">{{'Matching lists'|trans}}</a></li>
+        <li{%if main_menu_item=='processors'%} class="active"{%endif%}><a href="{{path('processors')}}" title="{{'Processors'|trans}}">{{'Processors'|trans}}</a></li>
+        <li{%if main_menu_item=='search-pages'%} class="active"{%endif%}><a href="{{path('search-pages')}}" title="{{'Search pages'|trans}}">{{'Search pages'|trans}}</a></li>
+        <li{%if main_menu_item=='logs'%} class="active"{%endif%}><a href="{{path('show-logs')}}" title="{{'Logs'|trans}}">{{'Logs'|trans}}</a></li>
+        {%if app.environment == "dev"%}
+        <li{%if main_menu_item=='console'%} class="active"{%endif%}><a href="{{path('console')}}" title="{{'Console'|trans}}">{{'Console'|trans}}</a></li>
+        {%endif%}
+      </ul>
+    </nav>
+  </header>
+  <section id="container">
+    <h1>{{title}}</h1>
+    {% if app.session.get('messages') is defined and app.session.get('messages') is not null %}
+      <div id="messages">
+        <ul>
+          {%for message in app.session.get('messages')%}
+            <li class="message-type-{{message.type}}">{{message.text}}</li>
+          {%endfor%}
+        </ul>
+      </div>
+      {{ app.session.set('messages',null) }}
+    {%endif%}
+    {% block main_content %}{% endblock %}
+  </section>
+{% endblock %}
+
+
+
+{% block stylesheets %}
+  <link rel="stylesheet" href="{{asset('css/normalize.css')}}" />
+  <link rel="stylesheet" href="{{asset('js/jquery-ui/jquery-ui.min.css')}}" />
+  <link rel="stylesheet" href="{{asset('css/global.css')}}" />
+{% endblock %}
+
+{% block javascripts %}
+  <script type="text/javascript">
+    var __ctsearch_base_url = '{{path('homepage')}}';
+    var __ctsearch_js_translations = {
+      OK: "{{'OK'|trans}}",
+      Cancel: "{{'Cancel'|trans}}",
+      DeleteIndexConfirm: "{{'You are about to delete an index.\\nDo you wish to proceed?'|trans}}",
+      DeleteMappingConfirm: "{{'You are about to delete this mapping.\\nDo you wish to proceed?'|trans}}",
+      UpdateMappingNoWipe: "{{'Updating this mapping without wiping data will not remove deleted fields.\\nDo you wish to proceed?'|trans}}",
+      UpdateMappingWipe: "{{'Updating this mapping will wipe all data.\\nDo you wish to proceed?'|trans}}",
+      ShowHideJSONDef: "{{'Show/hide JSON definition'|trans}}",
+      FieldName: "{{'Field name'|trans}}",
+      FieldType: "{{'Field type'|trans}}",
+      FieldFormat: "{{'Format'|trans}}",
+      FieldAnalysis: "{{'Analysis'|trans}}",
+      FieldStore: "{{'Store'|trans}}",
+      FieldBoost: "{{'Boost'|trans}}",
+      FieldAnalyzed: "{{'Analyzed'|trans}}",
+      FieldNotAnalyzed: "{{'Not analyzed'|trans}}",
+      FieldStored: "{{'Stored'|trans}}",
+      FieldNotStored: "{{'Not stored'|trans}}",
+      FieldDelete: "{{'Delete'|trans}}",
+      FieldAdd: "{{'Add field'|trans}}",
+      FieldAlreadyExists: "{{'This field is already set. You must delete it first.'|trans}}",
+      FieldMissingNameOrType: "{{'You must provide a field name and type.'|trans}}",
+      DeleteDatasourceConfirm: "{{'You are about to delete a data source.\\nDo you wish to proceed?'|trans}}",
+      DeleteProcessorConfirm: "{{'You are about to delete a processor.\\nDo you wish to proceed?'|trans}}",
+      DeleteSearchPageConfirm: "{{'You are about to delete a search page.\\nDo you wish to proceed?'|trans}}",
+      DeleteMatchingListConfirm: "{{'You are about to delete a matching list.\\nDo you wish to proceed?'|trans}}"
+    };
+  </script>
+  <script type="text/javascript" src="{{asset('js/jquery-1.11.3.min.js')}}"></script>
+  <script type="text/javascript" src="{{asset('js/jquery-ui/jquery-ui.min.js')}}"></script>
+  <script type="text/javascript" src="{{asset('js/ctsearch.js')}}"></script>
+{% endblock %}

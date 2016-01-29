@@ -1,0 +1,37 @@
+security:
+  encoders:
+    Symfony\Component\Security\Core\User\User: plaintext
+    
+  role_hierarchy:
+    ROLE_ADMIN:         ROLE_USER
+    ROLE_SUPER_ADMIN:   [ROLE_USER, ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
+  
+  providers:
+    app_users:
+      memory:
+        users:
+          user:   { password: userpass, roles [ 'ROLE_USER' ] }
+          admin:  { password: adminpass, roles [ 'ROLE_ADMIN' ] }
+  
+  firewalls:
+    open_firewall:
+      pattern:    ^/webcrawler-response
+      anonymous:  ~
+    public_search:
+      pattern:    ^/search-pages/search
+      anonymous:  ~
+    public_search_more_like_this:
+      pattern:    ^/search-pages/more-like-this
+      anonymous:  ~
+    public_search_autocomplete:
+      pattern:    ^/search-pages/autocomplete
+      anonymous:  ~
+    public_search_api:
+      pattern:    ^/search-api
+      anonymous:  ~
+    public_search_api_v2:
+      pattern:    ^/search-api/v2
+      anonymous:  ~
+    default_firewall:
+      pattern:    ^/
+      http_basic:  ~

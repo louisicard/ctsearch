@@ -1,0 +1,44 @@
+{% extends 'ctsearch/base.html.twig' %}
+
+
+{%block main_content%}
+  {%if searchPages is defined%}
+    <ul class="actions">
+      <li id="add-search-page"><a href="{{path('search-page-add')}}">Add search page</a></li>
+    </ul>
+    {%if searchPages|length > 0%}
+    <table>
+      <thead>
+        <tr>
+          <th>{{'Name'|trans}}</th>
+          <th>{{'index'|trans}}</th>
+          <th>&nbsp;</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%set class='even'%}
+        {%for searchPage in searchPages%}
+          {%if class=='even'%}{%set class='odd'%}{%else%}{%set class='even'%}{%endif%}
+          <tr class="{{class}}">
+            <td>{{searchPage.name}}</td>
+            <td>{{searchPage.indexName}}</td>
+            <td class="actions">
+              <ul>
+                <li><a href="{{path('search-page-display', {'id': searchPage.id})}}" target="_blank">{{'Open'|trans}}</a></li>
+                <li><a href="{{path('search-page-edit', {'id': searchPage.id})}}">{{'Edit'|trans}}</a></li>
+                <li><a href="{{path('search-page-delete', {'id': searchPage.id})}}" class="search-page-delete">{{'Delete'|trans}}</a></li>
+              </ul>
+            </td>
+          </tr>
+        {%endfor%}
+      </tbody>
+    </table>
+    {%endif%}
+  {%endif%}
+  {%if form is defined%}
+    {{form(form, {'attr': {'id': 'form_search_page'}})}}
+  {%endif%}
+  <script type="text/javascript">
+    
+  </script>
+{%endblock%}

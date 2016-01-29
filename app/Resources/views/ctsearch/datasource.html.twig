@@ -1,0 +1,41 @@
+{% extends 'ctsearch/base.html.twig' %}
+
+
+{%block main_content%}
+  {%if datasources is defined%}
+    {%if form_add_datasource is defined%}
+      {{ form(form_add_datasource, {'attr': {'id': 'form_add_data_source'}}) }}
+    {%endif%}
+    {%if datasources|length > 0%}
+    <table>
+      <thead>
+        <tr>
+          <th>{{'Datasource name'|trans}}</th>
+          <th>{{'Type'|trans}}</th>
+          <th>&nbsp;</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%set class='even'%}
+        {%for id, datasource in datasources%}
+          {%if class=='even'%}{%set class='odd'%}{%else%}{%set class='even'%}{%endif%}
+          <tr class="{{class}}">
+            <td>{{datasource.name}}</td>
+            <td>{{datasource.datasourceDisplayName}}</td>
+            <td class="actions">
+              <ul>
+                <li><a href="{{path('datasource-exec', {'id': id})}}">{{'Execute'|trans}}</a></li>
+                <li><a href="{{path('datasource-edit', {'id': id})}}">{{'Edit'|trans}}</a></li>
+                <li><a href="{{path('datasource-delete', {'id': id})}}" class="datasource-delete">{{'Delete'|trans}}</a></li>
+              </ul>
+            </td>
+          </tr>
+        {%endfor%}
+      </tbody>
+    </table>
+    {%endif%}
+  {%endif%}
+  {%if form is defined%}
+    {{form(form)}}
+  {%endif%}
+{%endblock%}

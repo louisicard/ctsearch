@@ -1,0 +1,31 @@
+{
+    "sort": {
+        "date": "desc"
+    },
+    "query": {
+        "query_string": {
+            "query": "@search_query@",
+            "default_operator": "AND",
+            "fields": [
+                "message"
+            ]
+        }
+    },
+    "highlight": {
+        "fields": {
+            "message": {
+                "fragment_size": 100,
+                "number_of_fragments": 3,
+                "no_match_size": 200
+            }
+        }
+    },
+    "aggs": {
+        "types": {
+            "terms": {
+                "field": "type",
+                "size": "15"
+            }
+        }
+    }
+}

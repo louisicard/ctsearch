@@ -1,0 +1,22 @@
+{
+    "datasource": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "datasource_name": {
+        "type": "string",
+        "store": true,
+        "analyzer": "case_insensitive_sort"
+    },
+    "definition": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "target": {
+        "type": "string",
+        "store": true,
+        "analyzer": "case_insensitive_sort"
+    }
+}

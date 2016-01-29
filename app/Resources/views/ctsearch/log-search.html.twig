@@ -1,0 +1,79 @@
+{%set main_menu_item='logs'%}
+{%set title="Logs"|trans%}
+{% extends 'ctsearch/base.html.twig' %}
+
+{% block title %}
+  {{title}}
+{% endblock %}
+
+
+{%block main_content%}
+  <div id="search-container" class="search-page search-page-{{searchPage.name}}{%if results._ctsearch.aggregations is defined%} with-aggregations{%endif%}">
+    <form action="" method="get" id="search-page-form">
+      <label for="search_query_string" class="element-invisible">{{"Search"|trans}}</label>
+      <input type="text" id="string" name="q" value="{{querystring}}" placeholder="Search..." />
+      <input type="submit" value="{{"Search"|trans}}" />
+    </form>
+    <div class="results-summary">
+      {%if results.hits.total is defined%}
+      {{'%count% result(s) for search "%search%"'|trans({'%count%': results.hits.total, '%search%': querystring})}}
+      {%endif%}
+    </div>
+    {%if results._ctsearch.aggregations is defined%}
+      <div class="aggregations">
+        {%for agg_name, agg in results._ctsearch.aggregations%}
+          <div class="agg" id="add-{{agg_name}}">
+            <div class="title">{{agg.label}}</div>
+            <ul>
+            {%for value in agg.values%}
+              {%if value.active is defined and value.active%}
+              <li class="active"><a href="{{value.remove_url}}">X</a>{{value.key}} ({{value.doc_count}})</li>
+              {%else%}
+              <li><a href="{{value.link}}">{{value.key}} ({{value.doc_count}})</a></li>
+              {%endif%}
+            {%endfor%}
+            </ul>
+            {%if agg.see_more_link is defined%}
+              <div class="see-more">
+                <a href="{{agg.see_more_link}}" class="ajax-link">{{"See more"|trans}}</a>
+              </div>
+            {%endif%}
+          </div>
+        {%endfor%}
+      </div>
+    {%endif%}
+    {%if results.hits.total is defined and results.hits.total > 0%}
+      <div class="search-results">
+      {{pager|raw}}
+        <table class="logs">
+          <thead>
+            <tr>
+              <th class="date">{{"Date"|trans}}</th>
+              <th class="type">{{"Type"|trans}}</th>
+              <th class="message">{{"Message"|trans}}</th>
+              <th class="object">{{"Object"|trans}}</th>
+            </tr>
+          </thead>
+          <tbody>
+      {%for hit in results.hits.hits%}
+        <tr>
+          <td class="date">{{hit._source.date|date('Y-m-d H:i:s')}}</td>
+          <td class="type">{{hit._source.type}}</td>
+          <td class="message">{{hit._source.message}}</td>
+          <td class="object">{{hit._source.object}}</td>
+        </tr>
+      {%endfor%}
+          </tbody>
+        </table>
+      {{pager|raw}}
+      </div>
+    {%endif%}
+  </div>
+{% endblock %}
+
+{% block javascripts %}
+  <script type="text/javascript" src="{{asset('js/prettyprint.js')}}"></script>
+  <script type="text/javascript" src="{{asset('js/jquery-1.11.3.min.js')}}"></script>
+  <script type="text/javascript" src="{{asset('js/jquery-ui/jquery-ui.min.js')}}"></script>
+  <script type="text/javascript" src="{{asset('js/ctsearch.js')}}"></script>
+{% endblock %}

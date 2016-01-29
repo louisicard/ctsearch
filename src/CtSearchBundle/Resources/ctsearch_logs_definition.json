@@ -1,0 +1,22 @@
+{
+    "date": {
+        "type": "date",
+        "store": true,
+        "format": "date_optional_time"
+    },
+    "message": {
+        "type": "string",
+        "store": true,
+        "analyzer": "standard"
+    },
+    "object": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "type": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    }
+}

@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<schema targetNamespace="http://1dtouch.com/OAI/2.0/oai1dtouch_dc/" 
+        xmlns:oai1dtouch_dc="http://1dtouch.com/OAI/2.0/oai1dtouch_dc/" 
+        xmlns="http://www.w3.org/2001/XMLSchema" 
+        elementFormDefault="qualified" attributeFormDefault="unqualified">
+	
+<annotation>
+  <documentation> 
+      XML Schema XML schema 2014 - 1dtouch.
+  </documentation>
+</annotation>
+
+<element name="oai1dtouch_dc" type="oai1dtouch_dc:oai1dtouch_dcType"/>
+
+<complexType name="oai1dtouch_dcType">
+  <choice minOccurs="0" maxOccurs="unbounded">
+    <element name="id" minOccurs="0" maxOccurs="1"/>
+    <element name="icpn" minOccurs="0" maxOccurs="1"/>
+    <element name="title" minOccurs="1" maxOccurs="1"/>
+    <element name="date" minOccurs="1" maxOccurs="1"/>
+    <element name="label" minOccurs="1" maxOccurs="1"/>
+    <element name="description" minOccurs="0" maxOccurs="1"/>
+    <element name="cover_url" minOccurs="0" maxOccurs="1"/>
+    <element name="url" minOccurs="0" maxOccurs="1"/>
+    <element name="credits" minOccurs="0" maxOccurs="1"/>
+    <element name="artists">
+      <complexType>
+        <sequence>
+          <element name="artist" maxOccurs="unbounded"/>
+        </sequence>
+      </complexType>
+    </element>
+    <element name="styles">
+      <complexType>
+        <sequence>
+          <element name="style" maxOccurs="unbounded"/>
+        </sequence>
+      </complexType>
+    </element>
+    <element name="tracks">
+      <complexType>
+        <sequence>
+          <element name="track" minOccurs="1" maxOccurs="unbounded">
+            <complexType>
+              <sequence>
+                <element name="isrc" minOccurs="0" maxOccurs="1"/>
+                <element name="position" minOccurs="1" maxOccurs="1"/>
+                <element name="title" minOccurs="1" maxOccurs="1"/>
+                <element name="length" minOccurs="1" maxOccurs="1"/>
+                <element name="url" minOccurs="1" maxOccurs="1"/>
+                <element name="artists">
+                  <complexType>
+                    <sequence>
+                      <element name="artist" maxOccurs="unbounded"/>
+                    </sequence>
+                  </complexType>
+                </element>
+              </sequence>
+            </complexType>
+          </element>
+        </sequence>
+      </complexType>
+    </element>
+  </choice>
+</complexType>
+
+</schema>

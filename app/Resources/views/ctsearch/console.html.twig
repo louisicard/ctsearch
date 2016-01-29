@@ -1,0 +1,14 @@
+{% extends 'ctsearch/base.html.twig' %}
+
+
+{%block main_content%}
+  {%if form is defined%}
+    {{form(form, {'attr': {'id': 'form_console'}})}}
+  {%endif%}
+  {%if results is defined%}
+    {{dump(results)}}
+  {%endif%}
+  {%if exception is defined%}
+    {{dump(exception)}}
+  {%endif%}
+{%endblock%}

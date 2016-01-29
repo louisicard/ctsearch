@@ -1,0 +1,3 @@
+ct_search:
+    resource: "@CtSearchBundle/Controller/"
+    type:     annotation
