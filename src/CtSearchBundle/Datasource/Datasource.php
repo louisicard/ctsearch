@@ -154,20 +154,20 @@ abstract class Datasource {
             if ($procFilter->getAutoStriptags()) {
               if ($procFilter->getIsHTML()) {
                 if(!is_array($v)){
-                  $v = $this->extractTextFromHTML($v);
+                  $v = $this->cleanNonUtf8Chars($this->extractTextFromHTML($v));
                 }
                 else{
                   foreach($v as $v_k => $v_v){
-                    $v[$v_k] = $this->extractTextFromHTML($v_v);
+                    $v[$v_k] = $this->cleanNonUtf8Chars($this->extractTextFromHTML($v_v));
                   }
                 }
               } else {
                 if(!is_array($v)){
-                  $v = $this->extractTextFromXML($v);
+                  $v = $this->cleanNonUtf8Chars($this->extractTextFromXML($v));
                 }
                 else{
                   foreach($v as $v_k => $v_v){
-                    $v[$v_k] = $this->extractTextFromXML($v_v);
+                    $v[$v_k] = $this->cleanNonUtf8Chars($this->extractTextFromXML($v_v));
                   }
                 }
               }
@@ -250,10 +250,15 @@ abstract class Datasource {
   }
 
   protected function implode($separator, $input) {
-    return implode($separator, $input);
+    if(is_array($input))
+      return implode($separator, $input);
+    else
+      return $input;
   }
 
   protected function extractTextFromHTML($html) {
+    $html = str_replace('&nbsp;', ' ', $html);
+    $html = str_replace('&rsquo;', ' ', $html);
     try {
       $tidy = tidy_parse_string($html, array(), 'utf8');
       $body = tidy_get_body($tidy);
@@ -263,7 +268,15 @@ abstract class Datasource {
       
     }
     $html = html_entity_decode($html, ENT_COMPAT | ENT_HTML401, 'utf-8');
-    return html_entity_decode(trim(str_replace('&nbsp;', ' ', htmlentities(preg_replace('!\s+!', ' ', trim(preg_replace('#<[^>]+>#', ' ', $html))), null, 'utf-8'))));
+    $html = trim(preg_replace('#<[^>]+>#', ' ', $html));
+    $html_no_multiple_spaces = trim(preg_replace('!\s+!', ' ', $html));
+    if(preg_match('!\s+!', $html) && !empty($html_no_multiple_spaces)){
+      $html = $html_no_multiple_spaces;
+    }
+    $clean_html = html_entity_decode(trim(htmlentities($html, null, 'utf-8')));
+    $r = empty($clean_html) ? $html : $clean_html;
+    
+    return $r;
   }
 
   protected function extractTextFromXML($xml) {
@@ -299,5 +312,23 @@ abstract class Datasource {
   function setOutput($output) {
     $this->output = $output;
   }
-
+  
+  private function cleanNonUtf8Chars($text){
+    if($text == null || empty($text)){
+      return $text;
+    }
+    $regex = <<<'END'
+/
+  (
+    (?: [\x00-\x7F]                 # single-byte sequences   0xxxxxxx
+    |   [\xC0-\xDF][\x80-\xBF]      # double-byte sequences   110xxxxx 10xxxxxx
+    |   [\xE0-\xEF][\x80-\xBF]{2}   # triple-byte sequences   1110xxxx 10xxxxxx * 2
+    |   [\xF0-\xF7][\x80-\xBF]{3}   # quadruple-byte sequence 11110xxx 10xxxxxx * 3 
+    ){1,100}                        # ...one or more times
+  )
+| .                                 # anything else
+/x
+END;
+    return preg_replace($regex, '$1', $text);
+  }
 }

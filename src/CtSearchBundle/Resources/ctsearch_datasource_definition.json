@@ -9,11 +9,6 @@
         "index": "not_analyzed",
         "store": true
     },
-    "last_execution": {
-        "type": "date",
-        "store": true,
-        "format": "date_time"
-    },
     "name": {
         "type": "string",
         "analyzer": "case_insensitive_sort",

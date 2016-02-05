@@ -324,7 +324,6 @@ class IndexManager {
       'body' => array(
         'class' => get_class($datasource),
         'definition' => serialize($datasource->getSettings()),
-        'last_execution' => date('Y-m-d\TH:i:s.000O'),
         'name' => $datasource->getName()
       )
     );

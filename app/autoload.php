@@ -16,6 +16,7 @@ require_once __DIR__ . '/../src/CtSearchBundle/Datasource/JSONParser.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Datasource/OAIHarvester.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Datasource/lib/cmis_repository_wrapper.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Datasource/lib/cmis_service.php';
+require_once __DIR__ . '/../src/CtSearchBundle/Datasource/DrupalCtExport.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Datasource/CMISHarvester.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/ProcessorFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/DefineConstantFilter.php';
