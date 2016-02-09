@@ -132,6 +132,7 @@ class IndexManager {
     $this->getClient()->indices()->delete(array(
       'index' => $index->getIndexName(),
     ));
+    $this->getClient()->indices()->flush();
   }
 
   /**
