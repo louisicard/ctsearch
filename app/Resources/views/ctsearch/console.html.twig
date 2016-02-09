@@ -6,9 +6,9 @@
     {{form(form, {'attr': {'id': 'form_console'}})}}
   {%endif%}
   {%if results is defined%}
-    {{dump(results)}}
+    {{results|raw}}
   {%endif%}
   {%if exception is defined%}
-    {{dump(exception)}}
+    {{exception}}
   {%endif%}
 {%endblock%}

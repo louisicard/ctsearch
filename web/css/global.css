@@ -703,3 +703,10 @@ a.json-link{
 p.server-version{
   margin:10px 0;
 }
+ul.ctsearch-dump,
+ul.ctsearch-dump li{
+  display:block;
+}
+ul.ctsearch-dump ul{
+  padding-left:20px;
+}

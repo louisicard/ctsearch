@@ -35,8 +35,8 @@ class IndexManager {
     }
     return $this->client;
   }
-  
-  function getServerInfo(){
+
+  function getServerInfo() {
     return $this->getClient()->info();
   }
 
@@ -349,7 +349,7 @@ class IndexManager {
       'index' => '.ctsearch',
       'type' => 'datasource',
       'id' => $id,
-      )
+        )
     );
     $this->getClient()->indices()->flush();
   }
@@ -498,7 +498,7 @@ class IndexManager {
       'index' => '.ctsearch',
       'type' => 'processor',
       'id' => $id,
-      )
+        )
     );
     $this->getClient()->indices()->flush();
   }
@@ -661,7 +661,7 @@ class IndexManager {
       'index' => '.ctsearch',
       'type' => 'search_page',
       'id' => $id,
-      )
+        )
     );
     $this->getClient()->indices()->flush();
   }
@@ -698,9 +698,9 @@ class IndexManager {
 
   public function analyze($indexName, $analyzer, $text) {
     return $this->getClient()->indices()->analyze(array(
-        'index' => $indexName,
-        'analyzer' => $analyzer,
-        'text' => $text,
+          'index' => $indexName,
+          'analyzer' => $analyzer,
+          'text' => $text,
     ));
   }
 
@@ -813,7 +813,7 @@ class IndexManager {
       'index' => '.ctsearch',
       'type' => 'matching_list',
       'id' => $id,
-      )
+        )
     );
     $this->getClient()->indices()->flush();
   }
@@ -978,20 +978,28 @@ class IndexManager {
             'text' => $shingle,
             'text_transliterate' => $shingle,
             'counter' => 1,
-            ), false);
+              ), false);
         } else {
           $r = $this->indexDocument($indexName, '.ctsearch-autocomplete', array(
             '_id' => $shingle,
             'text' => $shingle,
             'text_transliterate' => $shingle,
             'counter' => $res['hits']['hits'][0]['_source']['counter'] + 1,
-            ), false);
+              ), false);
         }
       }
       $this->getClient()->indices()->flush(array(
         'index' => $indexName
       ));
     }
+  }
+
+  public function deleteByQuery($indexName, $mappingName, $query) {
+    $this->getClient()->deleteByQuery(array(
+      'index' => $indexName,
+      'type' => $mappingName,
+      'body' => $query
+    ));
   }
 
 }

@@ -20,9 +20,7 @@
         <li{%if main_menu_item=='processors'%} class="active"{%endif%}><a href="{{path('processors')}}" title="{{'Processors'|trans}}">{{'Processors'|trans}}</a></li>
         <li{%if main_menu_item=='search-pages'%} class="active"{%endif%}><a href="{{path('search-pages')}}" title="{{'Search pages'|trans}}">{{'Search pages'|trans}}</a></li>
         <li{%if main_menu_item=='logs'%} class="active"{%endif%}><a href="{{path('show-logs')}}" title="{{'Logs'|trans}}">{{'Logs'|trans}}</a></li>
-        {%if app.environment == "dev"%}
         <li{%if main_menu_item=='console'%} class="active"{%endif%}><a href="{{path('console')}}" title="{{'Console'|trans}}">{{'Console'|trans}}</a></li>
-        {%endif%}
       </ul>
     </nav>
   </header>

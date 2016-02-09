@@ -208,4 +208,44 @@ class ProcessorController extends Controller {
     }
   }
 
+  /**
+   * @Route("/processors/export", name="processor-export")
+   */
+  public function exportProcessorAction(Request $request) {
+    if ($request->get('id')) {
+      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
+      $proc = $indexManager->getProcessor($request->get('id'));
+      if($proc != null){
+        $datasource = $indexManager->getDatasource($proc->getDatasourceId(), $this);
+        $index = $indexManager->getIndex(explode('.', $proc->getTarget())[0]);
+        $mapping = $indexManager->getMapping($index->getIndexName(), explode('.', $proc->getTarget())[1]);
+        $export = array(
+          'index' => array(
+            'name' => explode('.', $proc->getTarget())[0],
+            'settings' => json_decode($index->getSettings(), true)
+          ),
+          'mapping' => array(
+            'name' => $mapping->getMappingName(),
+            'definition' => json_decode($mapping->getMappingDefinition(), true)
+          ),
+          'datasource' => array(
+            'class' => get_class($datasource),
+            'id' => $datasource->getId(),
+            'name' => $datasource->getName(),
+            'settings' => $datasource->getSettings()
+          ),
+          'processor_definition' => json_decode($proc->getDefinition(), true)
+        );
+        return new Response(json_encode($export, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json;charset=utf-8', 'Content-disposition' => 'attachment;filename=processor.json'));
+      }
+      else{
+        CtSearchBundle::addSessionMessage($this, 'error', $this->get('translator')->trans('No processor found for this id'));
+        return $this->redirect($this->generateUrl('processors'));
+      }
+    } else {
+      CtSearchBundle::addSessionMessage($this, 'error', $this->get('translator')->trans('No ID provided'));
+      return $this->redirect($this->generateUrl('processors'));
+    }
+  }
+
 }
