@@ -24,9 +24,11 @@ class DrupalCtExport extends Datasource {
 
   public function execute($execParams = null) {
     try {
-
+      $count = 0;
       $url = 'http://' . $this->getDrupalHost() . '/ct/export?type=' . $this->getContentType();
-      print $url . PHP_EOL;
+      if ($this->getOutput() != null) {
+        $this->getOutput()->writeln('Harvesting url ' . $url);
+      }
       $xml = simplexml_load_file($url);
       foreach ($xml->xpath('/nodes/node') as $node) {
         /* @var $node \SimpleXMLElement */
@@ -39,11 +41,15 @@ class DrupalCtExport extends Datasource {
             ));
           }
         }
+        $count++;
       }
     } catch (Exception $ex) {
       print $ex->getMessage();
     }
 
+    if ($this->getOutput() != null) {
+      $this->getOutput()->writeln('Found ' . $count . ' documents');
+    }
     if ($this->getController() != null) {
       CtSearchBundle::addSessionMessage($this->getController(), 'status', 'Found ' . $count . ' documents');
     }
