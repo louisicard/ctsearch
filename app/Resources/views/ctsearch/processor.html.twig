@@ -3,6 +3,9 @@
 
 {%block main_content%}
   {%if processors is defined%}
+    <ul class="actions">
+      <li><a href="{{path('processor-import')}}">{{'Import'|trans}}</a></li>
+    </ul>
     {%if form_add_processor is defined%}
       {{ form(form_add_processor, {'attr': {'id': 'form_add_processor'}}) }}
     {%endif%}
@@ -37,6 +40,9 @@
   {%endif%}
   {%if form is defined%}
     {{form(form, {'attr': {'id': 'form_processor'}})}}
+  {%endif%}
+  {%if import_form is defined%}
+    {{form(import_form, {'attr': {'id': 'import_form_processor'}})}}
   {%endif%}
   <script type="text/javascript">
     var __filter_types = [];
