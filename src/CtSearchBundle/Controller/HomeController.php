@@ -18,10 +18,13 @@ class HomeController extends Controller {
 
     
     $info = $indexManager->getElasticInfo();
+    
+    $serverInfo = $indexManager->getServerInfo();
 
     return $this->render('ctsearch/homepage.html.twig', array(
           'title' => $this->get('translator')->trans('Welcome to Ct search'),
           'info' => $info,
+          'server_info' => $serverInfo,
           'main_menu_item' => 'home',
     ));
   }

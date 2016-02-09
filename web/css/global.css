@@ -700,3 +700,6 @@ a.json-link{
   font-family: 'Courier', sans-serif;
   font-size:12px;
 }
+p.server-version{
+  margin:10px 0;
+}

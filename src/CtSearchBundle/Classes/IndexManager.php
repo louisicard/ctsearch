@@ -35,6 +35,10 @@ class IndexManager {
     }
     return $this->client;
   }
+  
+  function getServerInfo(){
+    return $this->getClient()->info();
+  }
 
   function getElasticInfo() {
     $info = array();

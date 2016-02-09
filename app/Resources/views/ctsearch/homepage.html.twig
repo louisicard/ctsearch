@@ -2,6 +2,10 @@
 
 
 {%block main_content%}
+  <p class="server-version">
+    <strong>{%trans%}Server version{%endtrans%}:</strong>
+    <span>{{server_info.version.number}}</span>
+  </p>
   <h2>{%trans%}Indexes on the server{%endtrans%}</h2>
   {%if info|length > 0%}
     <table>
