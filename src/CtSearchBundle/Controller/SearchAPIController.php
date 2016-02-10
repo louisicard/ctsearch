@@ -223,7 +223,7 @@ class SearchAPIController extends Controller {
           return new Response(json_encode(array('error' => $ex->getMessage())), 500, array('Content-type' => 'application/json;charset=utf-8'));
         }
         if(isset($res['hits'])){
-          return new Response(json_encode($res['hits'], JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json;charset=utf-8'));
+          return new Response(json_encode($res, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json;charset=utf-8'));
         }
         else{
           return new Response('{"error": "Search failed"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
