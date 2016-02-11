@@ -38,6 +38,12 @@ class XMLParserToArrayFilter extends ProcessorFilter {
   
   private function serializeXml(\SimpleXMLElement $xml){
     $r = array();
+    foreach($xml->attributes() as $attr){
+      $r['@attributes'][$attr->getName()] = (string)$attr;
+    }
+    if($xml->children()->count() === 0){
+      $r['@value'] = (string)$xml;
+    }
     foreach($xml->children() as $child){
       foreach($child->attributes() as $attr){
         $val = array();

@@ -18,6 +18,7 @@ require_once __DIR__ . '/../src/CtSearchBundle/Datasource/lib/cmis_repository_wr
 require_once __DIR__ . '/../src/CtSearchBundle/Datasource/lib/cmis_service.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Datasource/DrupalCtExport.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Datasource/CMISHarvester.php';
+require_once __DIR__ . '/../src/CtSearchBundle/Datasource/XMLParser.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/ProcessorFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/DefineConstantFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/HTMLTextExtractorFilter.php';
