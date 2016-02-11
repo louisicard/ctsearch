@@ -48,7 +48,8 @@ class AssociativeArraySelectorFilter extends ProcessorFilter {
           }
         }
       }
-      return array('value' => $tmp);
+      if(isset($tmp))
+        return array('value' => $tmp);
     }
     return array('value' => null);
   }
