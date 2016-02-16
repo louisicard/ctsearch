@@ -710,3 +710,13 @@ ul.ctsearch-dump li{
 ul.ctsearch-dump ul{
   padding-left:20px;
 }
+.console-table-wrapper{
+  width:100%;
+  overflow:auto;
+}
+.console-table-wrapper table td{
+  min-width:200px;
+}
+.console-sumary{
+  margin:10px 0;
+}

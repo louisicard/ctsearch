@@ -5,8 +5,51 @@
   {%if form is defined%}
     {{form(form, {'attr': {'id': 'form_console'}})}}
   {%endif%}
+  <!--
   {%if results is defined%}
     {{results|raw}}
+  {%endif%}
+  -->
+  {%if engine_response is defined%}
+    <h3>{{"Query results"|trans}}</h3>
+    <div class="console-sumary">
+      <p><strong>{{"Total results"|trans}}:</strong> {{engine_response.total}}
+      <p><strong>{{"Displayed results count"|trans}}:</strong> {{engine_response.hits|length}}
+    </div>
+    <div class="console-table-wrapper">
+      <table class="console-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            {%for col in engine_response.cols%}
+            <th>{{col}}</th>  
+            {%endfor%}
+          </tr>
+        </thead>
+        <tbody>
+          {%for hit in engine_response.hits%}
+          <tr>
+            <td>{{hit._id}}</td>
+            <td>{{hit._type}}</td>
+            {%for col in engine_response.cols%}
+              {%if hit._source[col] is defined%}
+                <td>
+                  {%if hit._source[col] is not iterable %}
+                    {{hit._source[col]|raw}}
+                  {%else%}
+                    Array
+                  {%endif%}
+                </td>
+              {%else%}
+                <td>-</td>
+              {%endif%}
+            {%endfor%}
+          </tr>
+          {%endfor%}
+        </tbody>
+      </table>
+    </div>
   {%endif%}
   {%if exception is defined%}
     {{exception}}
