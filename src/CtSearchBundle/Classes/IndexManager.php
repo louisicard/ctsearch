@@ -1003,4 +1003,97 @@ class IndexManager {
     ));
   }
 
+  public function saveSavedQuery($target, $definition, $id = null) {
+    if ($this->getIndex('.ctsearch') == null) {
+      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_index_settings.json');
+      $this->createIndex(new Index('.ctsearch', $settingsDefinition));
+    }
+    if ($this->getMapping('.ctsearch', 'saved_query') == null) {
+      $savedQueryDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_saved_query_definition.json');
+      $this->updateMapping(new Mapping('.ctsearch', 'saved_query', $savedQueryDefinition));
+    }
+    $params = array(
+      'index' => '.ctsearch',
+      'type' => 'saved_query',
+      'body' => array(
+        'definition' => $definition,
+        'target' => $target
+      )
+    );
+    if ($id != null) {
+      $params['id'] = $id;
+    }
+    $r = $this->getClient()->index($params);
+    $this->getClient()->indices()->flush();
+    return $r;
+  }
+
+  function getSavedQuery($id) {
+    if ($this->getIndex('.ctsearch') != null) {
+      try {
+        $r = $this->getClient()->search(array(
+          'index' => '.ctsearch',
+          'type' => 'saved_query',
+          'body' => array(
+            'query' => array(
+              'match' => array(
+                '_id' => $id,
+              )
+            )
+          )
+        ));
+        if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
+          $hit = $r['hits']['hits'][0];
+          return $hit['_source'];
+        }
+        return null;
+      } catch (\Exception $ex) {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
+
+  function getSavedQueries()
+  {
+    $list = array();
+    if ($this->getIndex('.ctsearch') != null) {
+      try {
+        $r = $this->getClient()->search(array(
+          'index' => '.ctsearch',
+          'type' => 'saved_query',
+          'body' => array(
+            'query' => array(
+              'type' => array(
+                'value' => 'saved_query',
+              )
+            )
+          )
+        ));
+        if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
+          foreach ($r['hits']['hits'] as $hit) {
+            $list[] = array(
+              'id' => $hit['_id']
+            ) + $hit['_source'];
+          }
+        }
+      } catch (\Exception $ex) {
+
+      }
+    }
+    return $list;
+
+  }
+
+  public function deleteSavedQuery($id) {
+    $this->getClient()->delete(array(
+        'index' => '.ctsearch',
+        'type' => 'saved_query',
+        'id' => $id,
+      )
+    );
+    $this->getClient()->indices()->flush();
+  }
+
 }

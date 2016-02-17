@@ -3,6 +3,7 @@
 
 {%block main_content%}
   {%if form is defined%}
+    <ul class="actions"><li><a href="{{path('console-load')}}">{{ "Load an existing query"|trans }}</a></li></ul>
     {{form(form, {'attr': {'id': 'form_console'}})}}
   {%endif%}
   <!--
@@ -15,6 +16,14 @@
     <div class="console-sumary">
       <p><strong>{{"Total results"|trans}}:</strong> {{engine_response.total}}
       <p><strong>{{"Displayed results count"|trans}}:</strong> {{engine_response.hits|length}}
+      <ul class="actions">
+      {% if save_url is defined %}
+        <li><a href="{{ save_url }}">{{ "Save this query"|trans }}</a></li>
+      {% endif %}
+      {% if clone_url is defined %}
+        <li><a href="{{ clone_url }}">{{ "Clone this query"|trans }}</a></li>
+      {% endif %}
+      </ul>
     </div>
     <div class="console-table-wrapper">
       <table class="console-table">
@@ -54,4 +63,34 @@
   {%if exception is defined%}
     {{exception}}
   {%endif%}
+
+  {%if list is defined%}
+    <table id="saved-queries-table">
+      <thead>
+      <tr>
+        <th>{{'Target'|trans}}</th>
+        <th>{{'Query'|trans}}</th>
+        <th>{{'ID'|trans}}</th>
+        <th>&nbsp;</th>
+      </tr>
+      </thead>
+      <tbody>
+      {%set class='even'%}
+      {%for query in list%}
+        {%if class=='even'%}{%set class='odd'%}{%else%}{%set class='even'%}{%endif%}
+        <tr class="{{class}}">
+          <td>{{query.target}}</td>
+          <td>{{query.definition}}</td>
+          <td>{{query.id}}</td>
+          <td class="actions">
+            <ul>
+              <li><a href="{{path('console', {'id': query.id})}}">{{'Load'|trans}}</a></li>
+              <li><a href="{{path('console-delete', {'id': query.id})}}">{{'Delete'|trans}}</a></li>
+            </ul>
+          </td>
+        </tr>
+      {%endfor%}
+      </tbody>
+    </table>
+  {% endif %}
 {%endblock%}

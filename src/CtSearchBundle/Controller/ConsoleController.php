@@ -2,10 +2,12 @@
 
 namespace CtSearchBundle\Controller;
 
+use CtSearchBundle\CtSearchBundle;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use CtSearchBundle\Classes\IndexManager;
+use Symfony\Component\HttpFoundation\Response;
 
 class ConsoleController extends Controller {
 
@@ -30,9 +32,12 @@ class ConsoleController extends Controller {
       $data["searchQuery"] = json_encode(json_decode($data["searchQuery"]), JSON_PRETTY_PRINT);
       $event->setData($data);
     };
+    if($request->get('id') != null){
+      $savedQuery = $indexManager->getSavedQuery($request->get('id'));
+    }
     $values = array(
-      'mapping' => null,
-      'searchQuery' => json_encode(array('query' => array('match_all' => new \stdClass())), JSON_PRETTY_PRINT),
+      'mapping' => isset($savedQuery['target']) ? $savedQuery['target'] : null,
+      'searchQuery' => isset($savedQuery['definition']) ? $savedQuery['definition'] : json_encode(array('query' => array('match_all' => new \stdClass())), JSON_PRETTY_PRINT),
       'deleteByQuery' => false,
     );
     $form = $this->createFormBuilder($values)
@@ -63,13 +68,25 @@ class ConsoleController extends Controller {
       $data = $form->getData();
       $query = $data['searchQuery'];
       $query_r = json_decode($data['searchQuery'], true);
-      $index = explode('.', $data['mapping'])[0];
-      $mapping = explode('.', $data['mapping'])[1];
+      $index = strpos($data['mapping'], '.') !== 0 ? explode('.', $data['mapping'])[0] : '.' . explode('.', $data['mapping'])[1];
+      $mapping = strpos($data['mapping'], '.') !== 0 ? explode('.', $data['mapping'])[1] : explode('.', $data['mapping'])[2];
       try {
         if (!$data['deleteByQuery']) {
           $res = $indexManager->search($index, $query, isset($query_r['from']) ? $query_r['from'] : 0, isset($query_r['size']) ? $query_r['size'] : 20);
           $params['results'] = $this->dumpVar($res);
           $params['engine_response'] = $this->getFormattedEngineReponse($res);
+          $saveUrlParams = array();
+          if($request->get('id') != null){
+            $saveUrlParams['id'] = $request->get('id');
+          }
+          $saveUrlParams['target'] = $data['mapping'];
+          $saveUrlParams['query'] = $data['searchQuery'];
+          $saveUrl = $this->generateUrl('console-save', $saveUrlParams);
+          $params['save_url'] = $saveUrl;
+          if(isset($saveUrlParams['id'])){
+            unset($saveUrlParams['id']);
+            $params['clone_url'] = $this->generateUrl('console-save', $saveUrlParams);
+          }
         } else {
           $indexManager->deleteByQuery($index, $mapping, $query);
         }
@@ -78,6 +95,44 @@ class ConsoleController extends Controller {
       }
     }
     return $this->render('ctsearch/console.html.twig', $params);
+  }
+
+  /**
+   * @Route("/console/save", name="console-save")
+   */
+  public function saveQueryAction(Request $request) {
+    $id = $request->get('id');
+    $target = $request->get('target');
+    $query = $request->get('query');
+    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
+    $r = $indexManager->saveSavedQuery($target, $query, $id);
+    CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Your query has been saved'));
+    return $this->redirectToRoute('console', array('id' => $r['_id']));
+  }
+
+  /**
+   * @Route("/console/load", name="console-load")
+   */
+  public function loadQueryAction(Request $request) {
+    $params = array(
+      'title' => $this->get('translator')->trans('Console'),
+      'main_menu_item' => 'console',
+    );
+    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
+    $list = $indexManager->getSavedQueries();
+    $params['list'] = $list;
+    return $this->render('ctsearch/console.html.twig', $params);
+  }
+
+  /**
+   * @Route("/console/delete", name="console-delete")
+   */
+  public function deleteQueryAction(Request $request) {
+    $id = $request->get('id');
+    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
+    $r = $indexManager->deleteSavedQuery($id);
+    CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Your query has been deleted'));
+    return $this->redirectToRoute('console-load');
   }
   
   private function getFormattedEngineReponse($res){
