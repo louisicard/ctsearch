@@ -27,26 +27,30 @@ class DrupalCtExport extends Datasource {
       $count = 0;
       if(isset($execParams['xml'])){
         $xml = simplexml_load_string($execParams['xml']);
+        $this->processXML($xml, $count);
       }
       else{
-        $url = 'http://' . $this->getDrupalHost() . '/ct/export?type=' . $this->getContentType();
+        $url = 'http://' . $this->getDrupalHost() . '/ct/export';
+        if($this->getContentType() != null && strlen($this->getContentType()) > 0){
+          $url .= '?type=' . $this->getContentType();
+          $url_sep = '&';
+        }
+        else{
+          $url_sep = '?';
+        }
         if ($this->getOutput() != null) {
           $this->getOutput()->writeln('Harvesting url ' . $url);
         }
         $xml = simplexml_load_file($url);
-      }
-      foreach ($xml->xpath('/nodes/node') as $node) {
-        /* @var $node \SimpleXMLElement */
-        foreach ($node->attributes() as $attr) {
-          if ($attr->getName() == 'nid') {
-            $nid = (string) $attr . PHP_EOL;
-            $this->index(array(
-              'id' => trim($nid),
-              'xml' => $node->asXML()
-            ));
+        $page = 1;
+        while(count($xml->xpath('/nodes/node')) > 0){
+          $this->processXML($xml, $count);
+          $page++;
+          $xml = simplexml_load_file($url . $url_sep . 'page=' . $page);
+          if ($this->getOutput() != null) {
+            $this->getOutput()->writeln('Harvesting url ' . $url . $url_sep . 'page=' . $page);
           }
         }
-        $count++;
       }
     } catch (Exception $ex) {
       print $ex->getMessage();
@@ -59,6 +63,29 @@ class DrupalCtExport extends Datasource {
       CtSearchBundle::addSessionMessage($this->getController(), 'status', 'Found ' . $count . ' documents');
     }
   }
+  
+  /**
+   * 
+   * @param \SimpleXMLElement $xml
+   */
+  private function processXML($xml, &$count){
+    foreach ($xml->xpath('/nodes/node') as $node) {
+      /* @var $node \SimpleXMLElement */
+      $nid = count($node->xpath('@nid')) > 0 ? (string)$node->xpath('@nid')[0] : null;
+      $export_id = count($node->xpath('export-id')) > 0 ? (string)$node->xpath('export-id')[0] : null;
+      if($nid != null && $export_id != null){
+        if ($this->getOutput() != null) {
+          $this->getOutput()->writeln(($count + 1) . '/ Indexing ' . $export_id . ' ==> Type = ' . (string)$node->xpath('type')[0]);
+        }
+        $this->index(array(
+          'nid' => $nid,
+          'export_id' => $export_id,
+          'xml' => $node,
+        ));
+        $count++;
+      }
+    }
+  }
 
   public function getSettingsForm() {
     if ($this->getController() != null) {
@@ -69,7 +96,7 @@ class DrupalCtExport extends Datasource {
           ))
           ->add('contentType', 'text', array(
             'label' => $this->getController()->get('translator')->trans('Content type name'),
-            'required' => true
+            'required' => false
           ))
           ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Save')));
       return $formBuilder;
@@ -90,7 +117,8 @@ class DrupalCtExport extends Datasource {
 
   public function getFields() {
     return array(
-      'id',
+      'nid',
+      'export_id',
       'xml',
     );
   }

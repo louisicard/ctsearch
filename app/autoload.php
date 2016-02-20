@@ -33,5 +33,6 @@ require_once __DIR__ . '/../src/CtSearchBundle/Processor/XMLParserFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/MatchingListFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/AssociativeArraySelectorFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/XMLParserToArrayFilter.php';
+require_once __DIR__ . '/../src/CtSearchBundle/Processor/XPathGetterFilter.php';
 
 return $loader;

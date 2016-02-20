@@ -1063,13 +1063,7 @@ class IndexManager {
         $r = $this->getClient()->search(array(
           'index' => '.ctsearch',
           'type' => 'saved_query',
-          'body' => array(
-            'query' => array(
-              'type' => array(
-                'value' => 'saved_query',
-              )
-            )
-          )
+          'size' => 9999
         ));
         if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
           foreach ($r['hits']['hits'] as $hit) {
@@ -1079,7 +1073,7 @@ class IndexManager {
           }
         }
       } catch (\Exception $ex) {
-
+        
       }
     }
     return $list;
