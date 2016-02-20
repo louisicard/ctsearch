@@ -25,11 +25,16 @@ class DrupalCtExport extends Datasource {
   public function execute($execParams = null) {
     try {
       $count = 0;
-      $url = 'http://' . $this->getDrupalHost() . '/ct/export?type=' . $this->getContentType();
-      if ($this->getOutput() != null) {
-        $this->getOutput()->writeln('Harvesting url ' . $url);
+      if(isset($execParams['xml'])){
+        $xml = simplexml_load_string($execParams['xml']);
       }
-      $xml = simplexml_load_file($url);
+      else{
+        $url = 'http://' . $this->getDrupalHost() . '/ct/export?type=' . $this->getContentType();
+        if ($this->getOutput() != null) {
+          $this->getOutput()->writeln('Harvesting url ' . $url);
+        }
+        $xml = simplexml_load_file($url);
+      }
       foreach ($xml->xpath('/nodes/node') as $node) {
         /* @var $node \SimpleXMLElement */
         foreach ($node->attributes() as $attr) {
