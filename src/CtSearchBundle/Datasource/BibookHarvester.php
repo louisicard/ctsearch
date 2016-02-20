@@ -44,6 +44,8 @@ class BibokHarverster extends Datasource {
             ));
             $count++;
           }
+          unset($docs);
+          unset($xml);
         }
       }
     } catch (Exception $ex) {
