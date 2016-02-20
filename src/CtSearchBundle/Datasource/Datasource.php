@@ -176,6 +176,8 @@ abstract class Datasource {
               $data['filter_' . $filter['id'] . '.' . $k] = $v;
             }
           }
+          unset($procFilter);
+          unset($filterOutput);
         }
         if (!empty($data)) {
           $to_index = array();
@@ -225,6 +227,8 @@ abstract class Datasource {
         unset($data);
       if(isset($to_index))
         unset($to_index);
+      if(isset($indexManager))
+        unset($indexManager);
     } catch (Exception $ex) {
       //var_dump($ex->getMessage());
       $indexManager->log('error', 'Exception occured while indexing document from datasource "' . $this->getName() . '"', array(
