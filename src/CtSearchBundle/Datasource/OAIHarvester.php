@@ -73,6 +73,7 @@ class OAIHarvester extends Datasource {
       }
 
       $this->index($document);
+      unset($document);
       $count ++;
     }
     if ($xpath->query('oai:ListRecords/oai:resumptionToken')->length > 0 && !empty($xpath->query('oai:ListRecords/oai:resumptionToken')->item(0)->textContent)) {
