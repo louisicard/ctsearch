@@ -175,7 +175,9 @@ abstract class Datasource {
             if ($v != null) {
               $data['filter_' . $filter['id'] . '.' . $k] = $v;
             }
+            unset($v);
           }
+          unset($filter);
           unset($procFilter);
           unset($filterOutput);
         }
@@ -220,6 +222,7 @@ abstract class Datasource {
           }
 
         }
+        unset($proc);
       }
       if(isset($processors))
         unset($processors);
