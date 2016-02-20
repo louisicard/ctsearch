@@ -180,6 +180,7 @@ abstract class Datasource {
           unset($filter);
           unset($procFilter);
           unset($filterOutput);
+          unset($filterData);
         }
         if (!empty($data)) {
           $to_index = array();
