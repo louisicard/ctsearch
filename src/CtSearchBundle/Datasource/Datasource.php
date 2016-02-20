@@ -224,6 +224,8 @@ abstract class Datasource {
         }
         unset($proc);
       }
+      if(isset($definition))
+        unset($definition);
       if(isset($processors))
         unset($processors);
       if(isset($data))
