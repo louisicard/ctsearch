@@ -219,6 +219,12 @@ abstract class Datasource {
 
         }
       }
+      if(isset($processors))
+        unset($processors);
+      if(isset($data))
+        unset($data);
+      if(isset($to_index))
+        unset($to_index);
     } catch (Exception $ex) {
       //var_dump($ex->getMessage());
       $indexManager->log('error', 'Exception occured while indexing document from datasource "' . $this->getName() . '"', array(
@@ -238,6 +244,7 @@ abstract class Datasource {
         'Data in process' => isset($data) ? $this->truncateArray($data) : array(),
       ));
     }
+    
   }
 
   private function truncateArray($array) {

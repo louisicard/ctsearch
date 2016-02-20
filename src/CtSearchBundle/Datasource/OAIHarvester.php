@@ -59,7 +59,8 @@ class OAIHarvester extends Datasource {
         $xpath->registerNamespace('oai', $node->nodeValue);
       }
     }
-    foreach ($xpath->query('oai:ListRecords/oai:record') as $item) {
+    $items = $xpath->query('oai:ListRecords/oai:record');
+    foreach ($items as $index => $item) {
       $document = array();
       if ($xpath->query('oai:header/oai:identifier', $item)->length > 0)
         $document['identifier'] = $xpath->query('oai:header/oai:identifier', $item)->item(0)->textContent;
@@ -74,6 +75,7 @@ class OAIHarvester extends Datasource {
 
       $this->index($document);
       unset($document);
+      unset($items[$index]);
       $count ++;
     }
     if ($xpath->query('oai:ListRecords/oai:resumptionToken')->length > 0 && !empty($xpath->query('oai:ListRecords/oai:resumptionToken')->item(0)->textContent)) {
