@@ -91,6 +91,7 @@ class MatchingListFilter extends ProcessorFilter {
           }
         }
       }
+      unset($list);
       if (count($output) == 0) {
         $output = null;
       } elseif (count($output) == 1) {
