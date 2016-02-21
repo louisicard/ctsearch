@@ -33,8 +33,12 @@ class XPathGetterFilter extends ProcessorFilter {
       $settings = $this->getSettings();
       $xml = $this->getArgumentValue('xml', $document);
       /* @var $xml \SimpleXMLElement */
-      
-      $r = $xml->xpath($settings['xpath']);
+      if(get_class($xml) == 'SimpleXMLElement'){
+        $r = $xml->xpath($settings['xpath']);
+      }
+      else{
+        $r = array();
+      }
       
       if(count($r) == 1 && strlen(trim((string)$r[0])) > 0){
         return array('value' => trim((string)$r[0]));
