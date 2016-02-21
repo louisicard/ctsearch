@@ -10,6 +10,7 @@ class OAIHarvester extends Datasource {
   private $oaiServerUrl;
   private $sets;
   private $metaDataPrefix;
+  private $cookies = '';
 
   public function getSettings() {
     return array(
@@ -28,12 +29,11 @@ class OAIHarvester extends Datasource {
   public function execute($execParams = null) {
     $sets = array_map('trim', explode(',', $this->getSets()));
     $count = 0;
-    if(count($sets) > 0){
+    if (count($sets) > 0) {
       foreach ($sets as $set) {
         $count += $this->harvest($set);
       }
-    }
-    else{
+    } else {
       $this->harvest(NULL);
     }
     if ($this->getController() != null) {
@@ -50,7 +50,7 @@ class OAIHarvester extends Datasource {
     if ($this->getOutput() != null) {
       $this->getOutput()->writeln('Harvesting url ' . $url);
     }
-    $doc->load($url);
+    $doc->loadXML($this->getContentFromUrl($url));
     $xpath = new \DOMXPath($doc);
     $result = $xpath->query("//namespace::*");
 
@@ -78,7 +78,7 @@ class OAIHarvester extends Datasource {
       $count ++;
     }
     unset($items);
-    if(isset($item))
+    if (isset($item))
       unset($item);
     if ($xpath->query('oai:ListRecords/oai:resumptionToken')->length > 0 && !empty($xpath->query('oai:ListRecords/oai:resumptionToken')->item(0)->textContent)) {
       $token = $xpath->query('oai:ListRecords/oai:resumptionToken')->item(0)->textContent;
@@ -90,22 +90,68 @@ class OAIHarvester extends Datasource {
     return $count;
   }
 
+  private function getContentFromUrl($url) {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HEADER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    if(!empty($this->cookies)){
+      curl_setopt($ch, CURLOPT_COOKIE, $this->cookies);
+    }
+    $r = curl_exec($ch);
+    $response = $this->parseHttpResponse($r);
+    if(isset($response['headers']['set-cookie'])){
+      $this->cookies = $response['headers']['set-cookie'];
+    }
+    return $response['content'];
+  }
+
+  private function parseHttpResponse($string) {
+
+    $headers = array();
+    $content = '';
+    $str = strtok($string, "\n");
+    $h = null;
+    while ($str !== false) {
+      if ($h and trim($str) === '') {
+        $h = false;
+        continue;
+      }
+      if ($h !== false and false !== strpos($str, ':')) {
+        $h = true;
+        list($headername, $headervalue) = explode(':', trim($str), 2);
+        $headername = strtolower($headername);
+        $headervalue = ltrim($headervalue);
+        if (isset($headers[$headername]))
+          $headers[$headername] .= ',' . $headervalue;
+        else
+          $headers[$headername] = $headervalue;
+      }
+      if ($h === false) {
+        $content .= $str . "\n";
+      }
+      $str = strtok("\n");
+    }
+    return array('headers' => $headers, 'content' => trim($content));
+  }
+
   public function getSettingsForm() {
     if ($this->getController() != null) {
       $formBuilder = parent::getSettingsForm();
       $formBuilder->add('oaiServerUrl', 'text', array(
-            'label' => $this->getController()->get('translator')->trans('OAI server URL'),
-            'required' => true
-          ))
-          ->add('sets', 'text', array(
-            'label' => $this->getController()->get('translator')->trans('Sets to harvest (comma separated)'),
-            'required' => false
-          ))
-          ->add('metaDataPrefix', 'text', array(
-            'label' => $this->getController()->get('translator')->trans('Metadata prefix'),
-            'required' => false
-          ))
-          ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Save')));
+          'label' => $this->getController()->get('translator')->trans('OAI server URL'),
+          'required' => true
+        ))
+        ->add('sets', 'text', array(
+          'label' => $this->getController()->get('translator')->trans('Sets to harvest (comma separated)'),
+          'required' => false
+        ))
+        ->add('metaDataPrefix', 'text', array(
+          'label' => $this->getController()->get('translator')->trans('Metadata prefix'),
+          'required' => false
+        ))
+        ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Save')));
       return $formBuilder;
     } else {
       return null;
@@ -114,7 +160,7 @@ class OAIHarvester extends Datasource {
 
   public function getExcutionForm() {
     $formBuilder = $this->getController()->createFormBuilder()
-        ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Execute')));
+      ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Execute')));
     return $formBuilder;
   }
 
