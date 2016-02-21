@@ -17,9 +17,8 @@ class SearchAPIController extends Controller {
    */
   public function searchAPIV2Action(Request $request) {
     if ($request->get('mapping') != null) {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
       if (count(explode('.', $request->get('mapping'))) == 2) {
-        $mapping = $indexManager->getMapping(explode('.', $request->get('mapping'))[0], explode('.', $request->get('mapping'))[1]);
+        $mapping = IndexManager::getInstance()->getMapping(explode('.', $request->get('mapping'))[0], explode('.', $request->get('mapping'))[1]);
         $definition = json_decode($mapping->getMappingDefinition(), true);
         $analyzed_fields = array();
         $nested_analyzed_fields = array();
@@ -218,7 +217,7 @@ class SearchAPIController extends Controller {
           );
         }
         try {
-          $res = $indexManager->search(explode('.', $request->get('mapping'))[0], json_encode($query), $request->get('from') != null ? $request->get('from') : 0,  $request->get('size') != null ? $request->get('size') : 10);
+          $res = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], json_encode($query), $request->get('from') != null ? $request->get('from') : 0,  $request->get('size') != null ? $request->get('size') : 10);
         } catch (\Exception $ex) {
           return new Response(json_encode(array('error' => $ex->getMessage())), 500, array('Content-type' => 'application/json;charset=utf-8'));
         }

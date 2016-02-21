@@ -17,8 +17,7 @@ class DatasourceController extends Controller {
    * @Route("/datasources", name="datasources")
    */
   public function listDatasourcesAction(Request $request) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-    $datasourceTypes = $indexManager->getDatasourceTypes();
+    $datasourceTypes = IndexManager::getInstance()->getDatasourceTypes();
     $form = $this->createFormBuilder(null)
       ->add('dataSourceType', 'choice', array(
         'choices' => array('' => $this->get('translator')->trans('Add a new datasource')) + $datasourceTypes,
@@ -36,7 +35,7 @@ class DatasourceController extends Controller {
     return $this->render('ctsearch/datasource.html.twig', array(
         'title' => $this->get('translator')->trans('Data sources'),
         'main_menu_item' => 'datasources',
-        'datasources' => $indexManager->getDatasources($this),
+        'datasources' => IndexManager::getInstance()->getDatasources($this),
         'form_add_datasource' => $form->createView()
     ));
   }
@@ -51,8 +50,7 @@ class DatasourceController extends Controller {
       $form = $instance->getSettingsForm()->getForm();
       $form->handleRequest($request);
       if ($form->isValid()) {
-        $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-        $indexManager->saveDatasource($form->getData());
+        IndexManager::getInstance()->saveDatasource($form->getData());
         CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Datasource has been added'));
         return $this->redirect($this->generateUrl('datasources'));
       }
@@ -72,12 +70,11 @@ class DatasourceController extends Controller {
    */
   public function editDatasourceAction(Request $request) {
     if ($request->get('id') != null) {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $instance = $indexManager->getDatasource($request->get('id'), $this);
+      $instance = IndexManager::getInstance()->getDatasource($request->get('id'), $this);
       $form = $instance->getSettingsForm()->getForm();
       $form->handleRequest($request);
       if ($form->isValid()) {
-        $indexManager->saveDatasource($form->getData(), $request->get('id'));
+        IndexManager::getInstance()->saveDatasource($form->getData(), $request->get('id'));
         CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Datasource has been updated'));
         return $this->redirect($this->generateUrl('datasources'));
       }
@@ -97,8 +94,7 @@ class DatasourceController extends Controller {
    */
   public function deleteDatasourceAction(Request $request) {
     if ($request->get('id') != null) {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $indexManager->deleteDatasource($request->get('id'));
+      IndexManager::getInstance()->deleteDatasource($request->get('id'));
       CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Datasource has been deleted'));
     } else {
       CtSearchBundle::addSessionMessage($this, 'error', $this->get('translator')->trans('No id provided'));
@@ -111,8 +107,7 @@ class DatasourceController extends Controller {
    */
   public function executeDatasourceAction(Request $request) {
     if ($request->get('id') != null) {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $instance = $indexManager->getDatasource($request->get('id'), $this);
+      $instance = IndexManager::getInstance()->getDatasource($request->get('id'), $this);
       $form = $instance->getExcutionForm()->getForm();
       $form->handleRequest($request);
       if ($form->isValid()) {
@@ -153,8 +148,7 @@ class DatasourceController extends Controller {
     $form->handleRequest($request);
     if ($form->isValid()) {
       $data = $form->getData();
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $datasource = $indexManager->getDatasource($data['datasourceId'], $this);
+      $datasource = IndexManager::getInstance()->getDatasource($data['datasourceId'], $this);
       unset($data['datasourceId']);
       $datasource->handleDataFromCallback($data);
     }

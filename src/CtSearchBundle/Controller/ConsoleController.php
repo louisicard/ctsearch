@@ -15,8 +15,7 @@ class ConsoleController extends Controller {
    * @Route("/console", name="console")
    */
   public function consoleAction(Request $request) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-    $indexes = $indexManager->getElasticInfo();
+    $indexes = IndexManager::getInstance()->getElasticInfo();
     $targetChoices = array();
     foreach ($indexes as $indexName => $info) {
       $choices = array();
@@ -33,7 +32,7 @@ class ConsoleController extends Controller {
       $event->setData($data);
     };
     if($request->get('id') != null){
-      $savedQuery = $indexManager->getSavedQuery($request->get('id'));
+      $savedQuery = IndexManager::getInstance()->getSavedQuery($request->get('id'));
     }
     $values = array(
       'mapping' => isset($savedQuery['target']) ? $savedQuery['target'] : null,
@@ -72,7 +71,7 @@ class ConsoleController extends Controller {
       $mapping = strpos($data['mapping'], '.') !== 0 ? explode('.', $data['mapping'])[1] : explode('.', $data['mapping'])[2];
       try {
         if (!$data['deleteByQuery']) {
-          $res = $indexManager->search($index, $query, isset($query_r['from']) ? $query_r['from'] : 0, isset($query_r['size']) ? $query_r['size'] : 20);
+          $res = IndexManager::getInstance()->search($index, $query, isset($query_r['from']) ? $query_r['from'] : 0, isset($query_r['size']) ? $query_r['size'] : 20);
           $params['results'] = $this->dumpVar($res);
           $params['engine_response'] = $this->getFormattedEngineReponse($res);
           $saveUrlParams = array();
@@ -88,7 +87,7 @@ class ConsoleController extends Controller {
             $params['clone_url'] = $this->generateUrl('console-save', $saveUrlParams);
           }
         } else {
-          $indexManager->deleteByQuery($index, $mapping, $query);
+          IndexManager::getInstance()->deleteByQuery($index, $mapping, $query);
         }
       } catch (\Exception $ex) {
         $params['exception'] = $ex->getMessage() . ', Line ' . $ex->getLine() . ' in ' . $ex->getFile();
@@ -104,8 +103,7 @@ class ConsoleController extends Controller {
     $id = $request->get('id');
     $target = $request->get('target');
     $query = $request->get('query');
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-    $r = $indexManager->saveSavedQuery($target, $query, $id);
+    $r = IndexManager::getInstance()->saveSavedQuery($target, $query, $id);
     CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Your query has been saved'));
     return $this->redirectToRoute('console', array('id' => $r['_id']));
   }
@@ -118,8 +116,7 @@ class ConsoleController extends Controller {
       'title' => $this->get('translator')->trans('Console'),
       'main_menu_item' => 'console',
     );
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-    $list = $indexManager->getSavedQueries();
+    $list = IndexManager::getInstance()->getSavedQueries();
     $params['list'] = $list;
     return $this->render('ctsearch/console.html.twig', $params);
   }
@@ -129,8 +126,7 @@ class ConsoleController extends Controller {
    */
   public function deleteQueryAction(Request $request) {
     $id = $request->get('id');
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-    $r = $indexManager->deleteSavedQuery($id);
+    $r = IndexManager::getInstance()->deleteSavedQuery($id);
     CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Your query has been deleted'));
     return $this->redirectToRoute('console-load');
   }

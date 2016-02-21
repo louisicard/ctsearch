@@ -17,10 +17,7 @@ class IndexController extends Controller {
    * @Route("/indexes", name="indexes")
    */
   public function listIndexesAction(Request $request) {
-    // replace this example code with whatever you need
-    //var_dump($this->container->getParameter('ct_search.es_url'));
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-    $info = $indexManager->getElasticInfo();
+    $info = IndexManager::getInstance()->getElasticInfo();
     return $this->render('ctsearch/indexes.html.twig', array(
         'title' => $this->get('translator')->trans('Indexes'),
         'main_menu_item' => 'indexes',
@@ -53,8 +50,7 @@ class IndexController extends Controller {
   public function deleteIndexAction(Request $request) {
     if ($request->get('index_name') != null) {
       $index = new Index($request->get('index_name'));
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $indexManager->deleteIndex($index);
+      IndexManager::getInstance()->deleteIndex($index);
       CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Index has been deleted'));
       return $this->redirect($this->generateUrl('indexes'));
     } else {
@@ -88,11 +84,10 @@ class IndexController extends Controller {
   }
 
   private function getIndexForm($request, $esUrl, $add) {
-    $indexManager = new IndexManager($esUrl);
     if ($add) {
       $index = new Index();
     } else {
-      $index = $indexManager->getIndex($request->get('index_name'));
+      $index = IndexManager::getInstance()->getIndex($request->get('index_name'));
     }
     $form = $this->createFormBuilder($index)
       ->add('indexName', 'text', array(
@@ -113,10 +108,10 @@ class IndexController extends Controller {
       $index = $form->getData();
       try {
         if ($add) {
-          $indexManager->createIndex($index);
+          IndexManager::getInstance()->createIndex($index);
           CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Index has been created'));
         } else {
-          $indexManager->updateIndex($index);
+          IndexManager::getInstance()->updateIndex($index);
           CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Index has been updated'));
         }
         return $this->redirect($this->generateUrl('indexes'));
@@ -133,15 +128,14 @@ class IndexController extends Controller {
   }
 
   private function getMappingForm($request, $add) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
     if ($add) {
       $mapping = new Mapping($request->get('index_name'), '');
     } else {
-      $mapping = $indexManager->getMapping($request->get('index_name'), $request->get('mapping_name'));
+      $mapping = IndexManager::getInstance()->getMapping($request->get('index_name'), $request->get('mapping_name'));
     }
-    $analyzers = $indexManager->getAnalyzers($request->get('index_name'));
-    $fieldTypes = $indexManager->getFieldTypes();
-    $dateFormats = $indexManager->getDateFormats();
+    $analyzers = IndexManager::getInstance()->getAnalyzers($request->get('index_name'));
+    $fieldTypes = IndexManager::getInstance()->getFieldTypes();
+    $dateFormats = IndexManager::getInstance()->getDateFormats();
     $form = $this->createFormBuilder($mapping)
       ->add('indexName', 'text', array(
         'label' => $this->get('translator')->trans('Index name'),
@@ -170,8 +164,7 @@ class IndexController extends Controller {
     if ($form->isValid()) {
       $mapping = $form->getData();
       try {
-        $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-        $indexManager->updateMapping($mapping);
+        IndexManager::getInstance()->updateMapping($mapping);
         CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Mapping has been updated'));
         return $this->redirect($this->generateUrl('indexes'));
       } catch (Exception $ex) {
@@ -216,15 +209,14 @@ class IndexController extends Controller {
    * @Route("/indexes/ac-settings/{index_name}", name="index-ac-settings")
    */
   public function editACSettingsAction(Request $request, $index_name) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-    $ac_settings = $indexManager->getACSettings($index_name);
+    $ac_settings = IndexManager::getInstance()->getACSettings($index_name);
 
-    $infos = $indexManager->getElasticInfo()[$index_name];
+    $infos = IndexManager::getInstance()->getElasticInfo()[$index_name];
     $mappings = isset($infos['mappings']) ? $infos['mappings'] : array();
     $field_choices = array();
     foreach ($mappings as $index => $mapping) {
       if ($mapping['name'] != '.ctsearch-autocomplete') {
-        $fields = array_keys(json_decode($indexManager->getMapping($index_name, $mapping['name'])->getMappingDefinition(), true));
+        $fields = array_keys(json_decode(IndexManager::getInstance()->getMapping($index_name, $mapping['name'])->getMappingDefinition(), true));
         foreach ($fields as $field) {
           $field_choices[$mapping['name'] . '.' . $field] = $mapping['name'] . '.' . $field;
         }
@@ -232,7 +224,7 @@ class IndexController extends Controller {
     }
 
     $filter_choices = array();
-    foreach ($indexManager->getAvailableFilters($index_name) as $filter) {
+    foreach (IndexManager::getInstance()->getAvailableFilters($index_name) as $filter) {
       $filter_choices[$filter] = $filter;
     }
     if (isset($filter_choices['ctsearch_ac_shingle'])) {
@@ -265,7 +257,7 @@ class IndexController extends Controller {
     $form->handleRequest($request);
 
     if ($form->isValid()) {
-      $indexManager->saveACSettings($form->getData());
+      IndexManager::getInstance()->saveACSettings($form->getData());
       CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Settings have been saved'));
       return $this->redirect($this->generateUrl('indexes'));
     }
@@ -281,8 +273,7 @@ class IndexController extends Controller {
    * @Route("/indexes/mapping-stat/{index_name}/{mapping_name}", name="index-mapping-stat")
    */
   public function mappingStatAction(Request $request, $index_name, $mapping_name) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-    $mapping = $indexManager->getMapping($index_name, $mapping_name);
+    $mapping = IndexManager::getInstance()->getMapping($index_name, $mapping_name);
     $data = array(
       'docs' => 0,
       'fields' => 0
@@ -295,7 +286,7 @@ class IndexController extends Controller {
           )
         )
       );
-      $res = $indexManager->search($index_name, json_encode($query));
+      $res = IndexManager::getInstance()->search($index_name, json_encode($query));
       if (isset($res['hits']['total']) && $res['hits']['total'] > 0) {
         $data['docs'] = $res['hits']['total'];
       }

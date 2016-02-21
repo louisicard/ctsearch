@@ -2,6 +2,7 @@
 
 namespace CtSearchBundle\Command;
 
+use CtSearchBundle\Classes\IndexManager;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -31,8 +32,7 @@ class DatasourceCommand extends ContainerAwareCommand {
             }
           }
         }
-        $indexManager = new \CtSearchBundle\Classes\IndexManager($this->getContainer()->getParameter('ct_search.es_url'));
-        $datasource = $indexManager->getDatasource($id, null);
+        $datasource = IndexManager::getInstance()->getDatasource($id, null);
         $datasource->setOutput($output);
         $output->writeln('Executing Datasource "' . $datasource->getName() . '"');
         $datasource->execute($execParams);

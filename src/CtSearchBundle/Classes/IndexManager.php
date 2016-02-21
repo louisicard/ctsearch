@@ -16,11 +16,28 @@ class IndexManager {
   private $esUrl;
 
   /**
-   * 
-   * @param Elasticsearch\Client $client
+   * @var IndexManager
    */
-  function __construct($esUrl) {
+  private static $instance;
+
+  /**
+   * IndexManager constructor.
+   * @param string $esUrl
+   */
+  private function __construct($esUrl) {
     $this->esUrl = $esUrl;
+  }
+
+  /**
+   * @return IndexManager
+   */
+  public static function getInstance(){
+    if(IndexManager::$instance == null){
+      global $kernel;
+      $esUrl = $kernel->getContainer()->getParameter('ct_search.es_url');
+      IndexManager::$instance = new IndexManager($esUrl);
+    }
+    return IndexManager::$instance;
   }
 
   /**

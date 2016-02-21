@@ -112,12 +112,10 @@ abstract class Datasource {
 
   protected function index($doc, $processors = null) {
     global $kernel;
-    $esUrl = $kernel->getContainer()->getParameter('ct_search.es_url');
     $debug = $kernel->getContainer()->getParameter('ct_search.debug');
-    $indexManager = new IndexManager($esUrl);
     try {
       if ($processors == null) {
-        $processors = $indexManager->getRawProcessorsByDatasource($this->id);
+        $processors = IndexManager::getInstance()->getRawProcessorsByDatasource($this->id);
       }
       foreach ($processors as $proc) {
         $data = array();
@@ -127,7 +125,7 @@ abstract class Datasource {
         $definition = json_decode($proc['definition'], true);
         foreach ($definition['filters'] as $filter) {
           $className = $filter['class'];
-          $procFilter = new $className(array(), $indexManager);
+          $procFilter = new $className(array(), IndexManager::getInstance());
           $procFilter->setOutput($this->getOutput());
           $filterData = array();
           foreach ($filter['settings'] as $k => $v) {
@@ -196,8 +194,8 @@ abstract class Datasource {
           $target_r = explode('.', $definition['target']);
           $indexName = $target_r[0];
           $mappingName = $target_r[1];
-          $indexManager->indexDocument($indexName, $mappingName, $to_index);
-          $ac_settings = $indexManager->getACSettings($indexName);
+          IndexManager::getInstance()->indexDocument($indexName, $mappingName, $to_index);
+          $ac_settings = IndexManager::getInstance()->getACSettings($indexName);
           $ac_fields = array();
           if($ac_settings != null){
             foreach($ac_settings['fields'] as $field){
@@ -208,13 +206,13 @@ abstract class Datasource {
           }
           foreach($ac_fields as $field){
             if(isset($to_index[$field]) & !empty($to_index[$field])){
-              $indexManager->feedAutocomplete($indexName, is_array($to_index[$field]) ? $to_index[$field][0] : $to_index[$field]);
+              IndexManager::getInstance()->feedAutocomplete($indexName, is_array($to_index[$field]) ? $to_index[$field][0] : $to_index[$field]);
               //$indexManager->log('debug', 'Feeding AC with content', is_array($to_index[$field]) ? $to_index[$field][0] : $to_index[$field]);
             }
           }
           if ($debug) {
             try {
-              $indexManager->log('debug', 'Indexing document from datasource "' . $this->getName() . '"', $to_index);
+              IndexManager::getInstance()->log('debug', 'Indexing document from datasource "' . $this->getName() . '"', $to_index);
             } catch (Exception $ex) {
               
             } catch (\Exception $ex2) {
@@ -233,11 +231,9 @@ abstract class Datasource {
         unset($data);
       if(isset($to_index))
         unset($to_index);
-      if(isset($indexManager))
-        unset($indexManager);
     } catch (Exception $ex) {
       //var_dump($ex->getMessage());
-      $indexManager->log('error', 'Exception occured while indexing document from datasource "' . $this->getName() . '"', array(
+      IndexManager::getInstance()->log('error', 'Exception occured while indexing document from datasource "' . $this->getName() . '"', array(
         'Exception type' => get_class($ex),
         'Message' => $ex->getMessage(),
         'File' => $ex->getFile(),
@@ -246,7 +242,7 @@ abstract class Datasource {
       ));
     } catch (\Exception $ex2) {
       //var_dump($ex2);
-      $indexManager->log('error', 'Exception occured while indexing document from datasource "' . $this->getName() . '"', array(
+      IndexManager::getInstance()->log('error', 'Exception occured while indexing document from datasource "' . $this->getName() . '"', array(
         'Exception type' => get_class($ex2),
         'Message' => $ex2->getMessage(),
         'File' => $ex2->getFile(),
@@ -303,10 +299,7 @@ abstract class Datasource {
   protected function batchIndex($docs) {
     $count = 0;
     $error = 0;
-    global $kernel;
-    $esUrl = $kernel->getContainer()->getParameter('ct_search.es_url');
-    $indexManager = new IndexManager($esUrl);
-    $processors = $indexManager->getRawProcessorsByDatasource($this->id);
+    $processors = IndexManager::getInstance()->getRawProcessorsByDatasource($this->id);
     foreach ($docs as $doc) {
       try {
         $this->index($doc, $processors);

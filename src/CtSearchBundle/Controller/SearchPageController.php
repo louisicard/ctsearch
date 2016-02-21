@@ -16,8 +16,7 @@ class SearchPageController extends Controller {
    * @Route("/search-pages", name="search-pages")
    */
   public function listSearchPagesAction(Request $request) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-    $searchPages = $indexManager->getSearchPages($this);
+    $searchPages = IndexManager::getInstance()->getSearchPages($this);
     return $this->render('ctsearch/search-page.html.twig', array(
         'title' => $this->get('translator')->trans('Search pages'),
         'main_menu_item' => 'search-pages',
@@ -44,8 +43,7 @@ class SearchPageController extends Controller {
    */
   public function deleteSearchPageAction(Request $request) {
     if ($request->get('id') != null) {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $indexManager->deleteSearchPage($request->get('id'));
+      IndexManager::getInstance()->deleteSearchPage($request->get('id'));
       CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Search page has been deleted'));
     } else {
       CtSearchBundle::addSessionMessage($this, 'error', $this->get('translator')->trans('No id provided'));
@@ -54,15 +52,14 @@ class SearchPageController extends Controller {
   }
 
   private function handleAddOrEditSearchPage($request, $id = null) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
     if ($id == null) { //Add
       $searchPage = new \CtSearchBundle\Classes\SearchPage('', '', '{}', json_encode(json_decode('{"fields": {"title":"", "url":"", "excerp_fields":[]}, "aggregations":[], "more_like_this_fields": []}'), JSON_PRETTY_PRINT));
     } else { //Edit
-      $searchPage = $indexManager->getSearchPage($request->get('id'));
+      $searchPage = IndexManager::getInstance()->getSearchPage($request->get('id'));
       $searchPage->setDefinition(json_encode($searchPage->getDefinition(), JSON_PRETTY_PRINT));
       $searchPage->setConfig(json_encode($searchPage->getConfig(), JSON_PRETTY_PRINT));
     }
-    $info = $indexManager->getElasticInfo();
+    $info = IndexManager::getInstance()->getElasticInfo();
     $indexChoices = array(
       '' => $this->get('translator')->trans('Select index'),
     );
@@ -95,7 +92,7 @@ class SearchPageController extends Controller {
       if (json_decode($searchPage->getDefinition()) == null || json_decode($searchPage->getConfig()) == null) {
         CtSearchBundle::addSessionMessage($this, 'error', $this->get('translator')->trans('JSON parsing failed.'));
       } else {
-        $indexManager->saveSearchPage($form->getData());
+        IndexManager::getInstance()->saveSearchPage($form->getData());
         if ($id == null) {
           CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('New search page has been added successfully'));
         } else {
@@ -119,8 +116,7 @@ class SearchPageController extends Controller {
    * @Route("/logs", name="show-logs")
    */
   public function showLogsAction(Request $request) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-    $res = $indexManager->search('.ctsearch', json_encode(array(
+    $res = IndexManager::getInstance()->search('.ctsearch', json_encode(array(
       'query' => array(
         'filtered' => array(
           'query' => array(
@@ -141,7 +137,7 @@ class SearchPageController extends Controller {
       $pageDef = file_get_contents(__DIR__ . '/../Resources/ctsearch_logs_searchpage_definition.json');
       $pageConf = file_get_contents(__DIR__ . '/../Resources/ctsearch_logs_searchpage_config.json');
       $searchPage = new \CtSearchBundle\Classes\SearchPage('logs', '.ctsearch', $pageDef, $pageConf, NULL);
-      $r = $indexManager->saveSearchPage($searchPage);
+      $r = IndexManager::getInstance()->saveSearchPage($searchPage);
       $searchPage->setId($r['_id']);
     } else {
       $hit = $res['hits']['hits'][0];
@@ -154,8 +150,7 @@ class SearchPageController extends Controller {
    * @Route("/search-pages/search/{id}", name="search-page-display")
    */
   public function displaySearchPageAction(Request $request, $id, $customTpl = null, $custom_page_size = 0, $customDef = null, $sort = null) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-    $searchPage = $indexManager->getSearchPage($id);
+    $searchPage = IndexManager::getInstance()->getSearchPage($id);
 
     $definition = json_encode($searchPage->getDefinition());
     $suggest_query = null;
@@ -243,7 +238,7 @@ class SearchPageController extends Controller {
       $definition['sort'] = $sort;
     }
     try {
-      $result = $indexManager->search($searchPage->getIndexName(), json_encode($definition), $offset, $page_size);
+      $result = IndexManager::getInstance()->search($searchPage->getIndexName(), json_encode($definition), $offset, $page_size);
     } catch (\Exception $ex) {
       $result = array(
         'hits' => array(
@@ -257,7 +252,7 @@ class SearchPageController extends Controller {
     if (isset($result['hits']['hits'])) {
       if ($result['hits']['total'] == 0) {
         if ($suggest_query != null) {
-          $didYouMeanResult = $indexManager->search($searchPage->getIndexName(), json_encode($suggest_query));
+          $didYouMeanResult = IndexManager::getInstance()->search($searchPage->getIndexName(), json_encode($suggest_query));
           if ($didYouMeanResult['suggest'] && count($didYouMeanResult['suggest']['simple_phrase']) > 0 && count($didYouMeanResult['suggest']['simple_phrase'][0]['options']) > 0) {
             $didYouMean = $didYouMeanResult['suggest']['simple_phrase'][0]['options'][0]['text'];
           }
@@ -470,7 +465,7 @@ class SearchPageController extends Controller {
     }
     if (isset($didYouMean))
       $vars['didYouMean'] = $didYouMean;
-    if ($indexManager->getACSettings($searchPage->getIndexName()) != null)
+    if (IndexManager::getInstance()->getACSettings($searchPage->getIndexName()) != null)
       $vars['autocomplete'] = true;
     else
       $vars['autocomplete'] = false;
@@ -482,11 +477,10 @@ class SearchPageController extends Controller {
    */
   public function getAutocomplete(Request $request, $searchPageId, $text) {
 
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-    $searchPage = $indexManager->getSearchPage($searchPageId);
+    $searchPage = IndexManager::getInstance()->getSearchPage($searchPageId);
     $data = array();
 
-    $text_transliterate_tokens = $indexManager->getClient()->indices()->analyze(array(
+    $text_transliterate_tokens = IndexManager::getInstance()->getClient()->indices()->analyze(array(
       'index' => $searchPage->getIndexName(),
       'analyzer' => 'ctsearch_ac_transliterate',
       'text' => $text
@@ -532,7 +526,7 @@ class SearchPageController extends Controller {
           'counter' => 'desc'
         )
       );
-      $res = $indexManager->search($searchPage->getIndexName(), json_encode($ac_query), 0, 10);
+      $res = IndexManager::getInstance()->search($searchPage->getIndexName(), json_encode($ac_query), 0, 10);
       if (isset($res['hits']['hits'])) {
         foreach ($res['hits']['hits'] as $hit) {
           if ($hit['_score'] > 1)
@@ -557,8 +551,7 @@ class SearchPageController extends Controller {
    */
   public function getMoreLikeThisAction(Request $request, $searchPageId = null, $docId = null, $type = null) {
 
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-    $searchPage = $indexManager->getSearchPage($searchPageId);
+    $searchPage = IndexManager::getInstance()->getSearchPage($searchPageId);
 
     $customDef = array(
       'query' => array(
@@ -603,9 +596,8 @@ class SearchPageController extends Controller {
    * @Route("/search-api/{id}", name="search-api")
    */
   public function searchAPIAction(Request $request, $id) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
 
-    $searchPage = $indexManager->getSearchPage($id);
+    $searchPage = IndexManager::getInstance()->getSearchPage($id);
 
     $query = json_encode($searchPage->getDefinition());
     $query_string = $request->get('query_string') != null ? $request->get('query_string') : '*';
@@ -687,7 +679,7 @@ class SearchPageController extends Controller {
     $page_size = $request->get("size") != null ? $request->get("size") : 10;
     $query = json_encode($query);
     try {
-      $result = $indexManager->search($searchPage->getIndexName(), $query, $offset, $page_size);
+      $result = IndexManager::getInstance()->search($searchPage->getIndexName(), $query, $offset, $page_size);
       $result['query'] = json_decode($query, true);
     } catch (\Exception $ex) {
       $result = array(

@@ -24,8 +24,7 @@ class DrupalCtExportController extends Controller {
     if ($id == null || empty($id)) {
       return new Response('{"error":"Missing id parameter"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
     } else {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $datasource = $indexManager->getDatasource($id, null);
+      $datasource = IndexManager::getInstance()->getDatasource($id, null);
       if($datasource == null || get_class($datasource) != 'CtSearchBundle\Datasource\DrupalCtExport'){
         return new Response('{"error":"No Drupal datasource found for this id"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
       }
@@ -46,10 +45,8 @@ class DrupalCtExportController extends Controller {
             if ($target_mapping == null || empty($target_mapping)) {
               return new Response('{"error":"Missing target_mapping parameter"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
             }
-            
-            $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-            
-            $indexManager->deleteByQuery(explode('.', $target_mapping)[0], explode('.', $target_mapping)[1], json_decode('{"query":{"ids":{"values":["' . $item_id . '"]}}}', true));
+
+            IndexManager::getInstance()->deleteByQuery(explode('.', $target_mapping)[0], explode('.', $target_mapping)[1], json_decode('{"query":{"ids":{"values":["' . $item_id . '"]}}}', true));
             
             break;
         }

@@ -14,12 +14,9 @@ class HomeController extends Controller {
    */
   public function indexAction(Request $request) {
     
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-
+    $info = IndexManager::getInstance()->getElasticInfo();
     
-    $info = $indexManager->getElasticInfo();
-    
-    $serverInfo = $indexManager->getServerInfo();
+    $serverInfo = IndexManager::getInstance()->getServerInfo();
 
     return $this->render('ctsearch/homepage.html.twig', array(
           'title' => $this->get('translator')->trans('Welcome to Ct search'),

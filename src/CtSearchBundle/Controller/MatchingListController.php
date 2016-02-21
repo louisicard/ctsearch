@@ -17,11 +17,10 @@ class MatchingListController extends Controller {
    * @Route("/matching-list", name="matching-lists")
    */
   public function listMatchingListsAction(Request $request) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
     return $this->render('ctsearch/matching-lists.html.twig', array(
           'title' => $this->get('translator')->trans('Matching lists'),
           'main_menu_item' => 'matching-lists',
-          'matching_lists' => $indexManager->getMatchingLists(),
+          'matching_lists' => IndexManager::getInstance()->getMatchingLists(),
     ));
   }
 
@@ -40,11 +39,10 @@ class MatchingListController extends Controller {
   }
 
   private function handleAddOrEditMatchingList($request, $id = null) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
     if ($id == null) { //Add
       $matchingList = new \CtSearchBundle\Classes\MatchingList('');
     } else { //Edit
-      $matchingList = $indexManager->getMatchingList($request->get('id'));
+      $matchingList = IndexManager::getInstance()->getMatchingList($request->get('id'));
       $list = $matchingList->getList();
       //ksort($list, SORT_NATURAL | SORT_FLAG_CASE);
       if (empty($list))
@@ -73,7 +71,7 @@ class MatchingListController extends Controller {
         $def = json_decode($matchingList->getList());
         if (empty($def))
           $matchingList->setList('{}');
-        $indexManager->saveMatchingList($matchingList);
+        IndexManager::getInstance()->saveMatchingList($matchingList);
         if ($id == null) {
           CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('New matching list has been added successfully'));
         } else {
@@ -93,12 +91,12 @@ class MatchingListController extends Controller {
     );
     if ($id != null) {
 
-      $infos = $indexManager->getElasticInfo();
+      $infos = IndexManager::getInstance()->getElasticInfo();
       $select = '<select id="matching-list-field-selector"><option value="">Select a field</option>';
       foreach ($infos as $index => $info) {
         $select .= '<optgroup label="' . htmlentities($index) . '">';
         foreach ($info['mappings'] as $mapping) {
-          $mapping = $indexManager->getMapping($index, $mapping['name']);
+          $mapping = IndexManager::getInstance()->getMapping($index, $mapping['name']);
           foreach (json_decode($mapping->getMappingDefinition(), true) as $field => $info_field) {
             $select .= '<option value="' . $index . '.' . $mapping->getMappingName() . '.' . $field . '">' . $index . '.' . $mapping->getMappingName() . '.' . $field . '</option>';
           }
@@ -125,8 +123,7 @@ class MatchingListController extends Controller {
    */
   public function deleteMatchingListAction(Request $request) {
     if ($request->get('id') != null) {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $indexManager->deleteMatchingList($request->get('id'));
+      IndexManager::getInstance()->deleteMatchingList($request->get('id'));
       CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Matching list has been deleted'));
     } else {
       CtSearchBundle::addSessionMessage($this, 'error', $this->get('translator')->trans('No id provided'));
@@ -139,8 +136,7 @@ class MatchingListController extends Controller {
    */
   public function importMatchingListFileAction(Request $request) {
     if ($request->get('id') != null) {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $matchingList = $indexManager->getMatchingList($request->get('id'));
+      $matchingList = IndexManager::getInstance()->getMatchingList($request->get('id'));
       $form = $this->createFormBuilder()
           ->add('matching_list_id', 'hidden', array(
             'data' => $matchingList->getId()
@@ -171,7 +167,7 @@ class MatchingListController extends Controller {
           fclose($fp);
           unlink($file->getRealPath());
           $matchingList->setList(json_encode($list));
-          $indexManager->saveMatchingList($matchingList);
+          IndexManager::getInstance()->saveMatchingList($matchingList);
           CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans(count($list) . ' values imported'));
           return $this->redirect($this->generateUrl('matching-lists'));
         }
@@ -193,8 +189,7 @@ class MatchingListController extends Controller {
    */
   public function exportMatchingListFileAction(Request $request) {
     if ($request->get('id') != null) {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $matchingList = $indexManager->getMatchingList($request->get('id'));
+      $matchingList = IndexManager::getInstance()->getMatchingList($request->get('id'));
       $list = json_decode(json_encode($matchingList->getList()), true);
       $data = '';
       foreach ($list as $k => $v) {
@@ -216,13 +211,12 @@ class MatchingListController extends Controller {
    */
   public function initMatchingListFromIndexAction(Request $request) {
     if ($request->get('id') != null && $request->get('field') != null && $request->get('size') != null) {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $matchingList = $indexManager->getMatchingList($request->get('id'));
+      $matchingList = IndexManager::getInstance()->getMatchingList($request->get('id'));
       $field_data = explode('.', $request->get('field'));
       $indexName = $field_data[0];
       $mappingName = $field_data[1];
       $field = $field_data[2];
-      $result = $indexManager->search($indexName, json_encode(array(
+      $result = IndexManager::getInstance()->search($indexName, json_encode(array(
         'query' => array(
           'filtered' => array(
             'filter' => array(
@@ -251,7 +245,7 @@ class MatchingListController extends Controller {
         }
       }
       $matchingList->setList(json_encode($list));
-      $indexManager->saveMatchingList($matchingList);
+      IndexManager::getInstance()->saveMatchingList($matchingList);
       CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans(count($list) . ' values imported'));
       return $this->redirect($this->generateUrl('matching-lists'));
     } else {

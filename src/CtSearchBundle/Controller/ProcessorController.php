@@ -16,10 +16,9 @@ class ProcessorController extends Controller {
    * @Route("/processors", name="processors")
    */
   public function listProcessorsAction(Request $request) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
 
-    $datasources = $indexManager->getDatasources($this);
-    $indexes = $indexManager->getElasticInfo($this);
+    $datasources = IndexManager::getInstance()->getDatasources($this);
+    $indexes = IndexManager::getInstance()->getElasticInfo($this);
     $datasourceChoices = array();
     foreach ($datasources as $id => $datasource) {
       $datasourceChoices[$id] = $datasource->getName();
@@ -55,7 +54,7 @@ class ProcessorController extends Controller {
     return $this->render('ctsearch/processor.html.twig', array(
           'title' => $this->get('translator')->trans('Processors'),
           'main_menu_item' => 'processors',
-          'processors' => $indexManager->getRawProcessors(),
+          'processors' => IndexManager::getInstance()->getRawProcessors(),
           'form_add_processor' => $form->createView()
     ));
   }
@@ -85,9 +84,8 @@ class ProcessorController extends Controller {
   }
 
   private function handleAddOrEditProcessor($request, $id = null) {
-    $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
     if ($id == null) { //Add
-      $datasource = $indexManager->getDatasource($request->get('datasource'), $this);
+      $datasource = IndexManager::getInstance()->getDatasource($request->get('datasource'), $this);
       $target = $request->get('target');
       $definition = array(
         'datasource' => array(
@@ -103,8 +101,8 @@ class ProcessorController extends Controller {
       $processor->setTarget($request->get('target'));
       $processor->setDefinition(json_encode($definition, JSON_PRETTY_PRINT));
     } else { //Edit
-      $processor = $indexManager->getProcessor($id);
-      $datasource = $indexManager->getDatasource($processor->getDatasourceId(), $this);
+      $processor = IndexManager::getInstance()->getProcessor($id);
+      $datasource = IndexManager::getInstance()->getDatasource($processor->getDatasourceId(), $this);
     }
     $form = $this->createFormBuilder($processor)
         ->add('datasourceName', 'text', array(
@@ -129,7 +127,7 @@ class ProcessorController extends Controller {
         ->getForm();
     $form->handleRequest($request);
     if ($form->isValid()) {
-      $indexManager->saveProcessor($form->getData(), $id);
+      IndexManager::getInstance()->saveProcessor($form->getData(), $id);
       if ($id == null) {
         CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('New processor has been added successfully'));
       } else {
@@ -141,7 +139,7 @@ class ProcessorController extends Controller {
     $target_r = explode('.', $processor->getTarget());
     $indexName = $target_r[0];
     $mappingName = $target_r[1];
-    $mapping = $indexManager->getMapping($indexName, $mappingName);
+    $mapping = IndexManager::getInstance()->getMapping($indexName, $mappingName);
     if ($mapping != null)
       $targetFields = array_keys(json_decode($mapping->getMappingDefinition(), TRUE));
     else
@@ -149,7 +147,7 @@ class ProcessorController extends Controller {
     return $this->render('ctsearch/processor.html.twig', array(
           'title' => $id == null ? $this->get('translator')->trans('New processor') : $this->get('translator')->trans('Edit processor'),
           'main_menu_item' => 'processors',
-          'filterTypes' => $indexManager->getFilterTypes(),
+          'filterTypes' => IndexManager::getInstance()->getFilterTypes(),
           'form' => $form->createView(),
           'targetFields' => $targetFields,
           'mappingName' => $mappingName,
@@ -162,8 +160,7 @@ class ProcessorController extends Controller {
    */
   public function deleteProcessorAction(Request $request) {
     if ($request->get('id') != null) {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $indexManager->deleteProcessor($request->get('id'));
+      IndexManager::getInstance()->deleteProcessor($request->get('id'));
       CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Processor has been deleted'));
     } else {
       CtSearchBundle::addSessionMessage($this, 'error', $this->get('translator')->trans('No id provided'));
@@ -176,10 +173,9 @@ class ProcessorController extends Controller {
    */
   public function getSettingsFormAction(Request $request) {
     if ($request->get('class') != null) {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
       $class = $request->get('class');
       $data = $request->get('data') != null ? json_decode($request->get('data'), true) : array();
-      $filter = new $class($data, $indexManager);
+      $filter = new $class($data, IndexManager::getInstance());
       $form = $filter->getSettingsForm($this)->getForm();
       $form->handleRequest($request);
       if ($form->isValid()) {
@@ -210,17 +206,16 @@ class ProcessorController extends Controller {
    */
   public function exportProcessorAction(Request $request) {
     if ($request->get('id')) {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $proc = $indexManager->getProcessor($request->get('id'));
+      $proc = IndexManager::getInstance()->getProcessor($request->get('id'));
       if ($proc != null) {
-        $datasource = $indexManager->getDatasource($proc->getDatasourceId(), $this);
-        $index = $indexManager->getIndex(explode('.', $proc->getTarget())[0]);
-        $mapping = $indexManager->getMapping($index->getIndexName(), explode('.', $proc->getTarget())[1]);
+        $datasource = IndexManager::getInstance()->getDatasource($proc->getDatasourceId(), $this);
+        $index = IndexManager::getInstance()->getIndex(explode('.', $proc->getTarget())[0]);
+        $mapping = IndexManager::getInstance()->getMapping($index->getIndexName(), explode('.', $proc->getTarget())[1]);
         $procDefinition = json_decode($proc->getDefinition(), true);
         $matchingLists = array();
         foreach ($procDefinition['filters'] as $filter) {
           if ($filter['class'] == 'CtSearchBundle\Processor\MatchingListFilter') {
-            $matchingList = $indexManager->getMatchingList($filter['settings']['matching_list']);
+            $matchingList = IndexManager::getInstance()->getMatchingList($filter['settings']['matching_list']);
             $matchingLists[] = array(
               'id' => $matchingList->getId(),
               'name' => $matchingList->getName(),
@@ -275,56 +270,55 @@ class ProcessorController extends Controller {
         ->getForm();
     $form->handleRequest($request);
     if ($form->isValid()) {
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
       $file = $form->getData()['file'];
       /* @var $file Symfony\Component\HttpFoundation\File\UploadedFile */
       $json = json_decode(file_get_contents($file->getRealPath()), true);
       $override = $form->getData()['override'];
-      $indexExists = $indexManager->getIndex($json['index']['name']) != null;
+      $indexExists = IndexManager::getInstance()->getIndex($json['index']['name']) != null;
       if ($indexExists && $override) {
         $index = new \CtSearchBundle\Classes\Index($json['index']['name'], json_encode($json['index']['settings']));
-        $indexManager->deleteIndex($index);
-        $indexManager->createIndex($index);
+        IndexManager::getInstance()->deleteIndex($index);
+        IndexManager::getInstance()->createIndex($index);
       } elseif (!$indexExists) {
-        $indexManager->createIndex(new \CtSearchBundle\Classes\Index($json['index']['name'], json_encode($json['index']['settings'])));
+        IndexManager::getInstance()->createIndex(new \CtSearchBundle\Classes\Index($json['index']['name'], json_encode($json['index']['settings'])));
       }
 
-      $indexManager->updateMapping(new \CtSearchBundle\Classes\Mapping($json['index']['name'], $json['mapping']['name'], json_encode($json['mapping']['definition'])));
+      IndexManager::getInstance()->updateMapping(new \CtSearchBundle\Classes\Mapping($json['index']['name'], $json['mapping']['name'], json_encode($json['mapping']['definition'])));
 
-      $datasourceExists = $indexManager->getDatasource($json['datasource']['id'], $this) != null;
+      $datasourceExists = IndexManager::getInstance()->getDatasource($json['datasource']['id'], $this) != null;
       if ($datasourceExists && $override) {
-        $indexManager->deleteDatasource($json['datasource']['id']);
+        IndexManager::getInstance()->deleteDatasource($json['datasource']['id']);
         $datasource = new $json['datasource']['class']($json['datasource']['name'], $this);
         $datasource->initFromSettings($json['datasource']['settings']);
         $datasource->setId($json['datasource']['id']);
-        $indexManager->saveDatasource($datasource, $json['datasource']['id']);
+        IndexManager::getInstance()->saveDatasource($datasource, $json['datasource']['id']);
       } elseif (!$datasourceExists) {
         $datasource = new $json['datasource']['class']($json['datasource']['name'], $this);
         $datasource->initFromSettings($json['datasource']['settings']);
         $datasource->setId($json['datasource']['id']);
-        $indexManager->saveDatasource($datasource, $json['datasource']['id']);
+        IndexManager::getInstance()->saveDatasource($datasource, $json['datasource']['id']);
       }
 
       foreach ($json['matching_lists'] as $matchingList) {
-        $matchingListExists = $indexManager->getMatchingList($matchingList['id']);
+        $matchingListExists = IndexManager::getInstance()->getMatchingList($matchingList['id']);
         if ($matchingListExists && $override) {
-          $indexManager->deleteMatchingList($matchingList['id']);
+          IndexManager::getInstance()->deleteMatchingList($matchingList['id']);
           $list = new \CtSearchBundle\Classes\MatchingList($matchingList['name'], json_encode($matchingList['list']), $matchingList['id']);
-          $indexManager->saveMatchingList($list);
+          IndexManager::getInstance()->saveMatchingList($list);
         } elseif (!$matchingListExists) {
           $list = new \CtSearchBundle\Classes\MatchingList($matchingList['name'], json_encode($matchingList['list']), $matchingList['id']);
-          $indexManager->saveMatchingList($list);
+          IndexManager::getInstance()->saveMatchingList($list);
         }
       }
 
-      $procExists = $indexManager->getProcessor($json['id']);
+      $procExists = IndexManager::getInstance()->getProcessor($json['id']);
       if ($procExists && $override) {
-        $indexManager->deleteProcessor($json['id']);
+        IndexManager::getInstance()->deleteProcessor($json['id']);
         $processor = new Processor($json['datasource']['id'], $json['index']['name'] . '.' . $json['mapping']['name'], json_encode($json['processor_definition']));
-        $indexManager->saveProcessor($processor, $json['id']);
+        IndexManager::getInstance()->saveProcessor($processor, $json['id']);
       } elseif (!$procExists) {
         $processor = new Processor($json['datasource']['id'], $json['index']['name'] . '.' . $json['mapping']['name'], json_encode($json['processor_definition']));
-        $indexManager->saveProcessor($processor, $json['id']);
+        IndexManager::getInstance()->saveProcessor($processor, $json['id']);
       }
       CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Processor has been imported'));
       return $this->redirect($this->generateUrl('processor-import'));

@@ -17,8 +17,7 @@ class WebCrawlerController extends Controller {
    */
   public function webCrawlerResponseAction(Request $request) {
     if($request->get('datasourceId') != null){
-      $indexManager = new IndexManager($this->container->getParameter('ct_search.es_url'));
-      $datasource = $indexManager->getDatasource($request->get('datasourceId'), $this);
+      $datasource = IndexManager::getInstance()->getDatasource($request->get('datasourceId'), $this);
       $datasource->handleDataFromCallback(array(
         'title' => $request->get('title') != null ? $request->get('title') : '',
         'html' => $request->get('html') != null ? $request->get('html') : '',
