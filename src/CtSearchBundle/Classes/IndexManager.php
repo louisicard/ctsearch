@@ -45,11 +45,17 @@ class IndexManager {
    * @return Client
    */
   function getClient() {
-    if (!isset($this->client)) {
-      $clientBuilder = new ClientBuilder();
-      $clientBuilder->setHosts(array($this->esUrl));
-      $this->client = $clientBuilder->build();
+    if (isset($this->client)) {
+      unset($this->client);
+      gc_enable();
+      gc_collect_cycles();
     }
+    $clientBuilder = new ClientBuilder();
+    $clientBuilder->setHosts(array($this->esUrl));
+    $this->client = $clientBuilder->build();
+    unset($clientBuilder);
+    gc_enable();
+    gc_collect_cycles();
     return $this->client;
   }
 
