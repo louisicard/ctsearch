@@ -32,7 +32,7 @@ class IndexManager {
    * @return IndexManager
    */
   public static function getInstance(){
-    unset(IndexManager::$instance);
+    IndexManager::$instance = null;
     gc_enable();
     gc_collect_cycles();
     global $kernel;
