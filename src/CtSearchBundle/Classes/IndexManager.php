@@ -32,11 +32,12 @@ class IndexManager {
    * @return IndexManager
    */
   public static function getInstance(){
-    if(IndexManager::$instance == null){
-      global $kernel;
-      $esUrl = $kernel->getContainer()->getParameter('ct_search.es_url');
-      IndexManager::$instance = new IndexManager($esUrl);
-    }
+    unset(IndexManager::$instance);
+    gc_enable();
+    gc_collect_cycles();
+    global $kernel;
+    $esUrl = $kernel->getContainer()->getParameter('ct_search.es_url');
+    IndexManager::$instance = new IndexManager($esUrl);
     return IndexManager::$instance;
   }
 
