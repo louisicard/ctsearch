@@ -31,13 +31,12 @@ class IndexManager {
   /**
    * @return IndexManager
    */
-  public static function getInstance(){
-    IndexManager::$instance = null;
-    gc_enable();
-    gc_collect_cycles();
-    global $kernel;
-    $esUrl = $kernel->getContainer()->getParameter('ct_search.es_url');
-    IndexManager::$instance = new IndexManager($esUrl);
+  public static function getInstance() {
+    if (IndexManager::$instance == null) {
+      global $kernel;
+      $esUrl = $kernel->getContainer()->getParameter('ct_search.es_url');
+      IndexManager::$instance = new IndexManager($esUrl);
+    }
     return IndexManager::$instance;
   }
 
@@ -48,8 +47,6 @@ class IndexManager {
   function getClient() {
     if (isset($this->client)) {
       unset($this->client);
-      gc_enable();
-      gc_collect_cycles();
     }
     $clientBuilder = new ClientBuilder();
     $clientBuilder->setHosts(array($this->esUrl));
@@ -79,7 +76,9 @@ class IndexManager {
           'field_count' => count($properties['properties']),
         );
       }
+      unset($mappings);
     }
+    unset($stats);
     return $info;
   }
 
@@ -220,6 +219,7 @@ class IndexManager {
         $analyzers[] = $analyzer;
       }
     }
+    unset($settings);
     return $analyzers;
   }
 
@@ -259,6 +259,7 @@ class IndexManager {
             $datasources[$hit['_id']] = $datasource;
           }
         }
+        unset($r);
         return $datasources;
       } catch (\Exception $ex) {
         return array();
@@ -293,6 +294,7 @@ class IndexManager {
           $datasource = new $hit['_source']['class']($hit['_source']['name'], $controller);
           $datasource->initFromSettings(unserialize($hit['_source']['definition']));
           $datasource->setId($id);
+          unset($r);
           return $datasource;
         }
         return null;
@@ -313,6 +315,7 @@ class IndexManager {
         $types[$class] = $instance->getDatasourceDisplayName();
       }
     }
+    unset($classes);
     return $types;
   }
 
@@ -325,6 +328,7 @@ class IndexManager {
         $types[str_replace("\\", '\\\\', $class)] = $instance->getDisplayName();
       }
     }
+    unset($classes);
     return $types;
   }
 
@@ -409,6 +413,8 @@ class IndexManager {
       $params['id'] = $id;
     }
     $r = $this->getClient()->index($params);
+    unset($datasource);
+    unset($params);
     $this->getClient()->indices()->flush();
     return $r;
   }
@@ -434,6 +440,7 @@ class IndexManager {
             );
           }
         }
+        unset($r);
         return $processors;
       } catch (\Exception $ex) {
         return array();
@@ -471,6 +478,7 @@ class IndexManager {
             );
           }
         }
+        unset($r);
         return $processors;
       } catch (\Exception $ex) {
         return array();
@@ -502,6 +510,7 @@ class IndexManager {
         if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
           $hit = $r['hits']['hits'][0];
           $processor = new Processor($hit['_source']['datasource'], $hit['_source']['target'], json_encode(unserialize($hit['_source']['definition']), JSON_PRETTY_PRINT));
+          unset($r);
           return $processor;
         }
         return null;
@@ -553,6 +562,8 @@ class IndexManager {
     if ($flush) {
       $this->getClient()->indices()->flush();
     }
+    unset($r);
+    unset($params);
     return $r;
   }
 
@@ -575,6 +586,7 @@ class IndexManager {
             $searchPages[] = new SearchPage($hit['_source']['name'], $hit['_source']['index_name'], unserialize($hit['_source']['definition']), unserialize($hit['_source']['config']), $hit['_id']);
           }
         }
+        unset($r);
         return $searchPages;
       } catch (\Exception $ex) {
         return array();
@@ -603,6 +615,7 @@ class IndexManager {
             $searchAPIs[] = new SearchAPI($hit['_source']['mapping_name'], unserialize($hit['_source']['definition']), $hit['_id']);
           }
         }
+        unset($r);
         return $searchAPIs;
       } catch (\Exception $ex) {
         return array();
@@ -673,6 +686,7 @@ class IndexManager {
     }
     $r = $this->getClient()->index($params);
     $this->getClient()->indices()->flush();
+    unset($params);
     return $r;
   }
 
@@ -757,6 +771,7 @@ class IndexManager {
             $matchingLists[] = new MatchingList($hit['_source']['name'], unserialize($hit['_source']['list']), $hit['_id']);
           }
         }
+        unset($r);
         return $matchingLists;
       } catch (\Exception $ex) {
         return array();
@@ -825,6 +840,7 @@ class IndexManager {
     }
     $r = $this->getClient()->index($params);
     $this->getClient()->indices()->flush();
+    unset($params);
     return $r;
   }
 
@@ -901,6 +917,7 @@ class IndexManager {
         }
       }
     }
+    unset($infos);
     return $filters;
   }
 
@@ -1012,7 +1029,9 @@ class IndexManager {
             'counter' => $res['hits']['hits'][0]['_source']['counter'] + 1,
               ), false);
         }
+        unset($r);
       }
+      unset($shingles);
       $this->getClient()->indices()->flush(array(
         'index' => $indexName
       ));
@@ -1049,6 +1068,7 @@ class IndexManager {
     }
     $r = $this->getClient()->index($params);
     $this->getClient()->indices()->flush();
+    unset($params);
     return $r;
   }
 
@@ -1079,8 +1099,7 @@ class IndexManager {
     }
   }
 
-  function getSavedQueries()
-  {
+  function getSavedQueries() {
     $list = array();
     if ($this->getIndex('.ctsearch') != null) {
       try {
@@ -1093,23 +1112,23 @@ class IndexManager {
           foreach ($r['hits']['hits'] as $hit) {
             $list[] = array(
               'id' => $hit['_id']
-            ) + $hit['_source'];
+                ) + $hit['_source'];
           }
         }
+        unset($r);
       } catch (\Exception $ex) {
         
       }
     }
     return $list;
-
   }
 
   public function deleteSavedQuery($id) {
     $this->getClient()->delete(array(
-        'index' => '.ctsearch',
-        'type' => 'saved_query',
-        'id' => $id,
-      )
+      'index' => '.ctsearch',
+      'type' => 'saved_query',
+      'id' => $id,
+        )
     );
     $this->getClient()->indices()->flush();
   }
