@@ -71,6 +71,7 @@ class OAIHarvester extends Datasource {
 
       if ($this->getOutput() != null) {
         $this->getOutput()->writeln(($count + 1) . ' / Harvesting doc "' . $document['identifier'] . '"');
+        $this->output->writeln(sprintf('Memory usage (currently) %dKB/ (max) %dKB', round(memory_get_usage(true) / 1024), memory_get_peak_usage(true) / 1024));
       }
 
       $this->index($document);
