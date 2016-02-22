@@ -95,6 +95,8 @@ class OAIHarvester extends Datasource {
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HEADER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     if(!empty($this->cookies)){
       curl_setopt($ch, CURLOPT_COOKIE, $this->cookies);
