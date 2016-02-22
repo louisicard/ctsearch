@@ -36,13 +36,20 @@ class XPathFinderFilter extends ProcessorFilter {
       $queries = array_map('trim', explode(',', $query));
       if ($xpath != null) {
         $r = array();
-        foreach($queries as $query){
+        foreach ($queries as $query) {
           for ($i = 0; $i < $xpath->query($query)->length; $i++) {
 
             $r[] = $xpath->query($query)->item($i)->textContent;
           }
         }
         //var_dump($xpath->evaluate('concat(vendor:record/vendor:datafield[@tag=\'702\']/vendor:subfield[@code=\'a\'], \' \', vendor:record/vendor:datafield[@tag=\'702\']/vendor:subfield[@code=\'b\'])'));
+        unset($xpath);
+        unset($settings);
+        unset($query);
+        unset($queries);
+
+        gc_enable();
+        gc_collect_cycles();
         return array('output' => $r);
       }
     } catch (\Exception $ex) {
