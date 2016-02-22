@@ -562,7 +562,6 @@ class IndexManager {
     if ($flush) {
       $this->getClient()->indices()->flush();
     }
-    unset($r);
     unset($params);
     return $r;
   }

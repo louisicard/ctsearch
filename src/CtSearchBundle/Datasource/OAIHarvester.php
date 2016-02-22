@@ -40,8 +40,19 @@ class OAIHarvester extends Datasource {
       CtSearchBundle::addSessionMessage($this->getController(), 'status', 'Found ' . $count . ' documents');
     }
   }
+  
+  public function runCli($token){
+    $sets = array_map('trim', explode(',', $this->getSets()));
+    if (count($sets) > 0) {
+      foreach ($sets as $set) {
+        $this->harvest($set, $token, 0, true);
+      }
+    } else {
+      $this->harvest(NULL, $token, 0, true);
+    }
+  }
 
-  private function harvest($set, $resumptionToken = null, $count = 0) {
+  private function harvest($set, $resumptionToken = null, $count = 0, $cli = false) {
     $doc = new \DOMDocument();
     if ($resumptionToken == null)
       $url = $this->getOaiServerUrl() . '?verb=ListRecords&metadataPrefix=' . $this->getMetaDataPrefix() . ($set != NULL ? '&set=' . $set : '');
@@ -88,7 +99,16 @@ class OAIHarvester extends Datasource {
       unset($doc);
       gc_enable();
       gc_collect_cycles();
-      $this->harvest($set, $token, $count);
+      if(!$cli){
+        $this->harvest($set, $token, $count);
+      }
+      else{
+        $this->getOutput()->writeln($token);
+        exit(9);
+      }
+    }
+    if($cli){
+      exit(0);
     }
     return $count;
   }
