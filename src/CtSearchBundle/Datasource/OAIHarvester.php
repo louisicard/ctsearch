@@ -85,6 +85,8 @@ class OAIHarvester extends Datasource {
       unset($result);
       unset($xpath);
       unset($doc);
+      gc_enable();
+      gc_collect_cycles();
       $this->harvest($set, $token, $count);
     }
     return $count;

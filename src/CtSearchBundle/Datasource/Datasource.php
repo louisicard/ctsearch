@@ -251,6 +251,9 @@ abstract class Datasource {
       ));
     }
     
+    gc_enable();
+    gc_collect_cycles();
+    
   }
 
   private function truncateArray($array) {
