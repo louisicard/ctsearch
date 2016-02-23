@@ -38,7 +38,7 @@ class XMLParser extends Datasource {
         $docs = $xml->xpath($this->getXpath());
         foreach($docs as $doc){
           $this->index(array(
-            'doc' => $doc
+            'doc' => simplexml_load_string($doc->asXML())
           ));
           $count++;
         }
