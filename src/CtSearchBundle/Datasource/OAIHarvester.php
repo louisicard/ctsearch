@@ -146,12 +146,16 @@ class OAIHarvester extends Datasource {
     if(isset($response['headers']['set-cookie'])){
       $this->cookies = $response['headers']['set-cookie'];
     }
-    preg_match_all('!\<\?xml.*encoding="(?<encoding>[^"]*)!', strtolower($response['content']), $matches);
+    preg_match_all('!\<\?xml.*encoding="(?<encoding>[^"]*)!', substr(strtolower($response['content']), 0, 300), $matches);
     if(isset($matches['encoding']) && !empty($matches['encoding'])){
       $response['encoding'] = $matches['encoding'][0];
     }
-    $response['content'] = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $response['content']);
+    $response['content'] = $this->cleanUTF8String($response['content']);
     return $response;
+  }
+  
+  private function cleanUTF8String($str){
+    return preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $str);
   }
 
   private function parseHttpResponse($string) {
