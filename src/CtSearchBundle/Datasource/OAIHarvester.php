@@ -61,12 +61,22 @@ class OAIHarvester extends Datasource {
     if ($this->getOutput() != null) {
       $this->getOutput()->writeln('Harvesting url ' . $url);
     }
+    $content = $this->getContentFromUrl($url);
     $config = array(
-           'indent'     => true,
-           'input-xml'  => true,
-           'output-xml' => true,
-           'wrap'       => false);
-    $tidy = tidy_parse_string($this->getContentFromUrl($url), $config);
+      'indent'     => true,
+      'input-xml'  => true,
+      'output-xml' => true,
+      'wrap'       => false,
+      'output-encoding' => 'utf8',
+      'numeric-entities' => true,
+      'preserve-entities' => true
+    );
+    if(isset($content['encoding'])){
+      if($content['encoding'] == 'utf-8' || $content['encoding'] == 'utf8'){
+        $config['input-encoding'] = 'utf8';
+      }
+    }
+    $tidy = tidy_parse_string($content['content'], $config);
     tidy_clean_repair($tidy);
     $doc->loadXML($tidy);
     $xpath = new \DOMXPath($doc);
@@ -136,7 +146,12 @@ class OAIHarvester extends Datasource {
     if(isset($response['headers']['set-cookie'])){
       $this->cookies = $response['headers']['set-cookie'];
     }
-    return preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $response['content']);
+    preg_match_all('!\<\?xml.*encoding="(?<encoding>[^"]*)!', strtolower($response['content']), $matches);
+    if(isset($matches['encoding']) && !empty($matches['encoding'])){
+      $response['encoding'] = $matches['encoding'][0];
+    }
+    $response['content'] = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $response['content']);
+    return $response;
   }
 
   private function parseHttpResponse($string) {

@@ -41,6 +41,7 @@ class OAICommand extends ContainerAwareCommand {
       while($code == 9){
         $token  = $out[count($out) - 1];
         print 'Resuming with token ' . $token . PHP_EOL;
+        print PHP_BINARY . ' app/console ctsearch:oai ' . $id . ' "' . $token . '" run' . PHP_EOL;
         exec(PHP_BINARY . ' app/console ctsearch:oai ' . $id . ' "' . $token . '" run', $out, $code);
       }
     }
