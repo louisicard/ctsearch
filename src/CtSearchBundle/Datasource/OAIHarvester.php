@@ -94,6 +94,11 @@ class OAIHarvester extends Datasource {
         $document['identifier'] = $xpath->query('oai:header/oai:identifier', $item)->item(0)->textContent;
       if ($xpath->query('oai:header/oai:datestamp', $item)->length > 0)
         $document['datestamp'] = $xpath->query('oai:header/oai:datestamp', $item)->item(0)->textContent;
+      if ($xpath->query('oai:header/oai:setSpec', $item)->length > 0){
+        foreach($xpath->query('oai:header/oai:setSpec', $item) as $setSpec){
+          $document['sets'][] = $setSpec->textContent;
+        }
+      }
       if ($xpath->query('oai:metadata/*', $item)->length > 0)
         $document['metadata'] = '<?xml version="1.0" encoding="' . $doc->encoding . '"?>' . simplexml_import_dom($xpath->query('oai:metadata/*', $item)->item(0))->asXML();
 
@@ -223,6 +228,7 @@ class OAIHarvester extends Datasource {
     return array(
       'identifier',
       'datestamp',
+      'sets',
       'metadata',
     );
   }
