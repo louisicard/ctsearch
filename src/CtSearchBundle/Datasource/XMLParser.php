@@ -37,6 +37,9 @@ class XMLParser extends Datasource {
       if(isset($xml)){
         $docs = $xml->xpath($this->getXpath());
         foreach($docs as $doc){
+          foreach($xml->getNamespaces(true) as $prefix => $ns){
+            $doc->addAttribute($prefix . ':ctsearch', 'ctsearch', $prefix);
+          }
           $this->index(array(
             'doc' => simplexml_load_string($doc->asXML())
           ));
