@@ -61,7 +61,14 @@ class OAIHarvester extends Datasource {
     if ($this->getOutput() != null) {
       $this->getOutput()->writeln('Harvesting url ' . $url);
     }
-    $doc->loadXML($this->getContentFromUrl($url));
+    $config = array(
+           'indent'     => true,
+           'input-xml'  => true,
+           'output-xml' => true,
+           'wrap'       => false);
+    $tidy = tidy_parse_string($this->getContentFromUrl($url), $config);
+    tidy_clean_repair($tidy);
+    $doc->loadXML($tidy);
     $xpath = new \DOMXPath($doc);
     $result = $xpath->query("//namespace::*");
 
