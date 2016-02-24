@@ -80,7 +80,7 @@ class DrupalCtExport extends Datasource {
         $this->index(array(
           'nid' => $nid,
           'export_id' => $export_id,
-          'xml' => $node,
+          'xml' => simplexml_load_string($node->asXML()),
         ));
         $count++;
       }
