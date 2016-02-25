@@ -80,6 +80,6 @@ swiftmailer:
     spool:     { type: memory }
 
 ct_search:
-  es_url: http://es15.dev.core-techs.fr:80
-  #es_url: http://localhost:9200
+  #es_url: http://es15.dev.core-techs.fr:80
+  es_url: http://localhost:9200
   debug: true
