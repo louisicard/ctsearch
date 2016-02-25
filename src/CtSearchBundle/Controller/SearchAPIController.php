@@ -18,6 +18,23 @@ class SearchAPIController extends Controller {
   public function searchAPIV2Action(Request $request) {
     if ($request->get('mapping') != null) {
       if (count(explode('.', $request->get('mapping'))) == 2) {
+
+        if($request->get('doc_id') != null){
+          $res = IndexManager::getInstance()->getClient()->search(array(
+            'index' => explode('.', $request->get('mapping'))[0],
+            'type' => explode('.', $request->get('mapping'))[1],
+            'body' => array(
+              'query' => array(
+                'ids' => array(
+                  'values' => array($request->get('doc_id'))
+                )
+              )
+            )
+          ));
+          return new Response(json_encode($res, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json;charset=utf-8'));
+        }
+
+
         $mapping = IndexManager::getInstance()->getMapping(explode('.', $request->get('mapping'))[0], explode('.', $request->get('mapping'))[1]);
         $definition = json_decode($mapping->getMappingDefinition(), true);
         $analyzed_fields = array();
