@@ -13,10 +13,10 @@ Javascript code to include in your pages :
     a=c.getElementsByTagName(n)[0],o.src=t,a.parentNode.insertBefore(o,a)}
   (window,document,"script","//ctsearch.lan/app_dev.php/reco/reco.js","regReco");
 
-  regReco('id', '<?php print $notice_id;?>');
-  regReco('target', 'cud.notice');
-  regReco('callback', 'cudGetReco');
-  function cudGetReco(data){
+  regReco('id', 'DOC_ID'); //Doc ID of the elastic search document currently displayed
+  regReco('target', 'INDEX.MAPPING'); //Index name and mapping like my_index.my_mapping
+  regReco('callback', 'myRecoCallback'); //The name of the js function to callback for displaying recommended documents
+  function myRecoCallback(data){
     console.log(data);
   }
 </script>
