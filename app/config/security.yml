@@ -35,6 +35,15 @@ security:
     drupal_ctexport:
       pattern:    ^/drupal/ctexport
       anonymous:  ~
+    drupal_reco_js:
+      pattern:    ^/reco/reco.js
+      anonymous:  ~
+    drupal_reco_report:
+      pattern:    ^/reco/report
+      anonymous:  ~
+    drupal_reco_get:
+      pattern:    ^/reco/get
+      anonymous:  ~
     default_firewall:
       pattern:    ^/
       http_basic:  ~

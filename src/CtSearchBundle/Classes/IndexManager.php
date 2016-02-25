@@ -1132,4 +1132,142 @@ class IndexManager {
     $this->getClient()->indices()->flush();
   }
 
+  public function getRecoPath($path_id, $host){
+    if ($this->getIndex('.ctsearch_reco') != null) {
+      try {
+        $query = array(
+          'index' => '.ctsearch_reco',
+          'type' => 'path',
+          'body' => array(
+            'query' => array(
+              'bool' => array(
+                'must' => array(
+                  array(
+                    'ids' => array(
+                      'values' => array($path_id),
+                    )
+                  ),
+                  array(
+                    'term' => array(
+                      'host' => $host
+                    )
+                  )
+                )
+              )
+            )
+          )
+        );
+        $r = $this->getClient()->search($query);
+        if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
+          return array(
+            'id' => $r['hits']['hits'][0]['_id']
+          ) + $r['hits']['hits'][0]['_source'];
+        }
+      } catch (\Exception $ex) {
+
+      }
+    }
+    return null;
+  }
+
+  public function getRecos($id, $host, $index, $mapping){
+    if ($this->getIndex('.ctsearch_reco') != null) {
+      try {
+        $query = array(
+          'index' => '.ctsearch_reco',
+          'type' => 'path',
+          'body' => array(
+            'size' => 0,
+            'query' => array(
+              'bool' => array(
+                'must' => array(
+                  array(
+                    'term' => array(
+                      'ids' => $id,
+                    )
+                  ),
+                  array(
+                    'term' => array(
+                      'host' => $host
+                    )
+                  )
+                )
+              )
+            ),
+            'aggs' => array(
+              'ids' => array(
+                "terms" => array(
+                  "field" => "ids",
+                  "size" => 20,
+                )
+              )
+            )
+          )
+        );
+        $r = $this->getClient()->search($query);
+        if(isset($r['aggregations']['ids']['buckets'])){
+          $ids = array();
+          foreach($r['aggregations']['ids']['buckets'] as $bucket){
+            if($bucket['key'] != $id){
+              $ids[$bucket['key']] = array();
+            }
+          }
+          if(count($ids) > 0){
+            $r = $this->getClient()->search(array(
+              'index' => $index,
+              'type' => $mapping,
+              'body' => array(
+                'size' => 20,
+                'query' => array(
+                  'ids' => array(
+                    'values' => array_keys($ids)
+                  )
+                )
+              )
+            ));
+            if(isset($r['hits']['hits'])){
+              foreach($r['hits']['hits'] as $hit){
+                if(isset($ids[$hit['_id']])){
+                  $ids[$hit['_id']] = $hit['_source'];
+                }
+              }
+            }
+            foreach($ids as $k => $data){
+              if(empty($data)){
+                unset($ids[$k]);
+              }
+            }
+          }
+          return $ids;
+        }
+      } catch (\Exception $ex) {
+
+      }
+    }
+    return array();
+  }
+  public function saveRecoPath($path) {
+    if ($this->getIndex('.ctsearch_reco') == null) {
+      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_reco_index_settings.json');
+      $this->createIndex(new Index('.ctsearch_reco', $settingsDefinition));
+    }
+    if ($this->getMapping('.ctsearch_reco', 'path') == null) {
+      $savedQueryDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_reco_path_definition.json');
+      $this->updateMapping(new Mapping('.ctsearch_reco', 'path', $savedQueryDefinition));
+    }
+    $params = array(
+      'index' => '.ctsearch_reco',
+      'type' => 'path',
+      'id' => $path['id'],
+      'body' => array(
+        'host' => $path['host'],
+        'ids' => $path['ids'],
+      )
+    );
+    $r = $this->getClient()->index($params);
+    $this->getClient()->indices()->flush();
+    unset($params);
+    return $r;
+  }
+
 }

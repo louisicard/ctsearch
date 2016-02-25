@@ -1,0 +1,12 @@
+{
+    "host": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "ids": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    }
+}
