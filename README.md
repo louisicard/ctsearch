@@ -2,8 +2,11 @@ CtSearch : Get the best out of Elastic Search
 =============================================
 
 CtSearch is a federated search engine build upon [Elastic Search][1].
+
 Default login/password :
+
 Username : admin
+
 Password : adminpass
 
 CtSearch Recommendation engine
