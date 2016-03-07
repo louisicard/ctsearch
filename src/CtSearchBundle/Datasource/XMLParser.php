@@ -8,11 +8,13 @@ class XMLParser extends Datasource {
 
   private $url;
   private $xpath;
+  private $xpathNamespaces;
 
   public function getSettings() {
     return array(
       'url' => $this->getUrl() != null ? $this->getUrl() : '',
       'xpath' => $this->getXpath() != null ? $this->getXpath() : '',
+      'xpathNamespaces' => $this->getXpathNamespaces() != null ? $this->getXpathNamespaces() : '',
     );
   }
 
@@ -35,10 +37,20 @@ class XMLParser extends Datasource {
         $xml = simplexml_load_file($this->getSettings()['url']);
       }
       if(isset($xml)){
+        if(isset($this->getSettings()['xpathNamespaces']) && !empty($this->getSettings()['xpathNamespaces'])){
+          $nss = explode(',', $this->getSettings()['xpathNamespaces']);
+          foreach($nss as $ns){
+            $prefix = substr($ns, 0, strpos($ns, ':'));
+            $url = substr($ns, strpos($ns, ':') + 1);
+            $xml->registerXpathNamespace($prefix , $url);
+          }
+        }
         $docs = $xml->xpath($this->getXpath());
         foreach($docs as $doc){
           foreach($xml->getNamespaces(true) as $prefix => $ns){
-            $doc->addAttribute($prefix . ':ctsearch', 'ctsearch', $prefix);
+            if(!empty($prefix)){
+              $doc->addAttribute($prefix . ':ctsearch', 'ctsearch', $prefix);
+            }
           }
           $this->index(array(
             'doc' => simplexml_load_string($doc->asXML())
@@ -68,6 +80,10 @@ class XMLParser extends Datasource {
           ->add('xpath', 'text', array(
             'label' => $this->getController()->get('translator')->trans('XPath'),
             'required' => true
+          ))
+          ->add('xpathNamespaces', 'text', array(
+            'label' => $this->getController()->get('translator')->trans('XPath Namespaces to register'),
+            'required' => false
           ))
           ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Save')));
       return $formBuilder;
@@ -109,6 +125,14 @@ class XMLParser extends Datasource {
 
   function setXpath($xpath) {
     $this->xpath = $xpath;
+  }
+
+  function getXpathNamespaces() {
+    return $this->xpathNamespaces;
+  }
+
+  function setXpathNamespaces($xpathNamespaces) {
+    $this->xpathNamespaces = $xpathNamespaces;
   }
 
 
