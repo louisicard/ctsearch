@@ -20,6 +20,7 @@ require_once __DIR__ . '/../src/CtSearchBundle/Datasource/DrupalCtExport.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Datasource/CMISHarvester.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Datasource/XMLParser.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Datasource/BibookHarvester.php';
+require_once __DIR__ . '/../src/CtSearchBundle/Datasource/TextFileParser.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/ProcessorFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/DefineConstantFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/HTMLTextExtractorFilter.php';
@@ -34,5 +35,6 @@ require_once __DIR__ . '/../src/CtSearchBundle/Processor/MatchingListFilter.php'
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/AssociativeArraySelectorFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/XMLParserToArrayFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/XPathGetterFilter.php';
+require_once __DIR__ . '/../src/CtSearchBundle/Processor/GoogleGeocodingFilter.php';
 
 return $loader;
