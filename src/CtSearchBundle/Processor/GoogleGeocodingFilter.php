@@ -46,12 +46,9 @@ class GoogleGeocodingFilter extends ProcessorFilter
           $google_url .= '&key=' . $apiKey;
 
         $json = $this->getUrlResponse($google_url);
-        if (isset($json['status']) && $json['status'] == 'OK' && isset($json['results'][0]['geometry']['location']['lat'])) {
+        if (isset($json['status']) && $json['status'] == 'OK' && isset($json['results'][0])) {
           usleep(100000);//Sleep for 100ms
-          return array('location' => array(
-            'lat' => $json['results'][0]['geometry']['location']['lat'],
-            'lon' => $json['results'][0]['geometry']['location']['lng'],
-          ));
+          return array('location' => $json['results'][0]);
         }
       }
       return array('value' => null);
