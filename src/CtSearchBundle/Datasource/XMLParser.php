@@ -46,6 +46,9 @@ class XMLParser extends Datasource {
           }
         }
         $docs = $xml->xpath($this->getXpath());
+        if ($this->getOutput() != null) {
+          $this->getOutput()->writeln('Found ' . count($docs) . ' documents');
+        }
         foreach($docs as $doc){
           foreach($xml->getNamespaces(true) as $prefix => $ns){
             if(!empty($prefix)){
@@ -63,7 +66,7 @@ class XMLParser extends Datasource {
     }
 
     if ($this->getOutput() != null) {
-      $this->getOutput()->writeln('Found ' . $count . ' documents');
+      $this->getOutput()->writeln('Processed ' . $count . ' documents');
     }
     if ($this->getController() != null) {
       CtSearchBundle::addSessionMessage($this->getController(), 'status', 'Found ' . $count . ' documents');
