@@ -394,6 +394,29 @@
       filters_html += '</div></div>';
       stack.append(filters_html);
     }
+
+    $('#processor-stack').sortable({
+      items: ".filter.stack-item",
+      stop: function(){
+        var filters = json.filters;
+        json.filters = [];
+        $('#processor-stack .filter.stack-item').each(function(){
+          var getFilterById = function(id){
+            for(var i = 0; i < filters.length; i++){
+              if(filters[i].id == id)
+              return filters[i];
+            }
+            return null;
+          };
+          var id = $(this).attr('id').split('-')[1];
+          json.filters.push(getFilterById(id));
+        });
+        $('#form_processor #form_definition').val(JSON.stringify(json, null, 2));
+        initProcessorStack();
+      }
+    });
+    $('#processor-stack').disableSelection();
+
     for (var i = 0; i < error_filters.length; i++) {
       $(error_filters[i]).addClass('error');
     }

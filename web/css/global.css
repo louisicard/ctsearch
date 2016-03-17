@@ -721,3 +721,6 @@ ul.ctsearch-dump ul{
 .console-sumary{
   margin:10px 0;
 }
+#processor-stack .filter.stack-item{
+  cursor: move;
+}
