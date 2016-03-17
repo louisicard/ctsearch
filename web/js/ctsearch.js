@@ -72,7 +72,6 @@
 
     $('.search-page-logs table.logs td.object').each(function () {
       var obj = JSON.parse($(this).html());
-      //console.log(obj);
       $(this).html(prettyPrint(obj), {
         // Config
         maxArray: 20, // Set max for array display (default: infinity)
@@ -190,7 +189,9 @@
           $.ajax({
             url:  __base_url + 'search-pages/autocomplete/' + searchPageId + '/' + encodeURIComponent(request.term)
           }).success(function(data){
-            console.log('AC took : ' + data.took + 'ms');
+            if(typeof console !== 'undefined') {
+              console.log('AC took : ' + data.took + 'ms');
+            }
             response(data.data);
           });
         },
