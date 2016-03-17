@@ -144,10 +144,12 @@ class ProcessorController extends Controller {
       $targetFields = array_keys(json_decode($mapping->getMappingDefinition(), TRUE));
     else
       $targetFields = array();
+    $filterTypes = IndexManager::getInstance()->getFilterTypes();
+    asort($filterTypes);
     return $this->render('ctsearch/processor.html.twig', array(
           'title' => $id == null ? $this->get('translator')->trans('New processor') : $this->get('translator')->trans('Edit processor'),
           'main_menu_item' => 'processors',
-          'filterTypes' => IndexManager::getInstance()->getFilterTypes(),
+          'filterTypes' => $filterTypes,
           'form' => $form->createView(),
           'targetFields' => $targetFields,
           'mappingName' => $mappingName,

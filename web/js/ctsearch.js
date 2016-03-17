@@ -497,7 +497,7 @@
         var selected = typeof json.mapping[target_field] != 'undefined' && json.mapping[target_field] == 'filter_' + json.filters[i].id + '.' + json.filters[i].fields[j];
         if (selected)
           found_in_mapping = true;
-        html += '<option value="filter_' + json.filters[i].id + '.' + json.filters[i].fields[j] + '"' + (selected ? ' selected="selected"' : '') + '>Filter #' + (i + 1) + ' field &quot;' + json.filters[i].fields[j] + '&quot;</option>';
+        html += '<option value="filter_' + json.filters[i].id + '.' + json.filters[i].fields[j] + '"' + (selected ? ' selected="selected"' : '') + '>Filter #' + (i + 1) + ' (' + json.filters[i].inStackName + ') field &quot;' + json.filters[i].fields[j] + '&quot;</option>';
       }
     }
     html += '</select>';
@@ -610,7 +610,7 @@
         break;
       } else {
         for (var j = 0; j < json.filters[i].fields.length; j++) {
-          html += '<option value="filter_' + json.filters[i].id + '.' + json.filters[i].fields[j] + '">Filter #' + (i + 1) + ' field &quot;' + json.filters[i].fields[j] + '&quot;</option>';
+          html += '<option value="filter_' + json.filters[i].id + '.' + json.filters[i].fields[j] + '">Filter #' + (i + 1) + ' (' + json.filters[i].inStackName + ') field &quot;' + json.filters[i].fields[j] + '&quot;</option>';
         }
       }
     }
