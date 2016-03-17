@@ -508,6 +508,16 @@ form .form-item.required label:after{
   display:block;
   padding-bottom:2px;
 }
+.filter-dialog .debug-dump-item input{
+  vertical-align: middle;
+}
+.filter-dialog .debug-dump-item label{
+  display:inline;
+  padding-left:4px;
+}
+.filter-dialog .debug-dump-item{
+  padding:4px 0;
+}
 .filter-dialog input[type="text"],
 .filter-dialog select,
 .filter-dialog textarea{

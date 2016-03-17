@@ -36,5 +36,6 @@ require_once __DIR__ . '/../src/CtSearchBundle/Processor/AssociativeArraySelecto
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/XMLParserToArrayFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/XPathGetterFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/GoogleGeocodingFilter.php';
+require_once __DIR__ . '/../src/CtSearchBundle/Processor/DebugFilter.php';
 
 return $loader;

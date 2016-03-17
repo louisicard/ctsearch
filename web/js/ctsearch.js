@@ -187,29 +187,29 @@
         source: function (request, response) {
           var searchPageId = $('*[search-page-id]').attr('search-page-id');
           $.ajax({
-            url:  __base_url + 'search-pages/autocomplete/' + searchPageId + '/' + encodeURIComponent(request.term)
-          }).success(function(data){
-            if(typeof console !== 'undefined') {
+            url: __base_url + 'search-pages/autocomplete/' + searchPageId + '/' + encodeURIComponent(request.term)
+          }).success(function (data) {
+            if (typeof console !== 'undefined') {
               console.log('AC took : ' + data.took + 'ms');
             }
             response(data.data);
           });
         },
-        select: function(event, ui){
+        select: function (event, ui) {
           $('#search-page-form input[type="text"]').val(ui.item.value);
           $('#search-page-form').submit();
         }
       });
     }
-    
-    $('ul li.index-mapping').each(function(){
+
+    $('ul li.index-mapping').each(function () {
       var indexName = $(this).parents('tr').find('td:first-child').text();
       var mappingName = $(this).find('a').text();
       $(this).addClass('ajax-loading');
       var li = $(this);
       $.ajax({
         url: __ctsearch_base_url + 'indexes/mapping-stat/' + indexName + '/' + mappingName
-      }).success(function(data){
+      }).success(function (data) {
         li.removeClass('ajax-loading');
         li.find('.mapping-stat').html('<ul><li>' + data.docs + '<span> documents</span></li><li>' + data.fields + '<span> fields</span></li></ul>');
       });
@@ -397,14 +397,14 @@
 
     $('#processor-stack').sortable({
       items: ".filter.stack-item",
-      stop: function(){
+      stop: function () {
         var filters = json.filters;
         json.filters = [];
-        $('#processor-stack .filter.stack-item').each(function(){
-          var getFilterById = function(id){
-            for(var i = 0; i < filters.length; i++){
-              if(filters[i].id == id)
-              return filters[i];
+        $('#processor-stack .filter.stack-item').each(function () {
+          var getFilterById = function (id) {
+            for (var i = 0; i < filters.length; i++) {
+              if (filters[i].id == id)
+                return filters[i];
             }
             return null;
           };
@@ -542,7 +542,6 @@
       title: 'Filter settings',
       width: 600,
       create: function () {
-        //$(this).html('<div style="text-align:center;padding:50px;"><img src="' + __loading_image_url + '" /></div>');
         var dialog = $(this);
         var data = {
           class: filterClass
@@ -587,6 +586,31 @@
           dialog.find('input.filter-argument').each(function () {
             setFilterSelect($(this), json, filter);
           });
+          if (filterClass == 'CtSearchBundle\\Processor\\DebugFilter') {
+            dialog.find('#form_setting_fields_to_dump').css('display', 'none');
+            for (var i = 0; i < json.datasource.fields.length; i++) {
+              dialog.find('#form_setting_fields_to_dump').parent().append('<div class="debug-dump-item"><input type="checkbox" id="dump-datasource_' + json.datasource.fields[i] + '" value="datasource.' + json.datasource.fields[i] + '" /><label for="dump-datasource_' + json.datasource.fields[i] + '">Datasource field ' + json.datasource.fields[i] + '</label></div>');
+            }
+            for (var i = 0; i < json.filters.length; i++) {
+              if (filter != null && json.filters[i].id == filter.id) {
+                break;
+              }
+              for(var j= 0; j< json.filters[i].fields.length; j++) {
+                dialog.find('#form_setting_fields_to_dump').parent().append('<div class="debug-dump-item"><input type="checkbox" id="dump-filter_' + json.filters[i].id + '_' + json.filters[i].fields[j] + '" value="filter_' + json.filters[i].id + '.' + json.filters[i].fields[j] + '" /><label for="dump-filter_' + json.filters[i].id + '_' + json.filters[i].fields[j] + '">Filter #' + (i + 1) + ' (' + json.filters[i].inStackName + ') field ' + json.filters[i].fields[j] + '</label></div>');
+              }
+            }
+            var fields = dialog.find('#form_setting_fields_to_dump').val().split(',');
+            for(var i = 0; i < fields.length; i++){
+              dialog.find('#form_setting_fields_to_dump').parent().find('.debug-dump-item input[value="' + fields[i] + '"]').attr('checked', 'checked');
+            }
+            dialog.find('#form_setting_fields_to_dump').parent().find('.debug-dump-item input').click(function(){
+              var vals = [];
+              dialog.find('#form_setting_fields_to_dump').parent().find('.debug-dump-item input:checked').each(function(){
+                vals.push($(this).val());
+              });
+              dialog.find('#form_setting_fields_to_dump').val(vals.join(','));
+            });
+          }
           $(mainDialog).dialog('open');
           $(waitDialog).dialog('destroy');
           dialog.find('form').submit(function (e) {
@@ -711,6 +735,7 @@
       return false;
     });
   }
+
   function advConfirm(text, callback) {
     var msg = text.split('\n');
     var html = '<ul class="messages">';
