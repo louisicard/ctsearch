@@ -2,29 +2,34 @@
 
 
 {%block main_content%}
-  <p class="server-version">
-    <strong>{%trans%}Server version{%endtrans%}:</strong>
-    <span>{{server_info.version.number}}</span>
-  </p>
-  <h2>{%trans%}Indexes on the server{%endtrans%}</h2>
-  {%if info|length > 0%}
-    <table>
-      <thead>
-        <tr>
-          <th>{{'Index name'|trans}}</th>
-          <th>{{'Index size'|trans}}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {%set class='even'%}
-        {%for index_name, stat in info%}
-          {%if class=='even'%}{%set class='odd'%}{%else%}{%set class='even'%}{%endif%}
-          <tr class="{{class}}">
-            <td>{{index_name}}</td>
-            <td class="numeric">{{stat.size}}</td>
+  {% if server_info != null and info != null %}
+    <p class="server-version">
+      <strong>{%trans%}Server version{%endtrans%}:</strong>
+      <span>{{server_info.version.number}}</span>
+    </p>
+    <h2>{%trans%}Indexes on the server{%endtrans%}</h2>
+    {%if info|length > 0%}
+      <table>
+        <thead>
+          <tr>
+            <th>{{'Index name'|trans}}</th>
+            <th>{{'Index size'|trans}}</th>
           </tr>
-        {%endfor%}
-      </tbody>
-    </table>
-  {%endif%}
+        </thead>
+        <tbody>
+          {%set class='even'%}
+          {%for index_name, stat in info%}
+            {%if class=='even'%}{%set class='odd'%}{%else%}{%set class='even'%}{%endif%}
+            <tr class="{{class}}">
+              <td>{{index_name}}</td>
+              <td class="numeric">{{stat.size}}</td>
+            </tr>
+          {%endfor%}
+        </tbody>
+      </table>
+    {%endif%}
+  {% else %}
+    <p>{{ 'Elastic server is unavailable. Please check your settings'|trans }}</p>
+  {% endif %}
+
 {%endblock%}

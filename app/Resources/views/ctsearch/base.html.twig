@@ -13,6 +13,7 @@
     </figure>
     <nav id="main-menu" class="clearfix">
       <ul>
+        {% if no_menu is not defined or not no_menu %}
         <li{%if main_menu_item=='home'%} class="active"{%endif%}><a href="{{path('homepage')}}" title="{{'Home'|trans}}">{{'Home'|trans}}</a></li>
         <li{%if main_menu_item=='indexes'%} class="active"{%endif%}><a href="{{path('indexes')}}" title="{{'Indexes'|trans}}">{{'Indexes'|trans}}</a></li>
         <li{%if main_menu_item=='datasources'%} class="active"{%endif%}><a href="{{path('datasources')}}" title="{{'Datasources'|trans}}">{{'Datasources'|trans}}</a></li>
@@ -21,6 +22,7 @@
         <li{%if main_menu_item=='search-pages'%} class="active"{%endif%}><a href="{{path('search-pages')}}" title="{{'Search pages'|trans}}">{{'Search pages'|trans}}</a></li>
         <li{%if main_menu_item=='logs'%} class="active"{%endif%}><a href="{{path('show-logs')}}" title="{{'Logs'|trans}}">{{'Logs'|trans}}</a></li>
         <li{%if main_menu_item=='console'%} class="active"{%endif%}><a href="{{path('console')}}" title="{{'Console'|trans}}">{{'Console'|trans}}</a></li>
+        {% endif %}
       </ul>
     </nav>
   </header>
