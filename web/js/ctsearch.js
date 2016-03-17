@@ -367,7 +367,7 @@
         filters_html += '<ul>';
         var error = false;
         for (var j = 0; j < json.filters[i].arguments.length; j++) {
-          if ($.inArray(json.filters[i].arguments[j].value, available_inputs) < 0) {
+          if ($.inArray(json.filters[i].arguments[j].value, available_inputs) < 0 && json.filters[i].arguments[j].value != 'empty_value') {
             error_filters.push('#filter-' + json.filters[i].id);
             error = true;
           }
