@@ -17,6 +17,7 @@ class HomeController extends Controller {
     try {
 
       $info = IndexManager::getInstance()->getElasticInfo();
+      ksort($info);
 
       $serverInfo = IndexManager::getInstance()->getServerInfo();
     }

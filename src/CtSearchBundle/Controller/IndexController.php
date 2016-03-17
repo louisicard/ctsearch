@@ -18,6 +18,7 @@ class IndexController extends Controller {
    */
   public function listIndexesAction(Request $request) {
     $info = IndexManager::getInstance()->getElasticInfo();
+    ksort($info);
     return $this->render('ctsearch/indexes.html.twig', array(
         'title' => $this->get('translator')->trans('Indexes'),
         'main_menu_item' => 'indexes',

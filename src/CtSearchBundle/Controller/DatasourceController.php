@@ -18,6 +18,7 @@ class DatasourceController extends Controller {
    */
   public function listDatasourcesAction(Request $request) {
     $datasourceTypes = IndexManager::getInstance()->getDatasourceTypes();
+    asort($datasourceTypes);
     $form = $this->createFormBuilder(null)
       ->add('dataSourceType', 'choice', array(
         'choices' => array('' => $this->get('translator')->trans('Add a new datasource')) + $datasourceTypes,
