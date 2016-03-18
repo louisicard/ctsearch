@@ -1269,5 +1269,51 @@ class IndexManager {
     unset($params);
     return $r;
   }
+  public function saveStat($target, $facets = array(), $query = '', $analyzer = null, $apiUrl = '', $resultCount = 0, $remoteAddress = '', $tag = '') {
+    if ($this->getIndex('.ctsearch') == null) {
+      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_index_settings.json');
+      $this->createIndex(new Index('.ctsearch_reco', $settingsDefinition));
+    }
+    if ($this->getMapping('.ctsearch', 'stat') == null) {
+      $statDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_stat_definition.json');
+      $this->updateMapping(new Mapping('.ctsearch', 'stat', $statDefinition));
+    }
+    $indexName = explode('.', $target)[0];
+    $tokens = $analyzer != null && !empty($analyzer) && strlen($query) > 2 ? $this->analyze($indexName, $analyzer, $query) : array();
+    if(isset($tokens['tokens'])){
+      $query_analyzed = array();
+      foreach($tokens['tokens'] as $token){
+        if(isset($token['token'])){
+          $query_analyzed[] = $token['token'];
+        }
+      }
+      $query_analyzed = implode(' ', $query_analyzed);
+    }
+    else{
+      $query_analyzed = '';
+    }
+    $params = array(
+      'index' => '.ctsearch',
+      'type' => 'stat',
+      'body' => array(
+        'stat_date' => date('Y-m-d\TH:i:s'),
+        'stat_index' => $indexName,
+        'stat_mapping' => $target,
+        'stat_remote_addr' => $remoteAddress,
+        'stat_log' => $tag,
+        'stat_facets' => $facets,
+        'stat_query' => array(
+          'raw' => $query,
+          'analyzed' => $query_analyzed
+        ),
+        'stat_api_url' => $apiUrl,
+        'stat_result_count' => $resultCount
+      )
+    );
+    $r = $this->getClient()->index($params);
+    $this->getClient()->indices()->flush();
+    unset($params);
+    return $r;
+  }
 
 }

@@ -132,7 +132,7 @@ class SearchAPIController extends Controller {
           }
         }
 
-
+        $applied_facets = array();
         if ($request->get('filter') != null) {
           $filters = array();
           foreach ($request->get('filter') as $filter) {
@@ -143,6 +143,9 @@ class SearchAPIController extends Controller {
                 'operator' => $matches['operator'],
                 'value' => $matches['value']
               );
+              if(!in_array($matches['name'], $applied_facets)){
+                $applied_facets[] = $matches['name'];
+              }
             }
           }
           if (count($filters) > 0) {
@@ -235,6 +238,7 @@ class SearchAPIController extends Controller {
         }
         try {
           $res = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], json_encode($query), $request->get('from') != null ? $request->get('from') : 0,  $request->get('size') != null ? $request->get('size') : 10);
+          IndexManager::getInstance()->saveStat($request->get('mapping'), $applied_facets, $request->get('query') != null ? $request->get('query') : '', $request->get('analyzer'), $request->getQueryString(), isset($res['hits']['total']) ? $res['hits']['total'] : 0, $request->get('clientIp') != null ? $request->get('clientIp') : $request->getClientIp(), $request->get('tag') != null ? $request->get('tag') : '');
         } catch (\Exception $ex) {
           return new Response(json_encode(array('error' => $ex->getMessage())), 500, array('Content-type' => 'application/json;charset=utf-8'));
         }

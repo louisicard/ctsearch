@@ -1,0 +1,67 @@
+{
+    "stat_date": {
+        "type": "date",
+        "store": true,
+        "format": "date_optional_time"
+    },
+    "stat_index": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "stat_mapping": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "stat_remote_addr": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "stat_log": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "stat_facets": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "stat_query": {
+        "type": "nested",
+        "properties": {
+            "raw": {
+                "type": "string",
+                "analyzer": "standard",
+                "fields": {
+                    "raw": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    }
+                }
+            },
+            "analyzed": {
+                "type": "string",
+                "analyzer": "standard",
+                "fields": {
+                    "raw": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    }
+                }
+            }
+        }
+    },
+    "stat_api_url": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "stat_result_count": {
+        "type": "integer",
+        "index": "not_analyzed",
+        "store": true
+    }
+}
