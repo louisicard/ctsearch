@@ -415,7 +415,6 @@
         initProcessorStack();
       }
     });
-    $('#processor-stack').disableSelection();
 
     for (var i = 0; i < error_filters.length; i++) {
       $(error_filters[i]).addClass('error');
