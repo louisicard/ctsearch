@@ -1269,7 +1269,7 @@ class IndexManager {
     unset($params);
     return $r;
   }
-  public function saveStat($target, $facets = array(), $query = '', $analyzer = null, $apiUrl = '', $resultCount = 0, $remoteAddress = '', $tag = '') {
+  public function saveStat($target, $facets = array(), $query = '', $analyzer = null, $apiUrl = '', $resultCount = 0, $responseTime = 0, $remoteAddress = '', $tag = '') {
     if ($this->getIndex('.ctsearch') == null) {
       $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_index_settings.json');
       $this->createIndex(new Index('.ctsearch_reco', $settingsDefinition));
@@ -1307,7 +1307,8 @@ class IndexManager {
           'analyzed' => $query_analyzed
         ),
         'stat_api_url' => $apiUrl,
-        'stat_result_count' => $resultCount
+        'stat_result_count' => $resultCount,
+        'stat_response_time' => $responseTime
       )
     );
     $r = $this->getClient()->index($params);
