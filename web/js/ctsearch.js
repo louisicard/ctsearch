@@ -214,6 +214,58 @@
         li.find('.mapping-stat').html('<ul><li>' + data.docs + '<span> documents</span></li><li>' + data.fields + '<span> fields</span></li></ul>');
       });
     });
+
+    if ($('body.page-console .facets').size() > 0) {
+      eval('var json = ' + $('body.page-console .facets').text());
+      $('body.page-console .facets').JSONView(json);
+    }
+    $('body.page-analytics form#stat-form').submit(function (e) {
+      e.preventDefault();
+      var date_from = $('body.page-analytics form#stat-form input#date-from').val();
+      var date_to = $('body.page-analytics form#stat-form input#date-to').val();
+      var stat = $('body.page-analytics form#stat-form select#stat-choice').val();
+      var granularity = $('body.page-analytics form#stat-form select#granularity').val();
+      $('body.page-analytics #stat-display').addClass('loading');
+      $('body.page-analytics #stat-display').html('Loading. Please wait.');
+      $('body.page-analytics #table-stat-display').html('');
+      $.ajax({
+        url: __ctsearch_base_url + 'analytics/compile',
+        method: 'post',
+        data: 'date_from=' + encodeURIComponent(date_from) + '&date_to=' + encodeURIComponent(date_to) + '&stat=' + encodeURIComponent(stat) + '&granularity=' + encodeURIComponent(granularity)
+      }).fail(function () {
+
+      }).success(function (data) {
+        $('body.page-analytics #stat-display').removeClass('loading');
+        $('body.page-analytics #stat-display').html('');
+        eval(data.jsData);
+        eval('var chart = new ' + data.googleChartClass + '(document.getElementById("stat-display"));');
+        if (typeof statData !== 'undefined' && typeof chartOptions !== 'undefined' && data.data.length > 0) {
+          chart.draw(statData, chartOptions);
+        }
+
+        if (data.data.length > 0) {
+
+          var html = '<table><thead><tr>';
+          for (var i = 0; i < data.headers.length; i++) {
+            html += '<th>' + data.headers[i] + '</th>';
+          }
+          html += '</tr></thead><tbody>';
+          for (var i = 0; i < data.data.length; i++) {
+            html += '<tr>';
+            for (var j = 0; j < data.data[i].length; j++) {
+              html += '<td>' + data.data[i][j] + '</td>';
+            }
+            html += '</tr>';
+          }
+          html += '</tbody></table>'
+          $('body.page-analytics #table-stat-display').html(html);
+        }
+        else{
+          $('body.page-analytics #table-stat-display').html('No data available');
+        }
+      });
+    });
+
   });
 
   function reactResponsive() {
@@ -594,17 +646,17 @@
               if (filter != null && json.filters[i].id == filter.id) {
                 break;
               }
-              for(var j= 0; j< json.filters[i].fields.length; j++) {
+              for (var j = 0; j < json.filters[i].fields.length; j++) {
                 dialog.find('#form_setting_fields_to_dump').parent().append('<div class="debug-dump-item"><input type="checkbox" id="dump-filter_' + json.filters[i].id + '_' + json.filters[i].fields[j] + '" value="filter_' + json.filters[i].id + '.' + json.filters[i].fields[j] + '" /><label for="dump-filter_' + json.filters[i].id + '_' + json.filters[i].fields[j] + '">Filter #' + (i + 1) + ' (' + json.filters[i].inStackName + ') field ' + json.filters[i].fields[j] + '</label></div>');
               }
             }
             var fields = dialog.find('#form_setting_fields_to_dump').val().split(',');
-            for(var i = 0; i < fields.length; i++){
+            for (var i = 0; i < fields.length; i++) {
               dialog.find('#form_setting_fields_to_dump').parent().find('.debug-dump-item input[value="' + fields[i] + '"]').attr('checked', 'checked');
             }
-            dialog.find('#form_setting_fields_to_dump').parent().find('.debug-dump-item input').click(function(){
+            dialog.find('#form_setting_fields_to_dump').parent().find('.debug-dump-item input').click(function () {
               var vals = [];
-              dialog.find('#form_setting_fields_to_dump').parent().find('.debug-dump-item input:checked').each(function(){
+              dialog.find('#form_setting_fields_to_dump').parent().find('.debug-dump-item input:checked').each(function () {
                 vals.push($(this).val());
               });
               dialog.find('#form_setting_fields_to_dump').val(vals.join(','));

@@ -1,0 +1,108 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: Louis Sicard
+ * Date: 22/03/2016
+ * Time: 16:49
+ */
+
+namespace CtSearchBundle\Classes;
+
+
+class QueryCountStatCompiler extends StatCompiler
+{
+  function getDisplayName()
+  {
+    return "Number of queries";
+  }
+
+  function compile($from, $to, $period)
+  {
+    $query = '
+      {
+      "query": {
+          "bool": {
+              "must": []
+          }
+      },
+      "filter": {
+          "type": {
+              "value": "stat"
+          }
+      },
+      "aggs": {
+          "date": {
+              "date_histogram": {
+                  "field": "stat_date",
+                  "interval": "' . $this->getElasticPeriod($period) . '"
+              }
+          }
+      }
+    }';
+    $query = json_decode($query, TRUE);
+    if($from != null) {
+      $query['query']['bool']['must'][] = json_decode('{
+                    "range": {
+                        "stat_date": {
+                            "gte": "' . $from->format('Y-m-d\TH:i') . '"
+                        }
+                    }
+                }', TRUE);
+    }
+    if($to != null) {
+      $query['query']['bool']['must'][] = json_decode('{
+                    "range": {
+                        "stat_date": {
+                            "lte": "' . $to->format('Y-m-d\TH:i') . '"
+                        }
+                    }
+                }', TRUE);
+    }
+    $query = json_encode($query, JSON_PRETTY_PRINT);
+
+    $res = IndexManager::getInstance()->search('.ctsearch', $query, 0, 9999);
+    if(isset($res['aggregations']['date']['buckets'])){
+      $data = array();
+      foreach($res['aggregations']['date']['buckets'] as $bucket){
+        $data[] = array(
+          \DateTime::createFromFormat('Y-m-d\TH:i:s.000\Z', $bucket['key_as_string'])->format('Y-m-d H:i'),
+          $bucket['doc_count']
+        );
+      }
+      $this->setData($data);
+    }
+
+  }
+
+  function getHeaders()
+  {
+    return array('Date/time', 'Count');
+  }
+
+  function getGoogleChartClass()
+  {
+    return 'google.visualization.LineChart';
+  }
+
+  function getJSData()
+  {
+    $js = 'var statData = google.visualization.arrayToDataTable([';
+    //Headers
+    $js .= '[' . implode(',', array_map(function($el){return "'" . str_replace("'", "\\'", $el) . "'";}, $this->getHeaders())) . ']';
+
+    //Data
+    foreach($this->getData() as $data){
+      $js .= ',[' . implode(',', array_map(function($el){if(!is_numeric($el)) return "'" . str_replace("'", "\\'", $el) . "'"; else return $el;}, $data)) . ']';
+    }
+
+    $js .= ']);';
+
+    $js .= 'var chartOptions = {
+          title: "Number of queries",
+          legend: { position: "bottom" }
+        };';
+    return $js;
+  }
+
+
+}

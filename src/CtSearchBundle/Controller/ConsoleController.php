@@ -73,6 +73,9 @@ class ConsoleController extends Controller {
         if (!$data['deleteByQuery']) {
           $res = IndexManager::getInstance()->search($index, $query, isset($query_r['from']) ? $query_r['from'] : 0, isset($query_r['size']) ? $query_r['size'] : 20);
           $params['results'] = $this->dumpVar($res);
+          if(isset($res['aggregations']) && count($res['aggregations']) > 0){
+            $params['facets'] = json_encode($res['aggregations'], JSON_PRETTY_PRINT);
+          }
           $params['engine_response'] = $this->getFormattedEngineReponse($res);
           $saveUrlParams = array();
           if($request->get('id') != null){

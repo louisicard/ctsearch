@@ -20,6 +20,7 @@
         <li{%if main_menu_item=='matching-lists'%} class="active"{%endif%}><a href="{{path('matching-lists')}}" title="{{'Matching lists'|trans}}">{{'Matching lists'|trans}}</a></li>
         <li{%if main_menu_item=='processors'%} class="active"{%endif%}><a href="{{path('processors')}}" title="{{'Processors'|trans}}">{{'Processors'|trans}}</a></li>
         <li{%if main_menu_item=='search-pages'%} class="active"{%endif%}><a href="{{path('search-pages')}}" title="{{'Search pages'|trans}}">{{'Search pages'|trans}}</a></li>
+        <li{%if main_menu_item=='analytics'%} class="active"{%endif%}><a href="{{path('analytics')}}" title="{{'Analytics'|trans}}">{{'Analytics'|trans}}</a></li>
         <li{%if main_menu_item=='logs'%} class="active"{%endif%}><a href="{{path('show-logs')}}" title="{{'Logs'|trans}}">{{'Logs'|trans}}</a></li>
         <li{%if main_menu_item=='console'%} class="active"{%endif%}><a href="{{path('console')}}" title="{{'Console'|trans}}">{{'Console'|trans}}</a></li>
         {% endif %}
@@ -42,12 +43,11 @@
   </section>
 {% endblock %}
 
-
-
 {% block stylesheets %}
   <link rel="stylesheet" href="{{asset('css/normalize.css')}}" />
   <link rel="stylesheet" href="{{asset('js/jquery-ui/jquery-ui.min.css')}}" />
   <link rel="stylesheet" href="{{asset('css/global.css')}}" />
+  <link rel="stylesheet" href="{{asset('css/jquery.jsonview.min.css')}}" />
 {% endblock %}
 
 {% block javascripts %}
@@ -84,4 +84,11 @@
   <script type="text/javascript" src="{{asset('js/jquery-1.11.3.min.js')}}"></script>
   <script type="text/javascript" src="{{asset('js/jquery-ui/jquery-ui.min.js')}}"></script>
   <script type="text/javascript" src="{{asset('js/ctsearch.js')}}"></script>
+  <script type="text/javascript" src="{{asset('js/jquery.jsonview.min.js')}}"></script>
+  {% if app.request.get('_route') == 'analytics' %}
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart']});
+  </script>
+  {% endif %}
 {% endblock %}

@@ -7,7 +7,7 @@
         {% block stylesheets %}{% endblock %}
         <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}" />
     </head>
-    <body>
+    <body class="page-{{ app.request.get('_route') }}">
         {% block body %}{% endblock %}
         {% block javascripts %}{% endblock %}
     </body>

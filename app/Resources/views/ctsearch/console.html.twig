@@ -25,6 +25,11 @@
       {% endif %}
       </ul>
     </div>
+
+    {% if facets is defined %}
+      <h3>Facets</h3>
+      <div class="facets">{{ facets|raw }}</div>
+    {% endif %}
     <div class="console-table-wrapper">
       <table class="console-table">
         <thead>

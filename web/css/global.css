@@ -734,3 +734,21 @@ ul.ctsearch-dump ul{
 #processor-stack .filter.stack-item{
   cursor: move;
 }
+body.page-analytics form#stat-form .form-item,
+body.page-analytics form#stat-form .actions{
+  float:left;
+  margin-right:1em;
+}
+body.page-analytics form#stat-form input,
+body.page-analytics form#stat-form select{
+  width:auto;
+  min-width:10em;
+  height:2em;
+}
+body.page-analytics form#stat-form label{
+  display:block;
+  height:1.5em;
+}
+body.page-analytics form#stat-form .actions{
+  padding-top:1.8em;
+}
