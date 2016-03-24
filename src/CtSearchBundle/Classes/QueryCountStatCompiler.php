@@ -16,13 +16,17 @@ class QueryCountStatCompiler extends StatCompiler
     return "Number of queries";
   }
 
-  function compile($from, $to, $period)
+  function compile($mapping, $from, $to, $period)
   {
     $query = '
       {
       "query": {
           "bool": {
-              "must": []
+              "must": [{
+                "term": {
+                  "stat_mapping": "' . $mapping . '"
+                }
+              }]
           }
       },
       "filter": {
@@ -86,13 +90,19 @@ class QueryCountStatCompiler extends StatCompiler
 
   function getJSData()
   {
-    $js = 'var statData = google.visualization.arrayToDataTable([';
-    //Headers
-    $js .= '[' . implode(',', array_map(function($el){return "'" . str_replace("'", "\\'", $el) . "'";}, $this->getHeaders())) . ']';
+    $js = 'var statData = new google.visualization.DataTable();
+    statData.addColumn("datetime", "Date/time");
+    statData.addColumn("number", "Count");
 
+    statData.addRows([';
+
+    $first = true;
     //Data
     foreach($this->getData() as $data){
-      $js .= ',[' . implode(',', array_map(function($el){if(!is_numeric($el)) return "'" . str_replace("'", "\\'", $el) . "'"; else return $el;}, $data)) . ']';
+      if(!$first)
+        $js .= ',';
+      $first = false;
+      $js .= '[new Date("' . $data[0] . '"), ' . $data[1] . ']';
     }
 
     $js .= ']);';

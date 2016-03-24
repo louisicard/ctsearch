@@ -29,7 +29,7 @@ abstract class StatCompiler
    * @param \DateTime $to
    * @param integer $period
    */
-  abstract function compile($from, $to, $period);
+  abstract function compile($mapping, $from, $to, $period);
 
   /**
    * @return mixed

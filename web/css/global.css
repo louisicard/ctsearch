@@ -752,3 +752,6 @@ body.page-analytics form#stat-form label{
 body.page-analytics form#stat-form .actions{
   padding-top:1.8em;
 }
+body.page-analytics #stat-display.chart-loaded{
+  min-height:20em;
+}

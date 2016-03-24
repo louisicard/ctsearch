@@ -221,17 +221,19 @@
     }
     $('body.page-analytics form#stat-form').submit(function (e) {
       e.preventDefault();
+      var mapping = $('body.page-analytics form#stat-form select#mapping-choice').val();
       var date_from = $('body.page-analytics form#stat-form input#date-from').val();
       var date_to = $('body.page-analytics form#stat-form input#date-to').val();
       var stat = $('body.page-analytics form#stat-form select#stat-choice').val();
       var granularity = $('body.page-analytics form#stat-form select#granularity').val();
       $('body.page-analytics #stat-display').addClass('loading');
       $('body.page-analytics #stat-display').html('Loading. Please wait.');
+      $('body.page-analytics #stat-display').removeClass("chart-loaded");
       $('body.page-analytics #table-stat-display').html('');
       $.ajax({
         url: __ctsearch_base_url + 'analytics/compile',
         method: 'post',
-        data: 'date_from=' + encodeURIComponent(date_from) + '&date_to=' + encodeURIComponent(date_to) + '&stat=' + encodeURIComponent(stat) + '&granularity=' + encodeURIComponent(granularity)
+        data: 'mapping=' + encodeURIComponent(mapping) + '&date_from=' + encodeURIComponent(date_from) + '&date_to=' + encodeURIComponent(date_to) + '&stat=' + encodeURIComponent(stat) + '&granularity=' + encodeURIComponent(granularity)
       }).fail(function () {
 
       }).success(function (data) {
@@ -240,6 +242,7 @@
         eval(data.jsData);
         eval('var chart = new ' + data.googleChartClass + '(document.getElementById("stat-display"));');
         if (typeof statData !== 'undefined' && typeof chartOptions !== 'undefined' && data.data.length > 0) {
+          $('body.page-analytics #stat-display').addClass("chart-loaded");
           chart.draw(statData, chartOptions);
         }
 

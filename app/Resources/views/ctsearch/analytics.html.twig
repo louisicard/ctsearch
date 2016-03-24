@@ -4,10 +4,23 @@
 {%block main_content%}
   <form id="stat-form" class="clearfix">
     <div class="form-item">
+      <label for="">{{ "Mapping"|trans() }}</label>
+      <select id="mapping-choice">
+        <option value="">{{ "Select a mapping"|trans() }}</option>
+        {% for index, choices in mappingChoices %}
+          <optgroup label="{{ index }}">
+          {% for k, v in choices %}
+            <option value="{{ k }}">{{ v }}</option>
+          {% endfor %}
+          </optgroup>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-item">
       <label for="">{{ "Stat"|trans() }}</label>
       <select id="stat-choice">
         {% for class, choice in statChoices %}
-        <option value="{{ class }}">{{ choice }}</option>
+          <option value="{{ class }}">{{ choice }}</option>
         {% endfor %}
       </select>
     </div>
