@@ -245,7 +245,7 @@
           $('body.page-analytics #stat-display').addClass("chart-loaded");
           chart.draw(statData, chartOptions);
         }
-
+        console.log(data);
         if (data.data.length > 0) {
 
           var html = '<table><thead><tr>';

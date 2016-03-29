@@ -38,5 +38,6 @@ require_once __DIR__ . '/../src/CtSearchBundle/Processor/XPathGetterFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/GoogleGeocodingFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Processor/DebugFilter.php';
 require_once __DIR__ . '/../src/CtSearchBundle/Classes/QueryCountStatCompiler.php';
+require_once __DIR__ . '/../src/CtSearchBundle/Classes/KeywordsStatCompiler.php';
 
 return $loader;
