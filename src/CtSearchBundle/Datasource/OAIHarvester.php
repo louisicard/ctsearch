@@ -76,7 +76,7 @@ class OAIHarvester extends Datasource {
         $config['input-encoding'] = 'utf8';
       }
     }
-    $tidy = tidy_parse_string($content['content'], $config);
+    $tidy = @tidy_parse_string($content['content'], $config);
     tidy_clean_repair($tidy);
     $doc->loadXML($tidy);
     $xpath = new \DOMXPath($doc);

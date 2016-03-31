@@ -53,7 +53,7 @@ class DebugFilter extends ProcessorFilter {
     if(isset($settings['no_index']) && $settings['no_index']){
       $document = array();
     }
-    return NULL;
+    return array();
   }
 
 }
