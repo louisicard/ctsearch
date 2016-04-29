@@ -2,6 +2,7 @@
 
 namespace CtSearchBundle\Controller;
 
+use CtSearchBundle\Datasource\OAIHarvester;
 use Elasticsearch\Common\Exceptions\NoNodesAvailableException;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -20,6 +21,7 @@ class HomeController extends Controller {
       ksort($info);
 
       $serverInfo = IndexManager::getInstance()->getServerInfo();
+
     }
     catch(NoNodesAvailableException $ex){
       $info = null;

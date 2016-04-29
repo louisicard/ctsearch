@@ -69,7 +69,8 @@ class OAIHarvester extends Datasource {
       'wrap'       => false,
       'output-encoding' => 'utf8',
       'numeric-entities' => true,
-      'preserve-entities' => true
+      'preserve-entities' => true,
+      'quote-ampersand' => true,
     );
     if(isset($content['encoding'])){
       if($content['encoding'] == 'utf-8' || $content['encoding'] == 'utf8'){
@@ -78,7 +79,13 @@ class OAIHarvester extends Datasource {
     }
     $tidy = @tidy_parse_string($content['content'], $config);
     tidy_clean_repair($tidy);
-    $doc->loadXML($tidy);
+    $string = (string)$tidy;
+    //Fixing unclean entities
+    $string = str_replace("&#", "__CL_AMP__", $string);
+    $string = str_replace("&", "&#38;", $string);
+    $string = str_replace("__CL_AMP__", "&#", $string);
+    //End fixing
+    $doc->loadXML($string);
     $xpath = new \DOMXPath($doc);
     $result = $xpath->query("//namespace::*");
 

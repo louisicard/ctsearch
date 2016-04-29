@@ -1,8 +1,7 @@
 {% extends 'ctsearch/base.html.twig' %}
 
-
 {%block main_content%}
-  {% if server_info != null and info != null %}
+  {% if server_info != null and info is defined %}
     <p class="server-version">
       <strong>{%trans%}Server version{%endtrans%}:</strong>
       <span>{{server_info.version.number}}</span>
@@ -27,6 +26,8 @@
           {%endfor%}
         </tbody>
       </table>
+      {% else %}
+      <p>No index found in server</p>
     {%endif%}
   {% else %}
     <p>{{ 'Elastic server is unavailable. Please check your settings'|trans }}</p>
