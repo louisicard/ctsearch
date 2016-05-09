@@ -261,6 +261,7 @@ class CMISRepositoryWrapper
             $url = CMISRepositoryWrapper :: getOpUrl($url, $this->auth_options);
         }
         $session = curl_init($url);
+        \CtSearchBundle\Classes\CurlUtils::handleCurlProxy($session);
         curl_setopt($session, CURLOPT_HEADER, false);
         curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
         if ($this->username)

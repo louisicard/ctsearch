@@ -2,6 +2,7 @@
 
 namespace CtSearchBundle\Datasource;
 
+use CtSearchBundle\Classes\CurlUtils;
 use Symfony\Component\Validator\Constraints as Assert;
 use \CtSearchBundle\CtSearchBundle;
 
@@ -153,6 +154,7 @@ class OAIHarvester extends Datasource {
     if(!empty($this->cookies)){
       curl_setopt($ch, CURLOPT_COOKIE, $this->cookies);
     }
+    CurlUtils::handleCurlProxy($ch);
     $r = curl_exec($ch);
     $response = $this->parseHttpResponse($r);
     if(isset($response['headers']['set-cookie'])){

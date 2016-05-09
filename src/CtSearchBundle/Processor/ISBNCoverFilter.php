@@ -2,6 +2,8 @@
 
 namespace CtSearchBundle\Processor;
 
+use CtSearchBundle\Classes\CurlUtils;
+
 class ISBNCoverFilter extends ProcessorFilter {
 
   public function getDisplayName() {
@@ -77,6 +79,7 @@ class ISBNCoverFilter extends ProcessorFilter {
       'Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
       'User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36'
     ));
+    CurlUtils::handleCurlProxy($ch);
     $r = curl_exec($ch);
     curl_close($ch);
     return $r;

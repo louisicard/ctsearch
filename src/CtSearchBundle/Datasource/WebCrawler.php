@@ -2,6 +2,7 @@
 
 namespace CtSearchBundle\Datasource;
 
+use CtSearchBundle\Classes\CurlUtils;
 use Symfony\Component\Validator\Constraints as Assert;
 use \CtSearchBundle\CtSearchBundle;
 
@@ -98,6 +99,7 @@ class WebCrawler extends Datasource {
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, 'data=' . urlencode(json_encode($data)));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    CurlUtils::handleCurlProxy($ch);
     $r = curl_exec($ch);
     curl_close($ch);
     return json_decode($r, true);

@@ -1,6 +1,8 @@
 <?php
 namespace CtSearchBundle\Processor;
 
+use CtSearchBundle\Classes\CurlUtils;
+
 class GoogleGeocodingFilter extends ProcessorFilter
 {
 
@@ -63,6 +65,7 @@ class GoogleGeocodingFilter extends ProcessorFilter
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    CurlUtils::handleCurlProxy($ch);
     $r = curl_exec($ch);
     curl_close($ch);
     return json_decode($r, true);
