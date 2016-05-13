@@ -2,6 +2,7 @@
 
 namespace CtSearchBundle\Datasource;
 
+use CtSearchBundle\Classes\CurlUtils;
 use \CtSearchBundle\CtSearchBundle;
 
 class BibokHarverster extends Datasource {
@@ -31,7 +32,7 @@ class BibokHarverster extends Datasource {
           if ($this->getOutput() != null) {
             $this->getOutput()->writeln('Harvesting ' . $url);
           }
-          $xml = simplexml_load_file($url);
+          $xml = simplexml_load_string($this->getContentFromUrl($url));
           $page++;
           $docs = $xml->xpath('/resources/resource');
           $stop = count($docs) == 0;
@@ -58,6 +59,19 @@ class BibokHarverster extends Datasource {
     if ($this->getController() != null) {
       CtSearchBundle::addSessionMessage($this->getController(), 'status', 'Found ' . $count . ' documents');
     }*/
+  }
+
+  private function getContentFromUrl($url) {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    CurlUtils::handleCurlProxy($ch);
+    $r = curl_exec($ch);
+    return $r;
   }
 
   public function getSettingsForm() {

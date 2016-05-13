@@ -2,6 +2,7 @@
 
 namespace CtSearchBundle\Datasource;
 
+use CtSearchBundle\Classes\CurlUtils;
 use \CtSearchBundle\CtSearchBundle;
 
 class XMLParser extends Datasource {
@@ -34,7 +35,13 @@ class XMLParser extends Datasource {
         $xml = simplexml_load_string($str);
       }
       elseif(isset($this->getSettings()['url']) && !empty($this->getSettings()['url'])){
-        $xml = simplexml_load_file($this->getSettings()['url']);
+        $url = $this->getSettings()['url'];
+        if(strpos($url, 'http') === 0){
+          $xml = simplexml_load_string($this->getContentFromUrl($url));
+        }
+        else {
+          $xml = simplexml_load_file($url);
+        }
       }
       if(isset($xml)){
         if(isset($this->getSettings()['xpathNamespaces']) && !empty($this->getSettings()['xpathNamespaces'])){
@@ -71,6 +78,19 @@ class XMLParser extends Datasource {
     if ($this->getController() != null) {
       CtSearchBundle::addSessionMessage($this->getController(), 'status', 'Found ' . $count . ' documents');
     }
+  }
+
+  private function getContentFromUrl($url) {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    CurlUtils::handleCurlProxy($ch);
+    $r = curl_exec($ch);
+    return $r;
   }
 
   public function getSettingsForm() {
