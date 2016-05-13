@@ -3,6 +3,7 @@
 namespace CtSearchBundle\Controller;
 
 use CtSearchBundle\CtSearchBundle;
+use CtSearchBundle\Datasource\DrupalCtExport;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -25,7 +26,7 @@ class DrupalCtExportController extends Controller {
       return new Response('{"error":"Missing id parameter"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
     } else {
       $datasource = IndexManager::getInstance()->getDatasource($id, null);
-      if($datasource == null || get_class($datasource) != 'CtSearchBundle\Datasource\DrupalCtExport'){
+      if($datasource == null || !$datasource instanceof DrupalCtExport){
         return new Response('{"error":"No Drupal datasource found for this id"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
       }
       else{

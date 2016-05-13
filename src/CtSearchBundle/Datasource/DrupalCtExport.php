@@ -32,7 +32,7 @@ class DrupalCtExport extends Datasource {
       else{
         $url = 'http://' . $this->getDrupalHost() . '/ct/export';
         if($this->getContentType() != null && strlen($this->getContentType()) > 0){
-          $url .= '?type=' . $this->getContentType();
+          $url .= '?types=' . $this->getContentType();
           $url_sep = '&';
         }
         else{
@@ -43,7 +43,7 @@ class DrupalCtExport extends Datasource {
         }
         $xml = simplexml_load_file($url);
         $page = 1;
-        while(count($xml->xpath('/nodes/node')) > 0){
+        while(count($xml->xpath('/entities/entity')) > 0){
           $this->processXML($xml, $count);
           $page++;
           $xml = simplexml_load_file($url . $url_sep . 'page=' . $page);
@@ -69,18 +69,42 @@ class DrupalCtExport extends Datasource {
    * @param \SimpleXMLElement $xml
    */
   private function processXML($xml, &$count){
-    foreach ($xml->xpath('/nodes/node') as $node) {
+    foreach ($xml->xpath('/entities/entity') as $entity) {
       /* @var $node \SimpleXMLElement */
-      $nid = count($node->xpath('@nid')) > 0 ? (string)$node->xpath('@nid')[0] : null;
-      $export_id = count($node->xpath('export-id')) > 0 ? (string)$node->xpath('export-id')[0] : null;
-      if($nid != null && $export_id != null){
+      $id = count($entity->xpath('@id')) > 0 ? (string)$entity->xpath('@id')[0] : null;
+      $export_id = count($entity->xpath('export-id')) > 0 ? (string)$entity->xpath('export-id')[0] : null;
+      $entity_type = count($entity->xpath('entity-type')) > 0 ? (string)$entity->xpath('entity-type')[0] : null;
+      $bundle = count($entity->xpath('bundle')) > 0 ? (string)$entity->xpath('bundle')[0] : null;
+
+      $types = $this->getContentType();
+      $criteria = [];
+      foreach(explode('||', $types) as $et){
+        if(count(explode('|', $et)) == 2){
+          $ett = explode('|', $et)[0];
+          $bundles = explode(',', explode('|', $et)[1]);
+          $criteria[$ett] = $bundles;
+        }
+      }
+
+      $match = false;
+      foreach($criteria as $et => $bundles){
+        if($et == $entity_type){
+          foreach($bundles as $b){
+            if($b == '*' || $b == $bundle){
+              $match = true;
+            }
+          }
+        }
+      }
+
+      if($match && $id != null && $export_id != null){
         if ($this->getOutput() != null) {
-          $this->getOutput()->writeln(($count + 1) . '/ Indexing ' . $export_id . ' ==> Type = ' . (string)$node->xpath('type')[0]);
+          $this->getOutput()->writeln(($count + 1) . '/ Indexing ' . $export_id . ' ==> Type = ' . (string)$entity->xpath('bundle')[0]);
         }
         $this->index(array(
-          'nid' => $nid,
+          'id' => $id,
           'export_id' => $export_id,
-          'xml' => simplexml_load_string($node->asXML()),
+          'xml' => simplexml_load_string($entity->asXML()),
         ));
         $count++;
       }
@@ -95,7 +119,7 @@ class DrupalCtExport extends Datasource {
             'required' => true
           ))
           ->add('contentType', 'text', array(
-            'label' => $this->getController()->get('translator')->trans('Content type name'),
+            'label' => $this->getController()->get('translator')->trans('Content type restriction'),
             'required' => false
           ))
           ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Save')));
@@ -117,7 +141,7 @@ class DrupalCtExport extends Datasource {
 
   public function getFields() {
     return array(
-      'nid',
+      'id',
       'export_id',
       'xml',
     );
