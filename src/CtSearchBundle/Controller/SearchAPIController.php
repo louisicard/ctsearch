@@ -236,6 +236,21 @@ class SearchAPIController extends Controller {
             )
           );
         }
+
+        if($request->get('highlights') != null){
+          $highlights = array_map('trim', explode(',', $request->get('highlights')));
+          foreach($highlights as $highlight){
+            $highlight_r = array_map('trim', explode('|', $highlight));
+            if(count($highlight_r) == 4){
+              $query['highlight']['fields'][$highlight_r[0]] = array(
+                'fragment_size' => $highlight_r[1],
+                'number_of_fragments' => $highlight_r[2],
+                'no_match_size' => $highlight_r[3],
+              );
+            }
+          }
+        }
+
         try {
           $res = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], json_encode($query), $request->get('from') != null ? $request->get('from') : 0,  $request->get('size') != null ? $request->get('size') : 10);
           IndexManager::getInstance()->saveStat($request->get('mapping'), $applied_facets, $request->get('query') != null ? $request->get('query') : '', $request->get('analyzer'), $request->getQueryString(), isset($res['hits']['total']) ? $res['hits']['total'] : 0, isset($res['took']) ? $res['took'] : 0, $request->get('clientIp') != null ? $request->get('clientIp') : $request->getClientIp(), $request->get('tag') != null ? $request->get('tag') : '');
