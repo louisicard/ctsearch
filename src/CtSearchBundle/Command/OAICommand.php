@@ -37,11 +37,11 @@ class OAICommand extends ContainerAwareCommand {
     else{
       $code = 0;
       $out = '';
-      exec(PHP_BINARY . ' app/console ctsearch:oai ' . $id . ' NULL run', $out, $code);
+      exec(PHP_BINARY . ' bin/console ctsearch:oai ' . $id . ' NULL run', $out, $code);
       while($code == 9){
         $token  = $out[count($out) - 1];
         print 'Resuming with token ' . $token . PHP_EOL;
-        exec(PHP_BINARY . ' app/console ctsearch:oai ' . $id . ' "' . $token . '" run', $out, $code);
+        exec(PHP_BINARY . ' bin/console ctsearch:oai ' . $id . ' "' . $token . '" run', $out, $code);
       }
     }
   }
