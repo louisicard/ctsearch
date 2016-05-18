@@ -312,7 +312,7 @@ class IndexManager {
     foreach ($classes as $class) {
       if (is_subclass_of($class, 'CtSearchBundle\Datasource\Datasource')) {
         $instance = new $class();
-        $types[$class] = $instance->getDatasourceDisplayName();
+        $types[$instance->getDatasourceDisplayName()] = $class;
       }
     }
     unset($classes);
