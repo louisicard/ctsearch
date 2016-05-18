@@ -4,6 +4,11 @@ namespace CtSearchBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Request;
 use \CtSearchBundle\CtSearchBundle;
 use CtSearchBundle\Classes\IndexManager;
@@ -51,16 +56,16 @@ class MatchingListController extends Controller {
         $matchingList->setList(json_encode($list, JSON_PRETTY_PRINT));
     }
     $form = $this->createFormBuilder($matchingList)
-        ->add('id', 'hidden')
-        ->add('name', 'text', array(
+        ->add('id', HiddenType::class)
+        ->add('name', TextType::class, array(
           'label' => $this->get('translator')->trans('Matching list name'),
           'required' => true,
         ))
-        ->add('list', 'textarea', array(
+        ->add('list', TextareaType::class, array(
           'label' => $this->get('translator')->trans('JSON Definition'),
           'required' => true
         ))
-        ->add('save', 'submit', array('label' => $this->get('translator')->trans('Save')))
+        ->add('save', SubmitType::class, array('label' => $this->get('translator')->trans('Save')))
         ->getForm();
     $form->handleRequest($request);
     if ($form->isValid()) {
@@ -138,14 +143,14 @@ class MatchingListController extends Controller {
     if ($request->get('id') != null) {
       $matchingList = IndexManager::getInstance()->getMatchingList($request->get('id'));
       $form = $this->createFormBuilder()
-          ->add('matching_list_id', 'hidden', array(
+          ->add('matching_list_id', HiddenType::class, array(
             'data' => $matchingList->getId()
           ))
-          ->add('import_file', 'file', array(
+          ->add('import_file', FileType::class, array(
             'label' => 'File to import (CSV comma separated with no headers)',
             'required' => true
           ))
-          ->add('ok', 'submit', array(
+          ->add('ok', SubmitType::class, array(
             'label' => 'Import',
           ))
           ->getForm();
