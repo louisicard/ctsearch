@@ -4,6 +4,11 @@ namespace CtSearchBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Request;
 use \CtSearchBundle\CtSearchBundle;
 use CtSearchBundle\Classes\IndexManager;
@@ -61,31 +66,31 @@ class SearchPageController extends Controller {
     }
     $info = IndexManager::getInstance()->getElasticInfo();
     $indexChoices = array(
-      '' => $this->get('translator')->trans('Select index'),
+      $this->get('translator')->trans('Select index') => '',
     );
     foreach ($info as $k => $data) {
       $indexChoices[$k] = $k;
     }
     $form = $this->createFormBuilder($searchPage)
-      ->add('id', 'hidden')
-      ->add('name', 'text', array(
+      ->add('id', HiddenType::class)
+      ->add('name', TextType::class, array(
         'label' => $this->get('translator')->trans('Search page name'),
         'required' => true,
       ))
-      ->add('indexName', 'choice', array(
+      ->add('indexName', ChoiceType::class, array(
         'label' => $this->get('translator')->trans('Index name'),
         'choices' => $indexChoices,
         'required' => true
       ))
-      ->add('definition', 'textarea', array(
+      ->add('definition', TextareaType::class, array(
         'label' => $this->get('translator')->trans('JSON Definition'),
         'required' => true
       ))
-      ->add('config', 'textarea', array(
+      ->add('config', TextareaType::class, array(
         'label' => $this->get('translator')->trans('Configuration (JSON)'),
         'required' => true
       ))
-      ->add('save', 'submit', array('label' => $this->get('translator')->trans('Save')))
+      ->add('save', SubmitType::class, array('label' => $this->get('translator')->trans('Save')))
       ->getForm();
     $form->handleRequest($request);
     if ($form->isValid()) {
