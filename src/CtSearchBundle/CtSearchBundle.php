@@ -2,11 +2,13 @@
 
 namespace CtSearchBundle;
 
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 class CtSearchBundle extends Bundle {
 
+  private static $session = null;
   /**
    * 
    * @param Controller $controller
@@ -14,23 +16,29 @@ class CtSearchBundle extends Bundle {
    * @param string $message
    */
   static function addSessionMessage($controller, $type, $message) {
-    if ($controller != null) {
-      if ($controller->get('session')->get('messages') != null) {
-        $messages = $controller->get('session')->get('messages');
-        $messages[] = array(
-          'type' => $type,
-          'text' => $message,
-        );
-      } else {
-        $messages = array(
-          array(
-            'type' => $type,
-            'text' => $message,
-          )
-        );
-      }
-      $controller->get('session')->set('messages', $messages);
+    if (CtSearchBundle::$session == null)
+      CtSearchBundle::$session = new Session();
+    if (CtSearchBundle::$session->get('messages') != null) {
+      $messages = CtSearchBundle::$session->get('messages');
+      $messages[] = array(
+        'type' => is_object($message) || is_array($message) ? 'object' : $type,
+        'text' => is_object($message) || is_array($message) ? \Krumo::dump($message, KRUMO_RETURN) : $message,
+      );
+    } else {
+      $messages = array(
+        array(
+          'type' => is_object($message) || is_array($message) ? 'object' : $type,
+          'text' => is_object($message) || is_array($message) ? \Krumo::dump($message, KRUMO_RETURN) : $message,
+        )
+      );
     }
+    CtSearchBundle::$session->set('messages', $messages);
+  }
+
+  static function resetMessages(){
+    if (CtSearchBundle::$session == null)
+      CtSearchBundle::$session = new Session();
+    CtSearchBundle::$session->set('messages', null);
   }
 
 }

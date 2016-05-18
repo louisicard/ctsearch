@@ -36,9 +36,6 @@ framework:
 twig:
     debug:            "%kernel.debug%"
     strict_variables: "%kernel.debug%"
-    form_themes:
-      # other form themes
-      - 'GescomBundle:Form:fields.html.twig'
 
 # Doctrine Configuration
 doctrine:

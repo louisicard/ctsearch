@@ -28,7 +28,8 @@
         "sensio/framework-extra-bundle": "^3.0.2",
         "incenteev/composer-parameter-handler": "^2.0",
         "elasticsearch/elasticsearch": "2.x",
-        "symfony/css-selector": "^2.7"
+        "symfony/css-selector": "^2.7",
+        "oodle/krumo-bundle": "*"
     },
     "require-dev": {
         "sensio/generator-bundle": "^3.0",
