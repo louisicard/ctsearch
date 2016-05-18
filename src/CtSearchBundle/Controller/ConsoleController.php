@@ -5,6 +5,10 @@ namespace CtSearchBundle\Controller;
 use CtSearchBundle\CtSearchBundle;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\HttpFoundation\Request;
 use CtSearchBundle\Classes\IndexManager;
 use Symfony\Component\HttpFoundation\Response;
@@ -40,20 +44,20 @@ class ConsoleController extends Controller {
       'deleteByQuery' => false,
     );
     $form = $this->createFormBuilder($values)
-        ->add('mapping', 'choice', array(
+        ->add('mapping', ChoiceType::class, array(
           'label' => $this->get('translator')->trans('Target'),
-          'choices' => array('' => $this->get('translator')->trans('Select a target')) + $targetChoices,
+          'choices' => array($this->get('translator')->trans('Select a target') => '') + $targetChoices,
           'required' => true,
         ))
-        ->add('searchQuery', 'textarea', array(
+        ->add('searchQuery', TextareaType::class, array(
           'label' => $this->get('translator')->trans('Search query (JSON)'),
           'required' => true
         ))
-        ->add('deleteByQuery', 'checkbox', array(
+        ->add('deleteByQuery', CheckboxType::class, array(
           'label' => $this->get('translator')->trans('Delete records matching this query'),
           'required' => false
         ))
-        ->add('execute', 'submit', array('label' => $this->get('translator')->trans('Execute')))
+        ->add('execute', SubmitType::class, array('label' => $this->get('translator')->trans('Execute')))
         ->addEventListener(\Symfony\Component\Form\FormEvents::PRE_SUBMIT, $listener)
         ->getForm();
 
