@@ -4,6 +4,11 @@ namespace CtSearchBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Request;
 use \CtSearchBundle\CtSearchBundle;
 use CtSearchBundle\Classes\IndexManager;
@@ -91,16 +96,15 @@ class IndexController extends Controller {
       $index = IndexManager::getInstance()->getIndex($request->get('index_name'));
     }
     $form = $this->createFormBuilder($index)
-      ->add('indexName', 'text', array(
+      ->add('indexName', TextType::class, array(
         'label' => $this->get('translator')->trans('Index name'),
-        'read_only' => !$add,
         'disabled' => !$add,
         'required' => true
       ))
-      ->add('settings', 'textarea', array(
+      ->add('settings', TextareaType::class, array(
         'label' => $this->get('translator')->trans('Settings (JSON syntax)'),
       ))
-      ->add('create', 'submit', array('label' => $add ? $this->get('translator')->trans('Create index') : $this->get('translator')->trans('Update index')))
+      ->add('create', SubmitType::class, array('label' => $add ? $this->get('translator')->trans('Create index') : $this->get('translator')->trans('Update index')))
       ->getForm();
 
     $form->handleRequest($request);
@@ -138,27 +142,25 @@ class IndexController extends Controller {
     $fieldTypes = IndexManager::getInstance()->getFieldTypes();
     $dateFormats = IndexManager::getInstance()->getDateFormats();
     $form = $this->createFormBuilder($mapping)
-      ->add('indexName', 'text', array(
+      ->add('indexName', TextType::class, array(
         'label' => $this->get('translator')->trans('Index name'),
-        'read_only' => true,
         'disabled' => true,
         'required' => true
       ))
-      ->add('mappingName', 'text', array(
+      ->add('mappingName', TextType::class, array(
         'label' => $this->get('translator')->trans('Mapping name'),
-        'read_only' => !$add,
         'disabled' => !$add,
         'required' => true
       ))
-      ->add('wipeData', 'checkbox', array(
+      ->add('wipeData', CheckboxType::class, array(
         'label' => $this->get('translator')->trans('Wipe data?'),
         'required' => false
       ))
-      ->add('mappingDefinition', 'textarea', array(
+      ->add('mappingDefinition', TextareaType::class, array(
         'label' => $this->get('translator')->trans('Mapping definition'),
         'required' => true
       ))
-      ->add('save', 'submit', array('label' => $this->get('translator')->trans('Save mapping')))
+      ->add('save', SubmitType::class, array('label' => $this->get('translator')->trans('Save mapping')))
       ->getForm();
     $form->handleRequest($request);
 
@@ -233,27 +235,26 @@ class IndexController extends Controller {
     }
 
     $form = $this->createFormBuilder($ac_settings != null ? $ac_settings : array('index_name' => $index_name))
-      ->add('index_name', 'text', array(
+      ->add('index_name', TextType::class, array(
         'label' => $this->get('translator')->trans('Index name'),
-        'read_only' => true,
         'disabled' => true,
         'required' => true,
       ))
-      ->add('fields', 'choice', array(
+      ->add('fields', ChoiceType::class, array(
         'label' => $this->get('translator')->trans('Fields'),
         'expanded' => true,
         'multiple' => true,
         'choices' => $field_choices,
         'attr' => array('class' => 'type-choices')
       ))
-      ->add('analyzer_filters', 'choice', array(
+      ->add('analyzer_filters', ChoiceType::class, array(
         'label' => $this->get('translator')->trans('Analyzer filters'),
         'expanded' => true,
         'multiple' => true,
         'choices' => $filter_choices,
         'attr' => array('class' => 'type-choices')
       ))
-      ->add('save', 'submit', array('label' => $this->get('translator')->trans('Save')))
+      ->add('save', SubmitType::class, array('label' => $this->get('translator')->trans('Save')))
       ->getForm();
     $form->handleRequest($request);
 
