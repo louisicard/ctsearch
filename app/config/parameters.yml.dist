@@ -20,3 +20,6 @@ parameters:
 
     ctsearch_proxy_host:  null
     ctsearch_proxy_type:  null
+    ctsearch_es_url:      http://localhost:9200
+    ctsearch_debug:       false
+    ctsearch_use_proxy:   false
