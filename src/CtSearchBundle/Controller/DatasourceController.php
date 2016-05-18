@@ -4,6 +4,10 @@ namespace CtSearchBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Request;
 use \CtSearchBundle\CtSearchBundle;
 use CtSearchBundle\Classes\IndexManager;
@@ -11,7 +15,7 @@ use CtSearchBundle\Classes\Index;
 use CtSearchBundle\Classes\Mapping;
 use \Exception;
 
-class DatasourceController extends Controller {
+class DatasourceController extends CtSearchController {
 
   /**
    * @Route("/datasources", name="datasources")
@@ -20,11 +24,11 @@ class DatasourceController extends Controller {
     $datasourceTypes = IndexManager::getInstance()->getDatasourceTypes();
     asort($datasourceTypes);
     $form = $this->createFormBuilder(null)
-      ->add('dataSourceType', 'choice', array(
-        'choices' => array('' => $this->get('translator')->trans('Add a new datasource')) + $datasourceTypes,
+      ->add('dataSourceType', ChoiceType::class, array(
+        'choices' => array($this->get('translator')->trans('Add a new datasource') => '') + $datasourceTypes,
         'required' => true,
       ))
-      ->add('ok', 'submit', array(
+      ->add('ok', SubmitType::class, array(
         'label' => $this->get('translator')->trans('Add')
       ))
       ->getForm();
@@ -130,19 +134,19 @@ class DatasourceController extends Controller {
    */
   public function testCallbackAction(Request $request) {
     $form = $this->createFormBuilder(null)
-      ->add('datasourceId', 'text', array(
+      ->add('datasourceId', TextType::class, array(
         'required' => true,
       ))
-      ->add('title', 'text', array(
+      ->add('title', TextType::class, array(
         'required' => true,
       ))
-      ->add('url', 'text', array(
+      ->add('url', TextType::class, array(
         'required' => true,
       ))
-      ->add('html', 'textarea', array(
+      ->add('html', TextareaType::class, array(
         'required' => true,
       ))
-      ->add('ok', 'submit', array(
+      ->add('ok', SubmitType::class, array(
         'label' => $this->get('translator')->trans('Test')
       ))
       ->getForm();
