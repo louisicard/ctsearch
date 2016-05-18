@@ -2,6 +2,8 @@
 namespace CtSearchBundle\Processor;
 
 use CtSearchBundle\Classes\CurlUtils;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class GoogleGeocodingFilter extends ProcessorFilter
 {
@@ -15,11 +17,11 @@ class GoogleGeocodingFilter extends ProcessorFilter
   public function getSettingsForm($controller)
   {
     $formBuilder = parent::getSettingsForm($controller)
-      ->add('setting_api_key', 'text', array(
+      ->add('setting_api_key', TextType::class, array(
         'required' => false,
         'label' => $controller->get('translator')->trans('API key'),
       ))
-      ->add('ok', 'submit', array('label' => $controller->get('translator')->trans('OK')));
+      ->add('ok', SubmitType::class, array('label' => $controller->get('translator')->trans('OK')));
     return $formBuilder;
   }
 

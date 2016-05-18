@@ -2,6 +2,9 @@
 
 namespace CtSearchBundle\Processor;
 
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+
 class ConcatenateFilter extends ProcessorFilter {
 
   public function getDisplayName() {
@@ -10,12 +13,12 @@ class ConcatenateFilter extends ProcessorFilter {
 
   public function getSettingsForm($controller) {
     $formBuilder = parent::getSettingsForm($controller)
-        ->add('setting_separator', 'text', array(
+        ->add('setting_separator', TextType::class, array(
           'required' => true,
           'trim' => false,
           'label' => $controller->get('translator')->trans('Separator'),
         ))
-      ->add('ok', 'submit', array('label' => $controller->get('translator')->trans('OK')));
+      ->add('ok', SubmitType::class, array('label' => $controller->get('translator')->trans('OK')));
     return $formBuilder;
   }
 

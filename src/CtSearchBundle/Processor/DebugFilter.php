@@ -2,6 +2,10 @@
 
 namespace CtSearchBundle\Processor;
 
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+
 class DebugFilter extends ProcessorFilter {
   
   public function getDisplayName() {
@@ -10,15 +14,15 @@ class DebugFilter extends ProcessorFilter {
 
   public function getSettingsForm($controller) {
     $formBuilder = parent::getSettingsForm($controller)
-      ->add('setting_fields_to_dump', 'text', array(
+      ->add('setting_fields_to_dump', TextType::class, array(
         'required' => false,
         'label' => $controller->get('translator')->trans('Fields to dump'),
       ))
-      ->add('setting_no_index', 'checkbox', array(
+      ->add('setting_no_index', CheckboxType::class, array(
         'required' => false,
         'label' => $controller->get('translator')->trans('Prevent indexing'),
       ))
-        ->add('ok', 'submit', array('label' => $controller->get('translator')->trans('OK')));
+        ->add('ok', SubmitType::class, array('label' => $controller->get('translator')->trans('OK')));
     return $formBuilder;
   }
   

@@ -3,6 +3,9 @@
 
 namespace CtSearchBundle\Processor;
 
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+
 class XPathSelectorAttributesFilter extends ProcessorFilter {
   
   
@@ -12,11 +15,11 @@ class XPathSelectorAttributesFilter extends ProcessorFilter {
 
   public function getSettingsForm($controller) {
     $formBuilder = parent::getSettingsForm($controller)
-        ->add('setting_selector', 'text', array(
+        ->add('setting_selector', TextType::class, array(
           'required' => true,
           'label' => $controller->get('translator')->trans('CSS selector'),
         ))
-      ->add('ok', 'submit', array('label' => $controller->get('translator')->trans('OK')));
+      ->add('ok', SubmitType::class, array('label' => $controller->get('translator')->trans('OK')));
     return $formBuilder;
   }
 

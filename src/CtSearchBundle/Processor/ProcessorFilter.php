@@ -2,6 +2,10 @@
 
 namespace CtSearchBundle\Processor;
 
+use CtSearchBundle\Controller\CtSearchController;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+
 abstract class ProcessorFilter {
 
   /**
@@ -41,34 +45,34 @@ abstract class ProcessorFilter {
   abstract function getDisplayName();
 
   /**
-   * @param \Symfony\Bundle\FrameworkBundle\Controller\Controller $controller
+   * @param CtSearchController $controller
    * @return \Symfony\Component\Form\FormBuilder
    */
   public function getSettingsForm($controller) {
     $formBuilder = $controller->createFormBuilder($this->getArgumentsAndSettings())
-      ->add('in_stack_name', 'text', array(
+      ->add('in_stack_name', TextType::class, array(
         'required' => true,
         'label' => $controller->get('translator')->trans('Display name')
       ))
-      ->add('autoImplode', 'checkbox', array(
+      ->add('autoImplode', CheckboxType::class, array(
         'required' => false,
         'label' => $controller->get('translator')->trans('Auto-implode')
       ))
-      ->add('autoImplodeSeparator', 'text', array(
+      ->add('autoImplodeSeparator', TextType::class, array(
         'required' => false,
         'trim' => false,
         'label' => $controller->get('translator')->trans('Auto-implode separator')
       ))
-      ->add('autoStriptags', 'checkbox', array(
+      ->add('autoStriptags', CheckboxType::class, array(
         'required' => false,
         'label' => $controller->get('translator')->trans('Auto-striptags')
       ))
-      ->add('isHTML', 'checkbox', array(
+      ->add('isHTML', CheckboxType::class, array(
         'required' => false,
         'label' => $controller->get('translator')->trans('Input is HTML')
       ));
     foreach ($this->getArguments() as $k => $arg) {
-      $formBuilder->add('arg_' . $k, 'text', array(
+      $formBuilder->add('arg_' . $k, TextType::class, array(
         'label' => $arg,
         'required' => true,
         'attr' => array(

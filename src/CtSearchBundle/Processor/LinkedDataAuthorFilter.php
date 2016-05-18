@@ -3,6 +3,7 @@
 namespace CtSearchBundle\Processor;
 
 use CtSearchBundle\Classes\CurlUtils;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 class LinkedDataAuthorFilter extends ProcessorFilter {
 
@@ -12,7 +13,7 @@ class LinkedDataAuthorFilter extends ProcessorFilter {
 
   public function getSettingsForm($controller) {
     $formBuilder = parent::getSettingsForm($controller)
-        ->add('ok', 'submit', array('label' => $controller->get('translator')->trans('OK')));
+        ->add('ok', SubmitType::class, array('label' => $controller->get('translator')->trans('OK')));
     return $formBuilder;
   }
 

@@ -2,6 +2,8 @@
 
 namespace CtSearchBundle\Processor;
 
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+
 class XMLParserToArrayFilter extends ProcessorFilter {
 
   public function getDisplayName() {
@@ -10,7 +12,7 @@ class XMLParserToArrayFilter extends ProcessorFilter {
 
   public function getSettingsForm($controller) {
     $formBuilder = parent::getSettingsForm($controller)
-      ->add('ok', 'submit', array('label' => $controller->get('translator')->trans('OK')));
+      ->add('ok', SubmitType::class, array('label' => $controller->get('translator')->trans('OK')));
     return $formBuilder;
   }
 

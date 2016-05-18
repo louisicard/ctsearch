@@ -2,6 +2,9 @@
 
 namespace CtSearchBundle\Processor;
 
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+
 class XPathFinderFilter extends ProcessorFilter {
 
   public function getDisplayName() {
@@ -10,11 +13,11 @@ class XPathFinderFilter extends ProcessorFilter {
 
   public function getSettingsForm($controller) {
     $formBuilder = parent::getSettingsForm($controller)
-        ->add('setting_xpath', 'text', array(
+        ->add('setting_xpath', TextType::class, array(
           'required' => true,
           'label' => $controller->get('translator')->trans('Xpath'),
         ))
-        ->add('ok', 'submit', array('label' => $controller->get('translator')->trans('OK')));
+        ->add('ok', SubmitType::class, array('label' => $controller->get('translator')->trans('OK')));
     return $formBuilder;
   }
 

@@ -2,15 +2,18 @@
 
 namespace CtSearchBundle\Controller;
 
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\HttpFoundation\Request;
 use \CtSearchBundle\CtSearchBundle;
 use CtSearchBundle\Classes\IndexManager;
 use \CtSearchBundle\Classes\Processor;
 use \Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
-class ProcessorController extends Controller {
+class ProcessorController extends CtSearchController {
 
   /**
    * @Route("/processors", name="processors")
@@ -21,7 +24,7 @@ class ProcessorController extends Controller {
     $indexes = IndexManager::getInstance()->getElasticInfo($this);
     $datasourceChoices = array();
     foreach ($datasources as $id => $datasource) {
-      $datasourceChoices[$id] = $datasource->getName();
+      $datasourceChoices[$datasource->getName()] = $id;
     }
     $targetChoices = array();
     foreach ($indexes as $indexName => $info) {
@@ -34,15 +37,15 @@ class ProcessorController extends Controller {
       $targetChoices[$indexName] = $choices;
     }
     $form = $this->createFormBuilder(null)
-        ->add('datasource', 'choice', array(
-          'choices' => array('' => $this->get('translator')->trans('Select datasource')) + $datasourceChoices,
+        ->add('datasource', ChoiceType::class, array(
+          'choices' => array($this->get('translator')->trans('Select datasource') => '') + $datasourceChoices,
           'required' => true,
         ))
-        ->add('target', 'choice', array(
-          'choices' => array('' => $this->get('translator')->trans('Select a target')) + $targetChoices,
+        ->add('target', ChoiceType::class, array(
+          'choices' => array($this->get('translator')->trans('Select a target') => '') + $targetChoices,
           'required' => true,
         ))
-        ->add('ok', 'submit', array(
+        ->add('ok', SubmitType::class, array(
           'label' => $this->get('translator')->trans('Add')
         ))
         ->getForm();
@@ -105,25 +108,23 @@ class ProcessorController extends Controller {
       $datasource = IndexManager::getInstance()->getDatasource($processor->getDatasourceId(), $this);
     }
     $form = $this->createFormBuilder($processor)
-        ->add('datasourceName', 'text', array(
+        ->add('datasourceName', TextType::class, array(
           'label' => $this->get('translator')->trans('Datasource'),
           'data' => $datasource->getName(),
-          'read_only' => true,
           'disabled' => true,
           'required' => true,
           'mapped' => false
         ))
-        ->add('target', 'text', array(
+        ->add('target', TextType::class, array(
           'label' => $this->get('translator')->trans('Target'),
-          'read_only' => true,
           'disabled' => true,
           'required' => true
         ))
-        ->add('definition', 'textarea', array(
+        ->add('definition', TextareaType::class, array(
           'label' => $this->get('translator')->trans('JSON Definition'),
           'required' => true
         ))
-        ->add('save', 'submit', array('label' => $this->get('translator')->trans('Save')))
+        ->add('save', SubmitType::class, array('label' => $this->get('translator')->trans('Save')))
         ->getForm();
     $form->handleRequest($request);
     if ($form->isValid()) {

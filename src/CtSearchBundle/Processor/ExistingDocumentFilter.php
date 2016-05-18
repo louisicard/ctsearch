@@ -2,6 +2,9 @@
 
 namespace CtSearchBundle\Processor;
 
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+
 class ExistingDocumentFilter extends ProcessorFilter {
 
   public function getDisplayName() {
@@ -16,12 +19,12 @@ class ExistingDocumentFilter extends ProcessorFilter {
       $choices[$index_name] = $index_name;
     }
     $formBuilder = parent::getSettingsForm($controller)
-        ->add('setting_index_name', 'choice', array(
+        ->add('setting_index_name', ChoiceType::class, array(
           'required' => true,
           'choices' => array('' => $controller->get('translator')->trans('Select')) + $choices,
           'label' => $controller->get('translator')->trans('Index name'),
         ))
-        ->add('ok', 'submit', array('label' => $controller->get('translator')->trans('OK')));
+        ->add('ok', SubmitType::class, array('label' => $controller->get('translator')->trans('OK')));
     return $formBuilder;
   }
 

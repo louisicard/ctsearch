@@ -2,6 +2,11 @@
 
 namespace CtSearchBundle\Processor;
 
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+
 class MatchingListFilter extends ProcessorFilter {
 
   public function getDisplayName() {
@@ -11,27 +16,27 @@ class MatchingListFilter extends ProcessorFilter {
   public function getSettingsForm($controller) {
     $matchingLists = $this->getIndexManager()->getMatchingLists();
     $choices = array(
-      '' => 'Select a matching list',
+      'Select a matching list' => '',
     );
     foreach ($matchingLists as $list) {
-      $choices[$list->getId()] = $list->getName();
+      $choices[$list->getName()] = $list->getId();
     }
     $formBuilder = parent::getSettingsForm($controller)
-        ->add('setting_matching_list', 'choice', array(
+        ->add('setting_matching_list', ChoiceType::class, array(
           'required' => true,
           'choices' => $choices,
           'label' => $controller->get('translator')->trans('Matching list'),
         ))
-        ->add('setting_case_insensitive', 'checkbox', array(
+        ->add('setting_case_insensitive', CheckboxType::class, array(
           'required' => false,
           'label' => $controller->get('translator')->trans('Case insentive input'),
         ))
-        ->add('setting_default_value', 'text', array(
+        ->add('setting_default_value', TextType::class, array(
           'required' => false,
           'trim' => false,
           'label' => $controller->get('translator')->trans('Default value'),
         ))
-        ->add('ok', 'submit', array('label' => $controller->get('translator')->trans('OK')));
+        ->add('ok', SubmitType::class, array('label' => $controller->get('translator')->trans('OK')));
     return $formBuilder;
   }
 
