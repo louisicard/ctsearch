@@ -2,11 +2,14 @@
 
 namespace CtSearchBundle;
 
+use CtSearchBundle\DependencyInjection\CtSearchCompilerPass;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 class CtSearchBundle extends Bundle {
+
 
   private static $session = null;
   /**
@@ -41,4 +44,10 @@ class CtSearchBundle extends Bundle {
     CtSearchBundle::$session->set('messages', null);
   }
 
+  public function build(ContainerBuilder $container)
+  {
+    parent::build($container);
+
+    $container->addCompilerPass(new CtSearchCompilerPass());
+  }
 }

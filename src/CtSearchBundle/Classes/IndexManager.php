@@ -6,6 +6,7 @@ use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
 use CtSearchBundle\Classes\Mapping;
 use CtSearchBundle\Datasource\Datasource;
+use Symfony\Component\DependencyInjection\Container;
 
 class IndexManager {
 
@@ -306,29 +307,21 @@ class IndexManager {
     }
   }
 
-  function getDatasourceTypes() {
-    $classes = get_declared_classes();
+  function getDatasourceTypes(Container $container) {
+    $serviceIds = $container->getParameter("ctsearch.datasources");
     $types = array();
-    foreach ($classes as $class) {
-      if (is_subclass_of($class, 'CtSearchBundle\Datasource\Datasource')) {
-        $instance = new $class();
-        $types[$instance->getDatasourceDisplayName()] = $class;
-      }
+    foreach ($serviceIds as $id) {
+      $types[$container->get($id)->getDatasourceDisplayName()] = get_class($container->get($id));
     }
-    unset($classes);
     return $types;
   }
 
-  function getFilterTypes() {
-    $classes = get_declared_classes();
+  function getFilterTypes(Container $container) {
+    $serviceIds = $container->getParameter("ctsearch.filters");
     $types = array();
-    foreach ($classes as $class) {
-      if (is_subclass_of($class, 'CtSearchBundle\Processor\ProcessorFilter')) {
-        $instance = new $class();
-        $types[str_replace("\\", '\\\\', $class)] = $instance->getDisplayName();
-      }
+    foreach ($serviceIds as $id) {
+      $types[str_replace("\\", '\\\\', get_class($container->get($id)))] = $container->get($id)->getDisplayName();
     }
-    unset($classes);
     return $types;
   }
 

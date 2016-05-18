@@ -21,7 +21,7 @@ class DatasourceController extends CtSearchController {
    * @Route("/datasources", name="datasources")
    */
   public function listDatasourcesAction(Request $request) {
-    $datasourceTypes = IndexManager::getInstance()->getDatasourceTypes();
+    $datasourceTypes = IndexManager::getInstance()->getDatasourceTypes($this->container);
     asort($datasourceTypes);
     $form = $this->createFormBuilder(null)
       ->add('dataSourceType', ChoiceType::class, array(

@@ -2,6 +2,7 @@
 
 namespace CtSearchBundle\DependencyInjection;
 
+use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader;
@@ -14,8 +15,8 @@ class CtSearchExtension extends Extension {
         $container->setParameter('ct_search.' . $k, $v);
       }
     }
-    //loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
-    //$loader->load('services.yml');
+    $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
+    $loader->load('services.yml');
   }
   
 }

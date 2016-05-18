@@ -147,7 +147,7 @@ class ProcessorController extends CtSearchController {
       $targetFields = array_keys(json_decode($mapping->getMappingDefinition(), TRUE));
     else
       $targetFields = array();
-    $filterTypes = IndexManager::getInstance()->getFilterTypes();
+    $filterTypes = IndexManager::getInstance()->getFilterTypes($this->container);
     asort($filterTypes);
     return $this->render('ctsearch/processor.html.twig', array(
           'title' => $id == null ? $this->get('translator')->trans('New processor') : $this->get('translator')->trans('Edit processor'),

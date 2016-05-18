@@ -1,0 +1,105 @@
+services:
+  ctsearch.datasource.bibookharvester:
+    class: CtSearchBundle\Datasource\BibookHarvester
+    tags:
+      - { name: ctsearch.datasource }
+  ctsearch.datasource.cmisharvester:
+    class: CtSearchBundle\Datasource\CMISHarvester
+    tags:
+      - { name: ctsearch.datasource }
+  ctsearch.datasource.drupalctexport:
+    class: CtSearchBundle\Datasource\DrupalCtExport
+    tags:
+      - { name: ctsearch.datasource }
+  ctsearch.datasource.jsonparser:
+    class: CtSearchBundle\Datasource\JSONParser
+    tags:
+      - { name: ctsearch.datasource }
+  ctsearch.datasource.oaiharvester:
+    class: CtSearchBundle\Datasource\OAIHarvester
+    tags:
+      - { name: ctsearch.datasource }
+  ctsearch.datasource.textfileparser:
+    class: CtSearchBundle\Datasource\TextFileParser
+    tags:
+      - { name: ctsearch.datasource }
+  ctsearch.datasource.webcrawler:
+    class: CtSearchBundle\Datasource\WebCrawler
+    tags:
+      - { name: ctsearch.datasource }
+  ctsearch.datasource.xmlparser:
+    class: CtSearchBundle\Datasource\XMLParser
+    tags:
+      - { name: ctsearch.datasource }
+  ctsearch.filter.arrayimplodefilter:
+    class: CtSearchBundle\Processor\ArrayImplodeFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.associativearrayselectorfilter:
+    class: CtSearchBundle\Processor\AssociativeArraySelectorFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.concatenatefilter:
+    class: CtSearchBundle\Processor\ConcatenateFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.debugfilter:
+    class: CtSearchBundle\Processor\DebugFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.defineconstantfilter:
+    class: CtSearchBundle\Processor\DefineConstantFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.existingdocumentfilter:
+    class: CtSearchBundle\Processor\ExistingDocumentFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.googlegeocodingfilter:
+    class: CtSearchBundle\Processor\GoogleGeocodingFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.htmltextextractorfilter:
+    class: CtSearchBundle\Processor\HTMLTextExtractorFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.isbncoverfilter:
+    class: CtSearchBundle\Processor\ISBNCoverFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.linkeddataauthorfilter:
+    class: CtSearchBundle\Processor\LinkedDataAuthorFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.matchinglistfilter:
+    class: CtSearchBundle\Processor\MatchingListFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.phpfilter:
+    class: CtSearchBundle\Processor\PHPFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.xmlparserfilter:
+    class: CtSearchBundle\Processor\XMLParserFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.xmlparsertoarrayfilter:
+    class: CtSearchBundle\Processor\XMLParserToArrayFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.xpathfinderfilter:
+    class: CtSearchBundle\Processor\XPathFinderFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.xpathgetterfilter:
+    class: CtSearchBundle\Processor\XPathGetterFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.xpathselectorattributesfilter:
+    class: CtSearchBundle\Processor\XPathSelectorAttributesFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.xpathselectorfilter:
+    class: CtSearchBundle\Processor\XPathSelectorFilter
+    tags:
+      - { name: ctsearch.filter }

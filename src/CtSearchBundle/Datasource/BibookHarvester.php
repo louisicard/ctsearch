@@ -7,7 +7,7 @@ use \CtSearchBundle\CtSearchBundle;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
-class BibokHarverster extends Datasource {
+class BibookHarvester extends Datasource {
 
   private $url;
 
