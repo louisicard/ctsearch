@@ -2,14 +2,16 @@
 
 namespace CtSearchBundle\Datasource;
 
+use CtSearchBundle\Controller\CtSearchController;
 use \CtSearchBundle\CtSearchBundle;
 use \CtSearchBundle\Classes\IndexManager;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 abstract class Datasource {
 
   /**
    *
-   * @var \Symfony\Bundle\FrameworkBundle\Controller\Controller
+   * @var CtSearchController
    */
   private $controller;
 
@@ -31,12 +33,15 @@ abstract class Datasource {
    */
   private $output;
 
-  function __construct($name = '', \Symfony\Bundle\FrameworkBundle\Controller\Controller $controller = null, $id = null) {
+  function __construct($name = '', CtSearchController $controller = null, $id = null) {
     $this->controller = $controller;
     $this->name = $name;
     $this->id = $id;
   }
 
+  /**
+   * @return CtSearchController
+   */
   function getController() {
     return $this->controller;
   }
@@ -45,7 +50,7 @@ abstract class Datasource {
     return $this->name;
   }
 
-  function setController(\Symfony\Bundle\FrameworkBundle\Controller\Controller $controller) {
+  function setController(CtSearchController $controller) {
     $this->controller = $controller;
   }
 
@@ -88,7 +93,7 @@ abstract class Datasource {
    */
   function getSettingsForm() {
     if ($this->getController() != null) {
-      return $this->getController()->createFormBuilder($this)->add('name', 'text', array(
+      return $this->getController()->createFormBuilder($this)->add('name', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('Source name'),
             'required' => true
       ));

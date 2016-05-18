@@ -3,6 +3,8 @@
 namespace CtSearchBundle\Datasource;
 
 use \CtSearchBundle\CtSearchBundle;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class DrupalCtExport extends Datasource {
 
@@ -114,15 +116,15 @@ class DrupalCtExport extends Datasource {
   public function getSettingsForm() {
     if ($this->getController() != null) {
       $formBuilder = parent::getSettingsForm();
-      $formBuilder->add('drupalHost', 'text', array(
+      $formBuilder->add('drupalHost', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('Drupal Host'),
             'required' => true
           ))
-          ->add('contentType', 'text', array(
+          ->add('contentType', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('Content type restriction'),
             'required' => false
           ))
-          ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Save')));
+          ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Save')));
       return $formBuilder;
     } else {
       return null;
@@ -131,7 +133,7 @@ class DrupalCtExport extends Datasource {
 
   public function getExcutionForm() {
     $formBuilder = $this->getController()->createFormBuilder()
-        ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Execute')));
+        ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Execute')));
     return $formBuilder;
   }
 

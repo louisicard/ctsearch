@@ -3,6 +3,10 @@
 namespace CtSearchBundle\Datasource;
 
 use CtSearchBundle\Classes\CurlUtils;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Validator\Constraints as Assert;
 use \CtSearchBundle\CtSearchBundle;
 
@@ -112,43 +116,43 @@ class WebCrawler extends Datasource {
   public function getSettingsForm() {
     if ($this->getController() != null) {
       $formBuilder = parent::getSettingsForm();
-      $formBuilder->add('serviceUrl', 'text', array(
+      $formBuilder->add('serviceUrl', TextType::class, array(
           'label' => $this->getController()->get('translator')->trans('Service url'),
           'required' => true
         ))
-        ->add('domain', 'text', array(
+        ->add('domain', TextType::class, array(
           'label' => $this->getController()->get('translator')->trans('Domain to crawl'),
           'required' => true
         ))
-        ->add('numberOfCrawlers', 'text', array(
+        ->add('numberOfCrawlers', TextType::class, array(
           'label' => $this->getController()->get('translator')->trans('Number of crawlers'),
           'required' => false
         ))
-        ->add('crawlMax', 'text', array(
+        ->add('crawlMax', TextType::class, array(
           'label' => $this->getController()->get('translator')->trans('Max number of pages to crawl'),
           'required' => false
         ))
-        ->add('crawlMaxDepth', 'text', array(
+        ->add('crawlMaxDepth', TextType::class, array(
           'label' => $this->getController()->get('translator')->trans('Max depth of crawling'),
           'required' => false
         ))
-        ->add('politenessDelay', 'text', array(
+        ->add('politenessDelay', TextType::class, array(
           'label' => $this->getController()->get('translator')->trans('Politeness delay (ms)'),
           'required' => false
         ))
-        ->add('crawlerResumable', 'checkbox', array(
+        ->add('crawlerResumable', CheckboxType::class, array(
           'label' => $this->getController()->get('translator')->trans('Crawler is resumable'),
           'required' => false
         ))
-        ->add('crawlMaxTime', 'text', array(
+        ->add('crawlMaxTime', TextType::class, array(
           'label' => $this->getController()->get('translator')->trans('Max crawling time (ms)'),
           'required' => false
         ))
-        ->add('userAgent', 'text', array(
+        ->add('userAgent', TextType::class, array(
           'label' => $this->getController()->get('translator')->trans('Crawler User-Agent'),
           'required' => true
         ))
-        ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Save')));
+        ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Save')));
       return $formBuilder;
     } else {
       return null;
@@ -157,7 +161,7 @@ class WebCrawler extends Datasource {
 
   public function getExcutionForm() {
     $formBuilder = $this->getController()->createFormBuilder()
-      ->add('operation', 'choice', array(
+      ->add('operation', ChoiceType::class, array(
         'label' => 'Operation to perform',
         'choices' => array(
           '' => $this->getController()->get('translator')->trans('Select an operation'),
@@ -166,7 +170,7 @@ class WebCrawler extends Datasource {
         ),
         'required' => true
       ))
-      ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Execute')));
+      ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Execute')));
     return $formBuilder;
   }
 

@@ -3,6 +3,8 @@
 namespace CtSearchBundle\Datasource;
 
 use \CtSearchBundle\CtSearchBundle;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class CMISHarvester extends Datasource {
 
@@ -150,36 +152,36 @@ END;
   public function getSettingsForm() {
     if ($this->getController() != null) {
       $formBuilder = parent::getSettingsForm();
-      $formBuilder->add('cmisEndpointUrl', 'text', array(
+      $formBuilder->add('cmisEndpointUrl', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('CMIS endpointURL'),
             'required' => true
           ))
-          ->add('username', 'text', array(
+          ->add('username', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('Username'),
             'required' => true
           ))
-          ->add('password', 'text', array(
+          ->add('password', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('Password'),
             'required' => true
           ))
-          ->add('tikaPath', 'text', array(
+          ->add('tikaPath', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('TIKA path')
           ))
-          ->add('folderPath', 'text', array(
+          ->add('folderPath', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('Root path to harvest'),
             'required' => true
           ))
-          ->add('numberOfDocsPerCall', 'text', array(
+          ->add('numberOfDocsPerCall', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('Number of docs per call'),
             'required' => true
           ))
-          ->add('maxFileSizeToIndex', 'text', array(
+          ->add('maxFileSizeToIndex', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('Max file size to fulltext index')
           ))
-          ->add('extensionsToIndex', 'text', array(
+          ->add('extensionsToIndex', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('Extensions to fulltext index (comma-separated)')
           ))
-          ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Save')));
+          ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Save')));
       return $formBuilder;
     } else {
       return null;
@@ -188,10 +190,10 @@ END;
 
   public function getExcutionForm() {
     $formBuilder = $this->getController()->createFormBuilder()
-        ->add('daysBack', 'text', array(
+        ->add('daysBack', TextType::class, array(
           'label' => $this->getController()->get('translator')->trans('Number of days to index')
         ))
-        ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Execute')));
+        ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Execute')));
     return $formBuilder;
   }
 

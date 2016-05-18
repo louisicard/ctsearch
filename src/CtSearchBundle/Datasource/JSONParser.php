@@ -2,6 +2,10 @@
 
 namespace CtSearchBundle\Datasource;
 
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+
 class JSONParser extends Datasource {
 
   private $jsonFields;
@@ -44,11 +48,11 @@ class JSONParser extends Datasource {
   public function getSettingsForm() {
     if ($this->getController() != null) {
       $formBuilder = parent::getSettingsForm();
-      $formBuilder->add('jsonFields', 'text', array(
+      $formBuilder->add('jsonFields', TextType::class, array(
           'label' => $this->getController()->get('translator')->trans('JSON fields (comma separated)'),
           'required' => true
         ))
-        ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Save')));
+        ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Save')));
       return $formBuilder;
     } else {
       return null;
@@ -57,11 +61,11 @@ class JSONParser extends Datasource {
 
   public function getExcutionForm() {
     $formBuilder = $this->getController()->createFormBuilder()
-      ->add('json_file', 'file', array(
+      ->add('json_file', FileType::class, array(
         'label' => 'JSON file to import',
         'required' => true
       ))
-      ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Execute')));
+      ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Execute')));
     return $formBuilder;
   }
 

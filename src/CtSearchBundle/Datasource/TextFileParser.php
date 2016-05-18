@@ -3,6 +3,9 @@
 namespace CtSearchBundle\Datasource;
 
 use \CtSearchBundle\CtSearchBundle;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class TextFileParser extends Datasource {
 
@@ -68,15 +71,15 @@ class TextFileParser extends Datasource {
   public function getSettingsForm() {
     if ($this->getController() != null) {
       $formBuilder = parent::getSettingsForm();
-      $formBuilder->add('url', 'text', array(
+      $formBuilder->add('url', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('Text File url'),
             'required' => false
           ))
-          ->add('linesToSkip', 'text', array(
+          ->add('linesToSkip', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('Number of lines to skip'),
             'required' => true
           ))
-          ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Save')));
+          ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Save')));
       return $formBuilder;
     } else {
       return null;
@@ -85,15 +88,15 @@ class TextFileParser extends Datasource {
 
   public function getExcutionForm() {
     $formBuilder = $this->getController()->createFormBuilder()
-      ->add('file', 'file', array(
+      ->add('file', FileType::class, array(
         'label' => $this->getController()->get('translator')->trans('File'),
         'required' => false
       ))
-      ->add('linesToSkip', 'text', array(
+      ->add('linesToSkip', TextType::class, array(
         'label' => $this->getController()->get('translator')->trans('Number of lines to skip'),
         'required' => false
       ))
-        ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Execute')));
+        ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Execute')));
     return $formBuilder;
   }
 

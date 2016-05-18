@@ -4,6 +4,8 @@ namespace CtSearchBundle\Datasource;
 
 use CtSearchBundle\Classes\CurlUtils;
 use \CtSearchBundle\CtSearchBundle;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class BibokHarverster extends Datasource {
 
@@ -77,11 +79,11 @@ class BibokHarverster extends Datasource {
   public function getSettingsForm() {
     if ($this->getController() != null) {
       $formBuilder = parent::getSettingsForm();
-      $formBuilder->add('url', 'text', array(
+      $formBuilder->add('url', TextType::class, array(
             'label' => $this->getController()->get('translator')->trans('Bibook service url'),
             'required' => true
           ))
-          ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Save')));
+          ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Save')));
       return $formBuilder;
     } else {
       return null;
@@ -90,7 +92,7 @@ class BibokHarverster extends Datasource {
 
   public function getExcutionForm() {
     $formBuilder = $this->getController()->createFormBuilder()
-        ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Execute')));
+        ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Execute')));
     return $formBuilder;
   }
 

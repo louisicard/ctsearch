@@ -3,6 +3,8 @@
 namespace CtSearchBundle\Datasource;
 
 use CtSearchBundle\Classes\CurlUtils;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Validator\Constraints as Assert;
 use \CtSearchBundle\CtSearchBundle;
 
@@ -204,19 +206,19 @@ class OAIHarvester extends Datasource {
   public function getSettingsForm() {
     if ($this->getController() != null) {
       $formBuilder = parent::getSettingsForm();
-      $formBuilder->add('oaiServerUrl', 'text', array(
+      $formBuilder->add('oaiServerUrl', TextType::class, array(
           'label' => $this->getController()->get('translator')->trans('OAI server URL'),
           'required' => true
         ))
-        ->add('sets', 'text', array(
+        ->add('sets', TextType::class, array(
           'label' => $this->getController()->get('translator')->trans('Sets to harvest (comma separated)'),
           'required' => false
         ))
-        ->add('metaDataPrefix', 'text', array(
+        ->add('metaDataPrefix', TextType::class, array(
           'label' => $this->getController()->get('translator')->trans('Metadata prefix'),
           'required' => false
         ))
-        ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Save')));
+        ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Save')));
       return $formBuilder;
     } else {
       return null;
@@ -225,7 +227,7 @@ class OAIHarvester extends Datasource {
 
   public function getExcutionForm() {
     $formBuilder = $this->getController()->createFormBuilder()
-      ->add('ok', 'submit', array('label' => $this->getController()->get('translator')->trans('Execute')));
+      ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Execute')));
     return $formBuilder;
   }
 
