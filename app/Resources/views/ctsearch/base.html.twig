@@ -22,6 +22,7 @@
         <li{%if main_menu_item=='search-pages'%} class="active"{%endif%}><a href="{{path('search-pages')}}" title="{{'Search pages'|trans}}">{{'Search pages'|trans}}</a></li>
         <li{%if main_menu_item=='analytics'%} class="active"{%endif%}><a href="{{path('analytics')}}" title="{{'Analytics'|trans}}">{{'Analytics'|trans}}</a></li>
         <li{%if main_menu_item=='logs'%} class="active"{%endif%}><a href="{{path('show-logs')}}" title="{{'Logs'|trans}}">{{'Logs'|trans}}</a></li>
+        <li{%if main_menu_item=='backups'%} class="active"{%endif%}><a href="{{path('backups')}}" title="{{'Backups'|trans}}">{{'Backups'|trans}}</a></li>
         <li{%if main_menu_item=='console'%} class="active"{%endif%}><a href="{{path('console')}}" title="{{'Console'|trans}}">{{'Console'|trans}}</a></li>
         {% endif %}
       </ul>
@@ -78,7 +79,9 @@
       DeleteDatasourceConfirm: "{{'You are about to delete a data source.\\nDo you wish to proceed?'|trans}}",
       DeleteProcessorConfirm: "{{'You are about to delete a processor.\\nDo you wish to proceed?'|trans}}",
       DeleteSearchPageConfirm: "{{'You are about to delete a search page.\\nDo you wish to proceed?'|trans}}",
-      DeleteMatchingListConfirm: "{{'You are about to delete a matching list.\\nDo you wish to proceed?'|trans}}"
+      DeleteMatchingListConfirm: "{{'You are about to delete a matching list.\\nDo you wish to proceed?'|trans}}",
+      DeleteRepositoryConfirm: "{{'You are about to delete a repository.\\nDo you wish to proceed?'|trans}}",
+      DeleteSnapshotConfirm: "{{'You are about to delete a snapshot.\\nDo you wish to proceed?'|trans}}"
     };
   </script>
   <script type="text/javascript" src="{{asset('js/jquery-1.11.3.min.js')}}"></script>

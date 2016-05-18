@@ -43,6 +43,20 @@
         window.location = url;
       });
     });
+    $('a.delete-repo').click(function (e) {
+      e.preventDefault();
+      var url = $(this).attr('href');
+      return advConfirm(__ctsearch_js_translations.DeleteRepositoryConfirm, function () {
+        window.location = url;
+      });
+    });
+    $('a.delete-snapshot').click(function (e) {
+      e.preventDefault();
+      var url = $(this).attr('href');
+      return advConfirm(__ctsearch_js_translations.DeleteSnapshotConfirm, function () {
+        window.location = url;
+      });
+    });
 
     $('#container form').each(function () {
       $(this).children().children('div').addClass('form-item clearfix');

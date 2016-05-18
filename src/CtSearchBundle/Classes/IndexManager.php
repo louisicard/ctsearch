@@ -1310,4 +1310,51 @@ class IndexManager {
     return $r;
   }
 
+  public function getBackupRepositories(){
+    $r = $this->getClient()->snapshot()->getRepository(array('repository' => '_all'));
+    return $r;
+  }
+
+  public function createRepository($data){
+    $params = array(
+      'repository' => preg_replace("/[^A-Za-z0-9]/", '_', strtolower($data['name'])),
+      'body' => array(
+        'type' => $data['type'],
+        'settings' => array(
+          'location' => $data['location'],
+          'compress' => $data['compress'],
+        )
+      )
+    );
+    $this->getClient()->snapshot()->createRepository($params);
+  }
+
+  public function getRepository($name){
+    return $this->getClient()->snapshot()->getRepository(array('repository' => $name));
+  }
+
+  public function deleteRepository($name){
+    return $this->getClient()->snapshot()->deleteRepository(array('repository' => $name));
+  }
+
+  public function createSnapshot($repoName, $snapshotName, $indexes, $ignoreUnavailable = true, $includeGlobalState = false){
+    $this->getClient()->snapshot()->create(array(
+      'repository' => $repoName,
+      'snapshot' => $snapshotName,
+      'body' => array(
+        'indices' => implode(',', $indexes),
+        'ignore_unavailable' => $ignoreUnavailable,
+        'include_global_state' => $includeGlobalState,
+      )
+    ));
+  }
+
+  public function getSnapshots($repoName){
+    return $this->getClient()->snapshot()->get(array('repository' => $repoName, 'snapshot' => '_all'));
+  }
+
+  public function deleteSnapshot($repoName, $name){
+    return $this->getClient()->snapshot()->delete(array('repository' => $repoName, 'snapshot' => $name));
+  }
+
 }
