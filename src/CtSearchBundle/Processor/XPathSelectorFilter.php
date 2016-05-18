@@ -65,7 +65,7 @@ class XPathSelectorFilter extends ProcessorFilter {
   }
   
   public function select($selector, $as_array = true) {
-    $cssSelector = new \Symfony\Component\CssSelector\CssSelector();
+    $cssSelector = new \Symfony\Component\CssSelector\CssSelectorConverter();
     $elements = $this->xpath->evaluate($cssSelector->toXPath($selector));
     return $as_array ? elements_to_array($elements) : $elements;
   }
