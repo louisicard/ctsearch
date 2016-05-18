@@ -1,7 +1,7 @@
 {
     "list": {
         "type": "string",
-        "index": "not_analyzed",
+        "index": "no",
         "store": true
     },
     "name": {
