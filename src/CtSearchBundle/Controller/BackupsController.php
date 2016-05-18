@@ -32,6 +32,11 @@ class BackupsController extends Controller
     foreach(array_keys($repos) as $repo){
       $s = IndexManager::getInstance()->getSnapshots($repo);
       if(isset($s['snapshots']) && count($s['snapshots']) > 0){
+        foreach($s['snapshots'] as $i => $snap){
+          if(isset($snap['end_time_in_millis'])) {
+            $s['snapshots'][$i]['end_time_clean'] = date('Y-m-d H:i:s', round($snap['end_time_in_millis'] / 1000));
+          }
+        }
         $snapshots[$repo] = $s['snapshots'];
       }
     }

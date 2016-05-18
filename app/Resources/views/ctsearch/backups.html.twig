@@ -63,7 +63,7 @@
             <td>{{ snap.indices|join(', ') }}</td>
             <td>{{ snap.state}}</td>
             <td>{% if snap.duration_in_millis is defined %}{{ snap.duration_in_millis}} ms{% else %}-{% endif %}</td>
-            <td>{% if snap.end_time_in_millis is defined %}{{ snap.end_time_in_millis}}{% else %}-{% endif %}</td>
+            <td>{% if snap.end_time_clean is defined %}{{ snap.end_time_clean}}{% else %}-{% endif %}</td>
             <td class="actions">
               <ul>
                 <li><a href="{{ path('backups_delete_snapshot', {repoName: repo_name, name: snap.snapshot}) }}" class="delete-snapshot">{{ "Delete"|trans }}</a></li>

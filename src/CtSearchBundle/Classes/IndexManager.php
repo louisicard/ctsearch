@@ -1340,7 +1340,7 @@ class IndexManager {
   public function createSnapshot($repoName, $snapshotName, $indexes, $ignoreUnavailable = true, $includeGlobalState = false){
     $this->getClient()->snapshot()->create(array(
       'repository' => $repoName,
-      'snapshot' => $snapshotName,
+      'snapshot' => preg_replace("/[^A-Za-z0-9]/", '_', strtolower($snapshotName)),
       'body' => array(
         'indices' => implode(',', $indexes),
         'ignore_unavailable' => $ignoreUnavailable,
