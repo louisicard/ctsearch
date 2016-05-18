@@ -2,6 +2,8 @@
 
 namespace CtSearchBundle\Controller;
 
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -261,15 +263,15 @@ class ProcessorController extends CtSearchController {
    */
   public function importProcessorAction(Request $request) {
     $form = $this->createFormBuilder()
-        ->add('file', 'file', array(
+        ->add('file', FileType::class, array(
           'label' => $this->get('translator')->trans('File'),
           'required' => true,
         ))
-        ->add('override', 'checkbox', array(
+        ->add('override', CheckboxType::class, array(
           'label' => $this->get('translator')->trans('Override existing Index/Mapping/Datasource/Processor'),
           'required' => false
         ))
-        ->add('import', 'submit', array('label' => $this->get('translator')->trans('Import')))
+        ->add('import', SubmitType::class, array('label' => $this->get('translator')->trans('Import')))
         ->getForm();
     $form->handleRequest($request);
     if ($form->isValid()) {
