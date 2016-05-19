@@ -10,7 +10,7 @@ use CtSearchBundle\Classes\IndexManager;
 use \CtSearchBundle\Classes\Processor;
 use \Symfony\Component\HttpFoundation\Response;
 
-class WebCrawlerController extends Controller {
+class WebCrawlerController extends CtSearchController {
 
   /**
    * @Route("/webcrawler-response", name="webcrawler-response")

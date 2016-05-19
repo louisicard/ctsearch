@@ -29,11 +29,11 @@ class BackupsController extends Controller
 
     $snapshots = array();
 
-    foreach(array_keys($repos) as $repo){
+    foreach (array_keys($repos) as $repo) {
       $s = IndexManager::getInstance()->getSnapshots($repo);
-      if(isset($s['snapshots']) && count($s['snapshots']) > 0){
-        foreach($s['snapshots'] as $i => $snap){
-          if(isset($snap['end_time_in_millis'])) {
+      if (isset($s['snapshots']) && count($s['snapshots']) > 0) {
+        foreach ($s['snapshots'] as $i => $snap) {
+          if (isset($snap['end_time_in_millis'])) {
             $s['snapshots'][$i]['end_time_clean'] = date('Y-m-d H:i:s', round($snap['end_time_in_millis'] / 1000));
           }
         }
@@ -156,7 +156,7 @@ class BackupsController extends Controller
     $repoChoices = array(
       $this->get('translator')->trans('Select') => ''
     );
-    foreach(array_keys($repos) as $repo){
+    foreach (array_keys($repos) as $repo) {
       $repoChoices[$repo] = $repo;
     }
     $info = IndexManager::getInstance()->getElasticInfo();
@@ -211,6 +211,72 @@ class BackupsController extends Controller
 
     $params = array(
       'title' => $this->get('translator')->trans('Create a snapshot'),
+      'main_menu_item' => 'backups',
+      'form' => $form->createView()
+    );
+    return $this->render('ctsearch/backups-form.html.twig', $params);
+  }
+
+  /**
+   * @Route("/backups/snapshot/restore/{repoName}/{name}", name="backups_restore_snapshot")
+   */
+  public function restoreSnapshotAction(Request $request, $repoName, $name)
+  {
+
+    $snapshot = IndexManager::getInstance()->getSnapshot($repoName, $name);
+
+    $indexesChoices = array();
+    foreach ($snapshot['indices'] as $index) {
+      $indexesChoices[$index] = $index;
+    }
+
+    $form = $this->createFormBuilder(null)
+      ->add('indexes', ChoiceType::class, array(
+        'label' => $this->get('translator')->trans('Indexes to restore (if none selected, all will be restored)'),
+        'required' => true,
+        'expanded' => true,
+        'multiple' => true,
+        'choices' => $indexesChoices
+      ))
+      ->add('renamePattern', TextType::class, array(
+        'label' => $this->get('translator')->trans('Rename pattern (cf https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html)'),
+        'required' => false,
+        'data' => '(.+)'
+      ))
+      ->add('renameReplacement', TextType::class, array(
+        'label' => $this->get('translator')->trans('Rename replacement (cf https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html)'),
+        'required' => false,
+        'data' => 'restored_$1'
+      ))
+      ->add('ignoreUnavailable', CheckboxType::class, array(
+        'label' => $this->get('translator')->trans('Ignore unavailable'),
+        'required' => false,
+      ))
+      ->add('includeGlobalState', CheckboxType::class, array(
+        'label' => $this->get('translator')->trans('Iclude global state'),
+        'required' => false,
+      ))
+      ->add('submit', SubmitType::class, array(
+        'label' => $this->get('translator')->trans('Submit')
+      ))
+      ->getForm();
+
+    $form->handleRequest($request);
+
+    if ($form->isValid()) {
+      $data = $form->getData();
+      try {
+        IndexManager::getInstance()->restoreSnapshot($repoName, $name, $data);
+        CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Snapshot has been restored'));
+      } catch (ServerErrorResponseException $ex) {
+        CtSearchBundle::addSessionMessage($this, 'error', $this->get('translator')->trans('Snapshot could not be restored : ' . $ex->getMessage()));
+      } catch (BadRequest400Exception $ex2) {
+        CtSearchBundle::addSessionMessage($this, 'error', $this->get('translator')->trans('Snapshot could not be restored : ' . $ex2->getMessage()));
+      }
+    }
+
+    $params = array(
+      'title' => $this->get('translator')->trans('Restore a snapshot'),
       'main_menu_item' => 'backups',
       'form' => $form->createView()
     );

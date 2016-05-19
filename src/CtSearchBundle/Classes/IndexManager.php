@@ -1353,8 +1353,34 @@ class IndexManager {
     return $this->getClient()->snapshot()->get(array('repository' => $repoName, 'snapshot' => '_all'));
   }
 
+  public function getSnapshot($repoName, $name){
+    $r = $this->getClient()->snapshot()->get(array('repository' => $repoName, 'snapshot' => $name));
+    if(isset($r['snapshots'][0]))
+      return $r['snapshots'][0];
+    return null;
+  }
+
   public function deleteSnapshot($repoName, $name){
     return $this->getClient()->snapshot()->delete(array('repository' => $repoName, 'snapshot' => $name));
+  }
+
+  public function restoreSnapshot($repoName, $name, $params){
+    $body = array();
+    if(isset($params['indexes']) && !empty($params['indexes']))
+      $body['indices'] = $params['indexes'];
+    if(isset($params['ignoreUnavailable']))
+      $body['ignore_unavailable'] = $params['ignoreUnavailable'];
+    if(isset($params['includeGlobalState']))
+      $body['include_global_state'] = $params['includeGlobalState'];
+    if(isset($params['renamePattern']) && !empty($params['renamePattern']) && $params['renamePattern'] != null)
+      $body['rename_pattern'] = $params['renamePattern'];
+    if(isset($params['renameReplacement']) && !empty($params['renameReplacement']) && $params['renameReplacement'] != null)
+      $body['rename_replacement'] = $params['renameReplacement'];
+    $this->getClient()->snapshot()->restore(array(
+      'repository' => $repoName,
+      'snapshot' => $name,
+      'body' => $body
+    ));
   }
 
 }

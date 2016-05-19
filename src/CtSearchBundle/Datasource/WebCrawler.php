@@ -7,6 +7,7 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Validator\Constraints as Assert;
 use \CtSearchBundle\CtSearchBundle;
 
@@ -72,13 +73,15 @@ class WebCrawler extends Datasource {
     if ($execParams != null && isset($execParams['operation'])) {
       $operation = $execParams['operation'];
     } else {
-      $opertion = 'start';
+      $operation = 'start';
     }
     $settings = $this->getSettings();
     $url = $settings['serviceUrl'];
     unset($settings['serviceUrl']);
     global $kernel;
-    $callbackUrl = $kernel->getContainer()->get('request')->getSchemeAndHttpHost() . $kernel->getContainer()->get('router')->getContext()->getBaseUrl() . '/webcrawler-response?datasourceId=' . $this->getId();
+    /** @var RequestStack $stack */
+    $stack = $kernel->getContainer()->get('request_stack');
+    $callbackUrl = $stack->getCurrentRequest()->getSchemeAndHttpHost() . $kernel->getContainer()->get('router')->getContext()->getBaseUrl() . '/webcrawler-response?datasourceId=' . $this->getId();
     $settings['callbackUrl'] = $callbackUrl;
     $settings['op'] = $operation;
     $serverResponse = $this->getRestData($url, $settings);
@@ -164,9 +167,9 @@ class WebCrawler extends Datasource {
       ->add('operation', ChoiceType::class, array(
         'label' => 'Operation to perform',
         'choices' => array(
-          '' => $this->getController()->get('translator')->trans('Select an operation'),
-          'start' => $this->getController()->get('translator')->trans('Start'),
-          'stop' => $this->getController()->get('translator')->trans('Stop'),
+          $this->getController()->get('translator')->trans('Select an operation') => '',
+          $this->getController()->get('translator')->trans('Start') => 'start',
+          $this->getController()->get('translator')->trans('Stop') => 'stop',
         ),
         'required' => true
       ))
