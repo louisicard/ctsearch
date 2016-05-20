@@ -44,6 +44,9 @@ security:
     drupal_reco_get:
       pattern:    ^/reco/get
       anonymous:  ~
+    search_api_js:
+      pattern:    ^/searchapi
+      anonymous:  ~
     default_firewall:
       pattern:    ^/
       http_basic:  ~
