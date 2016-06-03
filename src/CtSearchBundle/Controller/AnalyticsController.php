@@ -21,7 +21,7 @@ class AnalyticsController extends Controller {
 
     foreach(get_declared_classes() as $class){
       if(is_subclass_of($class, StatCompiler::class)){
-        $statChoices[$class] = (new $class())->getDisplayName();
+        $statChoices[(new $class())->getDisplayName()] = $class;
       }
     }
 
