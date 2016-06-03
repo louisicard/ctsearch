@@ -35,6 +35,8 @@ class AnalyticsController extends Controller {
       $targetChoices[$indexName] = $choices;
     }
 
+    ksort($targetChoices);
+
     $params = array(
       'title' => $this->get('translator')->trans('Analytics'),
       'main_menu_item' => 'analytics',

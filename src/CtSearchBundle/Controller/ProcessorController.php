@@ -28,6 +28,7 @@ class ProcessorController extends CtSearchController {
     foreach ($datasources as $id => $datasource) {
       $datasourceChoices[$datasource->getName()] = $id;
     }
+    ksort($datasourceChoices);
     $targetChoices = array();
     foreach ($indexes as $indexName => $info) {
       $choices = array();
@@ -38,6 +39,7 @@ class ProcessorController extends CtSearchController {
       }
       $targetChoices[$indexName] = $choices;
     }
+    ksort($targetChoices);
     $form = $this->createFormBuilder(null)
         ->add('datasource', ChoiceType::class, array(
           'choices' => array($this->get('translator')->trans('Select datasource') => '') + $datasourceChoices,

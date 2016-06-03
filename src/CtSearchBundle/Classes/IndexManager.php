@@ -261,6 +261,9 @@ class IndexManager {
           }
         }
         unset($r);
+        usort($datasources, function(Datasource $d1, Datasource $d2){
+          return $d1->getName() >= $d2->getName();
+        });
         return $datasources;
       } catch (\Exception $ex) {
         return array();
@@ -434,6 +437,9 @@ class IndexManager {
           }
         }
         unset($r);
+        usort($processors, function($p1, $p2){
+          return $p1['datasource_name'] >= $p2['datasource_name'];
+        });
         return $processors;
       } catch (\Exception $ex) {
         return array();

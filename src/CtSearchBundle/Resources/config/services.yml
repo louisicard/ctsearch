@@ -103,6 +103,10 @@ services:
     class: CtSearchBundle\Processor\XPathSelectorFilter
     tags:
       - { name: ctsearch.filter }
+  ctsearch.analytics.rawkeywordsstatcompiler:
+    class: CtSearchBundle\Classes\RawKeywordsStatCompiler
+    tags:
+      - { name: ctsearch.analytics }
   ctsearch.analytics.keywordsstatcompiler:
     class: CtSearchBundle\Classes\KeywordsStatCompiler
     tags:
@@ -111,7 +115,11 @@ services:
     class: CtSearchBundle\Classes\QueryCountStatCompiler
     tags:
       - { name: ctsearch.analytics }
-  ctsearch.analytics.rawkeywordsstatcompiler:
-    class: CtSearchBundle\Classes\RawKeywordsStatCompiler
+  ctsearch.analytics.avgresponsetimestatcompiler:
+    class: CtSearchBundle\Classes\AvgResponseTimeStatCompiler
+    tags:
+      - { name: ctsearch.analytics }
+  ctsearch.analytics.responsetimestatcompiler:
+    class: CtSearchBundle\Classes\ResponseTimeStatCompiler
     tags:
       - { name: ctsearch.analytics }
