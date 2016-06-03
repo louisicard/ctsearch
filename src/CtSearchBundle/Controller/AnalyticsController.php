@@ -18,11 +18,9 @@ class AnalyticsController extends Controller {
   public function analyticsAction(Request $request) {
 
     $statChoices = [];
-
-    foreach(get_declared_classes() as $class){
-      if(is_subclass_of($class, StatCompiler::class)){
-        $statChoices[(new $class())->getDisplayName()] = $class;
-      }
+    $serviceIds = $this->container->getParameter("ctsearch.analytics");
+    foreach ($serviceIds as $id) {
+      $statChoices[get_class($this->container->get($id))] = $this->container->get($id)->getDisplayName();
     }
 
     $indexes = IndexManager::getInstance()->getElasticInfo($this);

@@ -20,6 +20,8 @@ class CtSearchCompilerPass implements CompilerPassInterface
     $container->setParameter("ctsearch.datasources", array_keys($services));
     $filterServices = $container->findTaggedServiceIds("ctsearch.filter");
     $container->setParameter("ctsearch.filters", array_keys($filterServices));
+    $analyticsServices = $container->findTaggedServiceIds("ctsearch.analytics");
+    $container->setParameter("ctsearch.analytics", array_keys($analyticsServices));
   }
 
 
