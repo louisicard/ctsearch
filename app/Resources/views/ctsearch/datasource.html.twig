@@ -24,9 +24,9 @@
             <td>{{datasource.datasourceDisplayName}}</td>
             <td class="actions">
               <ul>
-                <li><a href="{{path('datasource-exec', {'id': id})}}">{{'Execute'|trans}}</a></li>
-                <li><a href="{{path('datasource-edit', {'id': id})}}">{{'Edit'|trans}}</a></li>
-                <li><a href="{{path('datasource-delete', {'id': id})}}" class="datasource-delete">{{'Delete'|trans}}</a></li>
+                <li><a href="{{path('datasource-exec', {'id': datasource.id})}}">{{'Execute'|trans}}</a></li>
+                <li><a href="{{path('datasource-edit', {'id': datasource.id})}}">{{'Edit'|trans}}</a></li>
+                <li><a href="{{path('datasource-delete', {'id': datasource.id})}}" class="datasource-delete">{{'Delete'|trans}}</a></li>
               </ul>
             </td>
           </tr>
