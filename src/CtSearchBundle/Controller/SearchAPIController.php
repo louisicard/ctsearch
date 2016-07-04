@@ -133,6 +133,7 @@ class SearchAPIController extends Controller {
         }
 
         $applied_facets = array();
+        $refactor_for_boolean_query = FALSE;
         if ($request->get('filter') != null) {
           $filters = array();
           foreach ($request->get('filter') as $filter) {
@@ -149,6 +150,7 @@ class SearchAPIController extends Controller {
             }
           }
           if (count($filters) > 0) {
+            $refactor_for_boolean_query = TRUE;
             $query['query'] = array(
               'bool' => array(
                 'must' => array($query['query'])
@@ -225,6 +227,48 @@ class SearchAPIController extends Controller {
                   $query['query']['bool'][$filter['operator'] != '!=' ? 'must' : 'must_not'][] = $subquery;
                 }
               }
+            }
+          }
+        }
+        if ($request->get('qs_filter') != null) {
+          $qs_filters = array();
+          foreach ($request->get('qs_filter') as $qs_filter) {
+            preg_match('/(?P<name>[^=]*)="(?P<value>[^"]*)"/', $qs_filter, $matches);
+            if (isset($matches['name']) && isset($matches['value'])) {
+              $qs_filters[] = array(
+                'field' => $matches['name'],
+                'value' => $matches['value']
+              );
+            }
+          }
+          if (count($qs_filters) > 0 && !$refactor_for_boolean_query  ) {
+            $query['query'] = array(
+              'bool' => array(
+                'must' => array($query['query'])
+              )
+            );
+          }
+          foreach($qs_filters as $qs_filter){
+            if(count(explode(".", $qs_filter['field'])) > 1){
+              $query['query']['bool']['must'][]['nested'] = array(
+                'path' => explode('.', $qs_filter['field'])[0],
+                'query' => array(
+                  'query_string' => array(
+                    'query' => $qs_filter['field'] . ':"' . $qs_filter['value'] . '"',
+                    'default_operator' => 'AND',
+                    'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
+                    'fields' => array($qs_filter['field'])
+                  )
+                )
+              );
+            }
+            else{
+              $query['query']['bool']['must'][]['query_string'] = array(
+                'query' => $qs_filter['field'] . ':"' . $qs_filter['value'] . '"',
+                'default_operator' => 'AND',
+                'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
+                'fields' => array($qs_filter['field'])
+              );
             }
           }
         }
