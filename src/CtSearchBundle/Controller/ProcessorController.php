@@ -25,8 +25,8 @@ class ProcessorController extends CtSearchController {
     $datasources = IndexManager::getInstance()->getDatasources($this);
     $indexes = IndexManager::getInstance()->getElasticInfo($this);
     $datasourceChoices = array();
-    foreach ($datasources as $id => $datasource) {
-      $datasourceChoices[$datasource->getName()] = $id;
+    foreach ($datasources as $datasource) {
+      $datasourceChoices[$datasource->getName()] = $datasource->getId();
     }
     ksort($datasourceChoices);
     $targetChoices = array();
