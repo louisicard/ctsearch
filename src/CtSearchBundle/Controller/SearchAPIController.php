@@ -120,6 +120,13 @@ class SearchAPIController extends Controller {
                     $query['aggs'][$option_parts[0]]['terms']['size'] = $option_parts[2];
                   }
                   break;
+                case 'order':
+                  if (isset($query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms'])) {
+                    $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms']['order'] = array($option_parts[2] => 'asc');
+                  } elseif (isset($query['aggs'][$option_parts[0]]['terms'])) {
+                    $query['aggs'][$option_parts[0]]['terms']['order'] = array($option_parts[2] => 'asc');
+                  }
+                  break;
                 case 'custom_def':
                   if (isset($query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]])) {
                     $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]] = json_decode($option_parts[2], true);
