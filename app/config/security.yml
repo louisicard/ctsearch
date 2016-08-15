@@ -47,6 +47,9 @@ security:
     search_api_js:
       pattern:    ^/searchapi
       anonymous:  ~
+    rest_api:
+      pattern:    ^/api
+      anonymous:  ~
     default_firewall:
       pattern:    ^/
       http_basic:  ~
