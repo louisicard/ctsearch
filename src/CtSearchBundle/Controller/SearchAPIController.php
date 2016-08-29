@@ -317,9 +317,45 @@ class SearchAPIController extends Controller {
             }
           }
         }
+
+        if($request->get('suggest') != null){
+          $suggest_fields = array_map('trim', explode(',', $request->get('suggest')));
+          foreach($suggest_fields as $i => $field){
+            $query['suggest'][$field] = array(
+              'text' => $request->get('query'),
+              'term' => array(
+                'field' => $field
+              )
+            );
+          }
+        }
+
         try {
           $res = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], json_encode($query), $request->get('from') != null ? $request->get('from') : 0,  $request->get('size') != null ? $request->get('size') : 10);
           IndexManager::getInstance()->saveStat($request->get('mapping'), $applied_facets, $request->get('query') != null ? $request->get('query') : '', $request->get('analyzer'), $request->getQueryString(), isset($res['hits']['total']) ? $res['hits']['total'] : 0, isset($res['took']) ? $res['took'] : 0, $request->get('clientIp') != null ? $request->get('clientIp') : $request->getClientIp(), $request->get('tag') != null ? $request->get('tag') : '');
+          if(isset($res['suggest'])){
+            $suggestions = array();
+            foreach($res['suggest'] as $field => $suggests){
+              foreach($suggests as $suggest) {
+                if (isset($suggest['options'])) {
+                  foreach ($suggest['options'] as $suggestion) {
+                    $suggestions[] = array(
+                      'field' => $field,
+                      'text' => $suggestion['text'],
+                      'score' => $suggestion['score'],
+                      'freq' => $suggestion['freq'],
+                    );
+                  }
+                }
+              }
+            }
+            usort($suggestions, function($a, $b){
+              if($a['freq'] == $b['freq'])
+                return $a['score'] < $b['score'];
+              return $a['freq'] < $b['freq'];
+            });
+            $res['suggest_ctsearch'] = $suggestions;
+          }
         } catch (\Exception $ex) {
           return new Response(json_encode(array('error' => $ex->getMessage())), 500, array('Content-type' => 'application/json;charset=utf-8'));
         }
