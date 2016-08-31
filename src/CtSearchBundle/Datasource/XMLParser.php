@@ -66,6 +66,7 @@ class XMLParser extends Datasource {
             }
           }
           $this->index(array(
+            'global_doc' => $xml,
             'doc' => simplexml_load_string($doc->asXML())
           ));
           $count++;
@@ -134,6 +135,7 @@ class XMLParser extends Datasource {
 
   public function getFields() {
     return array(
+      'global_doc',
       'doc',
     );
   }
