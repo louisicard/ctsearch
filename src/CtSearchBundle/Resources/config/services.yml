@@ -19,6 +19,10 @@ services:
     class: CtSearchBundle\Datasource\OAIHarvester
     tags:
       - { name: ctsearch.datasource }
+  ctsearch.datasource.ccomptesopendataclient:
+    class: CtSearchBundle\Datasource\CComptesOpenDataClient
+    tags:
+      - { name: ctsearch.datasource }
   ctsearch.datasource.textfileparser:
     class: CtSearchBundle\Datasource\TextFileParser
     tags:
