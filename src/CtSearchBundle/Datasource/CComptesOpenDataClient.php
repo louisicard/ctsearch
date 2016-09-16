@@ -41,8 +41,8 @@ class CComptesOpenDataClient extends Datasource {
               $zip_data[$name] = zip_entry_read($entry, zip_entry_filesize($entry));
             }
           }
-          if(isset($zip_data['export.csv'])){
-            $csv = utf8_encode($zip_data['export.csv']);
+          if(isset($zip_data['export.csv']) || isset($zip_data['export.xls'])){
+            $csv = utf8_encode(isset($zip_data['export.xls']) ? $zip_data['export.xls'] : $zip_data['export.csv']);
             $csv_lines = explode(PHP_EOL, $csv);
             $doc = array();
             if(count($csv_lines) > 0) {
@@ -57,12 +57,20 @@ class CComptesOpenDataClient extends Datasource {
               }
               if(isset($doc['metadata'][$this->getLinkField()]) && isset($zip_data[$doc['metadata'][$this->getLinkField()]])){
                 $doc['content'] = $zip_data[$doc['metadata'][$this->getLinkField()]];
+                if(!preg_match('!!u', $doc['content'])){
+                  $doc['content'] = utf8_encode($doc['content']);
+                }
               }
               $this->index($doc);
               $count++;
             }
           }
-          $this->getOutput()->writeln($count . ' document(s) found');
+          if($this->getOutput() != null) {
+            $this->getOutput()->writeln($count . ' document(s) found');
+          }
+          if ($this->getController() != null) {
+            CtSearchBundle::addSessionMessage($this->getController(), 'status', $count . ' document(s) found');
+          }
           unset($zip_data);
           zip_close($zip);
           unlink($temp_file);
