@@ -254,10 +254,12 @@ class IndexManager {
         $datasources = array();
         if (isset($r['hits']['hits'])) {
           foreach ($r['hits']['hits'] as $hit) {
-            $datasource = new $hit['_source']['class']($hit['_source']['name'], $controller);
-            $datasource->initFromSettings(unserialize($hit['_source']['definition']));
-            $datasource->setId($hit['_id']);
-            $datasources[$hit['_id']] = $datasource;
+            if(class_exists($hit['_source']['class'])) {
+              $datasource = new $hit['_source']['class']($hit['_source']['name'], $controller);
+              $datasource->initFromSettings(unserialize($hit['_source']['definition']));
+              $datasource->setId($hit['_id']);
+              $datasources[$hit['_id']] = $datasource;
+            }
           }
         }
         unset($r);
