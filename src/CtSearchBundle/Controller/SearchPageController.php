@@ -266,7 +266,9 @@ class SearchPageController extends Controller {
         foreach ($result['hits']['hits'] as &$hit) {
           if ($customTpl == null) {
             $hit['_source'] = $this->truncateArray($hit['_source'], 300, array('image', 'title'));
-            $hit['highlight'] = $this->truncateArray($hit['highlight'], 300, array('image', 'title'));
+            if(isset($hit['highlight'])) {
+              $hit['highlight'] = $this->truncateArray($hit['highlight'], 300, array('image', 'title'));
+            }
           }
           $hit['_ctsearch'] = array();
           if (isset($config['fields']['title']) && isset($hit['_source'][$config['fields']['title']])) {
@@ -285,6 +287,8 @@ class SearchPageController extends Controller {
           }
           if (isset($config['fields']['url']) && isset($hit['_source'][$config['fields']['url']])) {
             $hit['_ctsearch']['url'] = $hit['_source'][$config['fields']['url']];
+          }elseif (isset($config['fields']['url']) && isset($hit[$config['fields']['url']])) {
+            $hit['_ctsearch']['url'] = $hit[$config['fields']['url']];
           } else {
             $hit['_ctsearch']['url'] = $this->get('translator')->trans('No url');
           }
