@@ -31,7 +31,7 @@ class CrawlerExtractor extends Datasource {
           'query' => array(
             'range' => array(
               'crawl_time' => array(
-                'gte' => $minTimestamp
+                'gte' => date('Y-m-d\TH:i:s', $minTimestamp)
               )
             )
           ),
