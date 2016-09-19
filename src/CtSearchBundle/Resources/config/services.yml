@@ -23,6 +23,10 @@ services:
     class: CtSearchBundle\Datasource\CComptesOpenDataClient
     tags:
       - { name: ctsearch.datasource }
+  ctsearch.datasource.crawlerextractor:
+    class: CtSearchBundle\Datasource\CrawlerExtractor
+    tags:
+      - { name: ctsearch.datasource }
   ctsearch.datasource.textfileparser:
     class: CtSearchBundle\Datasource\TextFileParser
     tags:
