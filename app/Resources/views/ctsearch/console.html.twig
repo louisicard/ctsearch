@@ -36,6 +36,7 @@
           <tr>
             <th>ID</th>
             <th>Type</th>
+            <th>Score</th>
             {%for col in engine_response.cols%}
             <th>{{col}}</th>  
             {%endfor%}
@@ -46,6 +47,7 @@
           <tr>
             <td>{{hit._id}}</td>
             <td>{{hit._type}}</td>
+            <td>{{hit._score}}</td>
             {%for col in engine_response.cols%}
               {%if hit._source[col] is defined%}
                 <td>
