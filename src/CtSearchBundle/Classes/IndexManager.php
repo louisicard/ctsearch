@@ -583,7 +583,9 @@ class IndexManager {
         $searchPages = array();
         if (isset($r['hits']['hits'])) {
           foreach ($r['hits']['hits'] as $hit) {
-            $searchPages[] = new SearchPage($hit['_source']['name'], $hit['_source']['mapping'], unserialize($hit['_source']['definition']), $hit['_id']);
+            if(isset($hit['_source']['mapping'])) {//Check for CtSearch 2.2 compatibility
+              $searchPages[] = new SearchPage($hit['_source']['name'], $hit['_source']['mapping'], unserialize($hit['_source']['definition']), $hit['_id']);
+            }
           }
         }
         unset($r);
