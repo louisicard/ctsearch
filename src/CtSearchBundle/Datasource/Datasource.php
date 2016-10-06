@@ -217,7 +217,7 @@ abstract class Datasource {
           }
           if ($debug) {
             try {
-              IndexManager::getInstance()->log('debug', 'Indexing document from datasource "' . $this->getName() . '"', $to_index);
+              IndexManager::getInstance()->log('debug', 'Indexing document from datasource "' . $this->getName() . '"', $to_index, $this);
             } catch (Exception $ex) {
               
             } catch (\Exception $ex2) {
@@ -244,7 +244,7 @@ abstract class Datasource {
         'File' => $ex->getFile(),
         'Line' => $ex->getLine(),
         'Data in process' => isset($data) ? $this->truncateArray($data) : array(),
-      ));
+      ), $this);
     } catch (\Exception $ex2) {
       //var_dump($ex2);
       IndexManager::getInstance()->log('error', 'Exception occured while indexing document from datasource "' . $this->getName() . '"', array(
@@ -253,7 +253,7 @@ abstract class Datasource {
         'File' => $ex2->getFile(),
         'Line' => $ex2->getLine(),
         'Data in process' => isset($data) ? $this->truncateArray($data) : array(),
-      ));
+      ), $this);
     }
     
     gc_enable();

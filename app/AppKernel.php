@@ -16,6 +16,8 @@ class AppKernel extends Kernel
           new Sensio\Bundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
           new CtSearchBundle\CtSearchBundle(),
           new Oodle\KrumoBundle\OodleKrumoBundle(),
+          new Symfony\Bundle\AsseticBundle\AsseticBundle(),
+            new CtSearch\ClientBundle\CtSearchClientBundle(),
         ];
 
         if (in_array($this->getEnvironment(), ['dev', 'test'], true)) {

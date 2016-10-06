@@ -1,0 +1,3 @@
+ct_search_client_homepage:
+    path:     /search-client/search
+    defaults: { _controller: CtSearchClientBundle:Search:search }

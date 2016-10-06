@@ -583,7 +583,7 @@ class IndexManager {
         $searchPages = array();
         if (isset($r['hits']['hits'])) {
           foreach ($r['hits']['hits'] as $hit) {
-            $searchPages[] = new SearchPage($hit['_source']['name'], $hit['_source']['index_name'], unserialize($hit['_source']['definition']), unserialize($hit['_source']['config']), $hit['_id']);
+            $searchPages[] = new SearchPage($hit['_source']['name'], $hit['_source']['mapping'], unserialize($hit['_source']['definition']), $hit['_id']);
           }
         }
         unset($r);
@@ -646,7 +646,7 @@ class IndexManager {
         ));
         if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
           $hit = $r['hits']['hits'][0];
-          return new SearchPage($hit['_source']['name'], $hit['_source']['index_name'], unserialize($hit['_source']['definition']), unserialize($hit['_source']['config']), $hit['_id']);
+          return new SearchPage($hit['_source']['name'], $hit['_source']['mapping'], unserialize($hit['_source']['definition']), $hit['_id']);
         }
         return null;
       } catch (\Exception $ex) {
@@ -676,9 +676,8 @@ class IndexManager {
       'type' => 'search_page',
       'body' => array(
         'name' => $searchPage->getName(),
-        'index_name' => $searchPage->getIndexName(),
-        'definition' => serialize(json_decode($searchPage->getDefinition(), true)),
-        'config' => serialize(json_decode($searchPage->getConfig(), true))
+        'mapping' => $searchPage->getMapping(),
+        'definition' => serialize(json_decode($searchPage->getDefinition(), true))
       )
     );
     if ($searchPage->getId() != null) {
@@ -743,12 +742,19 @@ class IndexManager {
     ));
   }
 
-  public function log($type, $message, $object) {
+  /**
+   * @param string $type
+   * @param string $message
+   * @param mixed $object
+   * @param Datasource $datasource
+   */
+  public function log($type, $message, $object, $datasource) {
     $this->indexDocument('.ctsearch', 'logs', array(
       'type' => $type,
       'message' => $message,
       'object' => json_encode($object),
       'date' => date('Y-m-d\TH:i:s'),
+      'log_datasource_name' => $datasource->getName()
     ));
   }
 

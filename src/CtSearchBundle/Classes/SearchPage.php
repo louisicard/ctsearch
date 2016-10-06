@@ -6,54 +6,77 @@ class SearchPage {
   
   private $id;
   private $name;
-  private $indexName;
+  private $mapping;
   private $definition;
-  private $config;
   
-  function __construct($name, $indexName, $definition, $config, $id = null) {
+  function __construct($name, $mapping, $definition, $id = null) {
     $this->id = $id;
     $this->name = $name;
-    $this->indexName = $indexName;
+    $this->mapping = $mapping;
     $this->definition = $definition;
-    $this->config = $config;
-  }
-  function getConfig() {
-    return $this->config;
   }
 
-  function setConfig($config) {
-    $this->config = $config;
-  }
-
-    function getId() {
+  /**
+   * @return null
+   */
+  public function getId()
+  {
     return $this->id;
   }
 
-  function setId($id) {
+  /**
+   * @param null $id
+   */
+  public function setId($id)
+  {
     $this->id = $id;
   }
-  
-  function getName() {
+
+  /**
+   * @return mixed
+   */
+  public function getName()
+  {
     return $this->name;
   }
 
-  function getIndexName() {
-    return $this->indexName;
-  }
-
-  function getDefinition() {
-    return $this->definition;
-  }
-
-  function setName($name) {
+  /**
+   * @param mixed $name
+   */
+  public function setName($name)
+  {
     $this->name = $name;
   }
 
-  function setIndexName($indexName) {
-    $this->indexName = $indexName;
+  /**
+   * @return mixed
+   */
+  public function getMapping()
+  {
+    return $this->mapping;
   }
 
-  function setDefinition($definition) {
+  /**
+   * @param mixed $mapping
+   */
+  public function setMapping($mapping)
+  {
+    $this->mapping = $mapping;
+  }
+
+  /**
+   * @return mixed
+   */
+  public function getDefinition()
+  {
+    return $this->definition;
+  }
+
+  /**
+   * @param mixed $definition
+   */
+  public function setDefinition($definition)
+  {
     $this->definition = $definition;
   }
 

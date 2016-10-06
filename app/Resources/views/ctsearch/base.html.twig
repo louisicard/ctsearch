@@ -1,5 +1,9 @@
 {% extends 'base.html.twig' %}
 
+{% if form is defined %}
+  {% form_theme form 'ctsearch/forms.html.twig' %}
+{% endif %}
+
 {% block title %}
   {{title}}
 {% endblock %}
@@ -81,13 +85,16 @@
       DeleteSearchPageConfirm: "{{'You are about to delete a search page.\\nDo you wish to proceed?'|trans}}",
       DeleteMatchingListConfirm: "{{'You are about to delete a matching list.\\nDo you wish to proceed?'|trans}}",
       DeleteRepositoryConfirm: "{{'You are about to delete a repository.\\nDo you wish to proceed?'|trans}}",
-      DeleteSnapshotConfirm: "{{'You are about to delete a snapshot.\\nDo you wish to proceed?'|trans}}"
+      DeleteSnapshotConfirm: "{{'You are about to delete a snapshot.\\nDo you wish to proceed?'|trans}}",
+      Prev: "{{'Previous'|trans}}",
+      Next: "{{'Next'|trans}}"
     };
   </script>
   <script type="text/javascript" src="{{asset('js/jquery-1.11.3.min.js')}}"></script>
   <script type="text/javascript" src="{{asset('js/jquery-ui/jquery-ui.min.js')}}"></script>
   <script type="text/javascript" src="{{asset('js/ctsearch.js')}}"></script>
   <script type="text/javascript" src="{{asset('js/jquery.jsonview.min.js')}}"></script>
+  <script type="text/javascript" src="{{asset('js/prettyprint.js')}}"></script>
   {% if app.request.get('_route') == 'analytics' %}
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <script type="text/javascript">

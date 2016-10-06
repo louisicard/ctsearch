@@ -755,3 +755,29 @@ body.page-analytics form#stat-form .actions{
 body.page-analytics #stat-display.chart-loaded{
   min-height:20em;
 }
+table.log-table{
+  width:100%;
+}
+table.log-table tbody td.object{
+  width:40%;
+}
+.log-form .form-item {
+  float: left;
+  margin-right: 1em;
+  margin-bottom:0.25em;
+}
+.log-form .form-action {
+  float: none;
+  clear:both;
+}
+.log-form {
+  margin:1em 0;
+}
+.page-show-logs .prev{
+  float:left;
+  margin:1em 0;
+}
+.page-show-logs .next{
+  float:right;
+  margin:1em 0;
+}

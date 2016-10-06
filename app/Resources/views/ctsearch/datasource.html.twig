@@ -4,6 +4,7 @@
 {%block main_content%}
   {%if datasources is defined%}
     {%if form_add_datasource is defined%}
+      {% form_theme form_add_datasource 'ctsearch/forms.html.twig' %}
       {{ form(form_add_datasource, {'attr': {'id': 'form_add_data_source'}}) }}
     {%endif%}
     {%if datasources|length > 0%}
