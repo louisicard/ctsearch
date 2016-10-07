@@ -57,6 +57,46 @@ class SearchPageController extends Controller {
     return $this->redirect($this->generateUrl('search-pages'));
   }
 
+  /**
+   * @Route("/search-pages/fields/{mapping}", name="search-page-list-fields")
+   */
+  public function getMappingFields(Request $request, $mapping){
+
+    $r = array();
+    if(count(explode('.', $mapping)) > 1){
+      $indexName = explode('.', $mapping)[0];
+      $type = explode('.', $mapping)[1];
+      $type = IndexManager::getInstance()->getMapping($indexName, $type);
+      if($type != null){
+        $definition = json_decode($type->getMappingDefinition(), TRUE);
+        foreach($definition as $field_name => $field){
+          $r = array_merge($r, $this->getFieldDefitions($field, $field_name));
+        }
+      }
+    }
+
+    return new Response(json_encode($r, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json; charset=utf-8'));
+  }
+
+  private function getFieldDefitions($field, $parent)
+  {
+    $r = array();
+    if(isset($field['type']) && isset($field['properties']) && $field['type'] == 'nested'){
+      foreach($field['properties'] as $field_name => $child){
+        $r = array_merge($r, $this->getFieldDefitions($child, $parent . '.' . $field_name));
+      }
+    }
+    else{
+      $r[] = $parent;
+      if(isset($field['fields'])){
+        foreach($field['fields'] as $field_name => $child){
+          $r = array_merge($r, $this->getFieldDefitions($child, $parent . '.' . $field_name));
+        }
+      }
+    }
+    return $r;
+  }
+
   private function handleAddOrEditSearchPage($request, $id = null) {
     if ($id == null) { //Add
       $searchPage = new \CtSearchBundle\Classes\SearchPage('', '', '{}');
@@ -249,24 +289,14 @@ class SearchPageController extends Controller {
   /**
    * @Route("/search-pages/search/{id}", name="search-page-display")
    */
-  public function displaySearchPageAction(Request $request, $id, $customTpl = null, $custom_page_size = 0, $customDef = null, $sort = null)
+  public function displaySearchPageAction(Request $request, $id)
   {
     $searchPage = IndexManager::getInstance()->getSearchPage($id);
 
-    $definition = $searchPage->getDefinition();
-
     $params = array(
-      'mapping' => $searchPage->getMapping()
+      'mapping' => $searchPage->getMapping(),
+      'sp_id' => $id,
     );
-    if(isset($definition['analyzer'])) {
-      $params['analyzer'] = $definition['analyzer'];
-      unset($definition['analyzer']);
-    }
-    if(isset($definition['size'])) {
-      $params['size'] = $definition['size'];
-      unset($definition['size']);
-    }
-    $params['searchParams'] = json_encode($definition);
 
     $url = $this->generateUrl('ct_search_client_homepage', $params);
 

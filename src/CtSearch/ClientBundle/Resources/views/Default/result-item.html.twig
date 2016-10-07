@@ -1,0 +1,49 @@
+{% if result._source[searchParams.results.thumbnail] is defined %}
+    <div class="thumbnail"><img src="{{ result._source[searchParams.results.thumbnail] }}"/></div>
+{% endif %}
+{% if result._source[searchParams.results.title] is defined %}
+    {% set title = result._source[searchParams.results.title] %}
+    {% if result.highlight[searchParams.results.title] is defined %}
+        {% set title = result.highlight[searchParams.results.title]|join(' ') %}
+    {% endif %}
+{% elseif searchParams.results.title == '_id' %}
+    {% set title = result._id %}
+{% else %}
+    {% set title = 'No title defined' %}
+{% endif %}
+{% if result._source[searchParams.results.url] is defined %}
+    {% set url = result._source[searchParams.results.url] %}
+{% elseif searchParams.results.url == '_id' %}
+    {% set url = result._id %}
+{% endif %}
+{% if url is defined %}
+    {% if not(url starts with 'http://') and not(url starts with 'https://') %}
+        {% set url = 'http://' ~ url %}
+    {% endif %}
+    <h3><a href="{{ url }}"
+           target="_blank">{{ title|raw }}</a>
+    </h3>
+    <div class="url"><a href="{{ url }}"
+                        target="_blank">{{ url }}</a></div>
+{% else %}
+    <h3>{{ title|raw }}</h3>
+{% endif %}
+{% set no_truncate = false %}
+{% if result._source[searchParams.results.excerp] is defined %}
+    {% set excerp = result._source[searchParams.results.excerp] %}
+    {% if result.highlight[searchParams.results.excerp] is defined %}
+        {% set excerp = result.highlight[searchParams.results.excerp]|join('[...]') %}
+        {% set no_truncate = true %}
+    {% endif %}
+{% else %}
+    {% set excerp = '' %}
+{% endif %}
+{% if excerp != '' %}
+    <div class="excerp">
+        {% if excerp|length > 500 and not no_truncate %}
+            {{ excerp|slice(0, 500)|striptags('<em>')|raw }} [...]
+        {% else %}
+            {{ excerp|striptags('<em>')|raw }}
+        {% endif %}
+    </div>
+{% endif %}

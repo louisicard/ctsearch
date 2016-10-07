@@ -286,7 +286,6 @@
           $('body.page-analytics #stat-display').addClass("chart-loaded");
           chart.draw(statData, chartOptions);
         }
-        console.log(data);
         if (data.data.length > 0) {
 
           var html = '<table><thead><tr>';
@@ -309,6 +308,14 @@
         }
       });
     });
+
+    if($('#form_search_page').size() > 0){
+      initSearchPageConfigurator();
+
+      $('#form_search_page #form_mapping').change(function(){
+        initSearchPageConfigurator();
+      });
+    }
 
   });
 
@@ -786,6 +793,236 @@
         advAlert('You must provide an input key');
       }
     });
+  }
+
+  function initSearchPageConfigurator(){
+    var mapping = $('#form_search_page #form_mapping').val();
+    var def = JSON.parse($('#form_search_page #form_definition').val());
+    if(mapping != ''){
+      $('#search-page-configurator').detach();
+      var container = $('<div id="search-page-configurator"><h2>Configuration</h2><div class="content">Loading</div></div>');
+      container.insertBefore($('#form_definition').parent());
+      $.ajax({
+        url: __ctsearch_base_url + 'search-pages/fields/' + mapping
+      }).success(function(data) {
+        var fieldSelect = $('<select></select>');
+        fieldSelect.append($('<option value="">Select a field</option>'));
+        fieldSelect.append($('<option value="_id">_id</option>'));
+        for (var i = 0; i < data.length; i++) {
+          var field = data[i];
+          var option = $('<option></option>');
+          option.attr('value', field);
+          option.html(field);
+          fieldSelect.append(option);
+        }
+
+        container.find('.content').html('');
+
+        var analyzer = $('<div class="form-item required"><label for="sp-def-analyzer">Analyzer</label><input type="text" id="sp-def-analyzer" /></div>');
+        container.find('.content').append(analyzer);
+        if (typeof def.analyzer !== 'undefined') {
+          $('#sp-def-analyzer').val(def.analyzer);
+        }
+
+        var size = $('<div class="form-item required"><label for="sp-def-size">Size</label><input type="text" id="sp-def-size" /></div>');
+        container.find('.content').append(size);
+        if (typeof def.size !== 'undefined') {
+          $('#sp-def-size').val(def.size);
+        }
+
+        var facets = $('<div id="sp-def-facets"></div>');
+        facets.append($('<h3>Facets</h3>'));
+        container.find('.content').append(facets);
+        if (typeof def.facets !== 'undefined') {
+          for (var i = 0; i < def.facets.length; i++) {
+            var facet_name = '';
+            for (var k in def.facets[i]) {
+              facet_name = k;
+            }
+            var facet_option_container = $('<div class="facet-option"></div>');
+
+            var select = fieldSelect.clone();
+            select.find('option').each(function () {
+              if ($(this).attr('value') == facet_name) {
+                $(this).attr('selected', 'selected');
+              }
+            });
+            facet_option_container.append(select);
+            $('<label for="">Field</label>').insertBefore(select);
+
+            var label = $('<input type="text" />');
+            label.val(def.facets[i][facet_name]);
+            facet_option_container.append(label);
+            $('<label for="">Facet label</label>').insertBefore(label);
+
+            var up = $('<a href="#" class="up">Move up</a>');
+            var down = $('<a href="#" class="down">Move down</a>');
+            var remove = $('<a href="#" class="remove">Remove</a>');
+            facet_option_container.append(up);
+            facet_option_container.append(down);
+            facet_option_container.append(remove);
+
+            facets.append(facet_option_container);
+          }
+        }
+        facets.append($('<a href="#" class="add">Add</a>'));
+
+        var results = $('<div id="sp-def-results"></div>');
+        results.append($('<h3>Results</h3>'));
+        container.find('.content').append(results);
+        var results_mapping = ['title', 'thumbnail', 'url', 'excerp'];
+        for(var i = 0; i < results_mapping.length; i++){
+          var result_mapping_container = $('<div class="result-mapping"></div>');
+
+          $('<span class="result-mapping-field">Result field <strong>' + results_mapping[i] + '</strong> :</span>').appendTo(result_mapping_container);
+
+          var select = fieldSelect.clone();
+          select.find('option').each(function(){
+            if(typeof def.results !== 'undefined' && results_mapping[i] in def.results && def.results[results_mapping[i]] == $(this).attr('value')){
+              $(this).attr('selected', 'selected');
+            }
+          });
+          select.attr('id', 'sp-def-res-' + results_mapping[i]);
+          result_mapping_container.append(select);
+          $('<label for="">Field</label>').insertBefore(select);
+
+          results.append(result_mapping_container);
+        }
+
+        var suggest_container = $('<div id="suggest-container"></div>');
+        var multiSelectLabel = $('<label for="">Fields for suggestions:</label>');
+        suggest_container.append(multiSelectLabel);
+        var multiSelect = fieldSelect.clone();
+        multiSelect.attr('multiple', 'multiple');
+        multiSelect.find('option').eq(0).detach();
+        suggest_container.append(multiSelect);
+        results.append(suggest_container);
+        if (typeof def.suggest !== 'undefined') {
+          multiSelect.find('option').each(function(){
+            var selected = false;
+            for(var i = 0; i < def.suggest.length; i++){
+              if(def.suggest[i] == $(this).attr('value')){
+                selected = true;
+              }
+            }
+            if(selected){
+              $(this).attr('selected', 'selected');
+            }
+          });
+        }
+
+        var mlt_container = $('<div id="mlt-container"></div>');
+        var mltMultiSelectLabel = $('<label for="">Fields for "More like this" feature:</label>');
+        mlt_container.append(mltMultiSelectLabel);
+        var mltMultiSelect = fieldSelect.clone();
+        mltMultiSelect.attr('multiple', 'multiple');
+        mltMultiSelect.find('option').eq(0).detach();
+        mlt_container.append(mltMultiSelect);
+        results.append(mlt_container);
+        if (typeof def.more_like_this !== 'undefined') {
+          mltMultiSelect.find('option').each(function(){
+            var selected = false;
+            for(var i = 0; i < def.more_like_this.length; i++){
+              if(def.more_like_this[i] == $(this).attr('value')){
+                selected = true;
+              }
+            }
+            if(selected){
+              $(this).attr('selected', 'selected');
+            }
+          });
+        }
+
+        bindEventsOnSearchPageConfigurator();
+
+        $('#sp-def-facets a.add').click(function(e){
+          e.preventDefault();
+          var facet_option_container = $('<div class="facet-option"></div>');
+
+          var select = fieldSelect.clone();
+          facet_option_container.append(select);
+          $('<label for="">Field</label>').insertBefore(select);
+
+          var label = $('<input type="text" />');
+          facet_option_container.append(label);
+          $('<label for="">Facet label</label>').insertBefore(label);
+
+          var up = $('<a href="#" class="up">Move up</a>');
+          var down = $('<a href="#" class="down">Move down</a>');
+          var remove = $('<a href="#" class="remove">Remove</a>');
+          facet_option_container.append(up);
+          facet_option_container.append(down);
+          facet_option_container.append(remove);
+
+          facet_option_container.insertBefore($(this));
+          bindEventsOnSearchPageConfigurator();
+        });
+      });
+    }
+    if($('#search-page-json-toggle-container').size() == 0) {
+      $('<div id="search-page-json-toggle-container"><a href="javascript:void(0)" id="search-page-json-toggle" class="json-link">' + __ctsearch_js_translations.ShowHideJSONDef + '</a></div>').insertBefore($('#form_definition'));
+      $('#form_definition').css('display', 'none');
+      $('label[for="form_definition"]').css('display', 'none');
+      $('#search-page-json-toggle').click(function () {
+        $('#form_definition').slideToggle();
+      });
+    }
+  }
+
+  function bindEventsOnSearchPageConfigurator(){
+    $('#search-page-configurator').find('select, input').unbind('change');
+    $('#search-page-configurator').find('.facet-option a').unbind('click');
+    $('#search-page-configurator').find('select, input').change(function(){
+      var config = getSearchPageConfiguration();
+      $('#form_definition').val(JSON.stringify(config));
+    });
+    $('#search-page-configurator').find('.facet-option a').click(function(e){
+      e.preventDefault();
+      if($(this).hasClass('up')){
+        var parent = $(this).parents('.facet-option');
+        if(parent.prev('.facet-option') != null){
+          parent.insertBefore(parent.prev('.facet-option'));
+        }
+      }
+      else if($(this).hasClass('down')){
+        var parent = $(this).parents('.facet-option');
+        if(parent.next('.facet-option') != null){
+          parent.insertAfter(parent.next('.facet-option'));
+        }
+      }
+      else if($(this).hasClass('remove')){
+        var parent = $(this).parents('.facet-option');
+        parent.detach();
+      }
+      var config = getSearchPageConfiguration();
+      $('#form_definition').val(JSON.stringify(config));
+    });
+  }
+
+  function getSearchPageConfiguration(){
+    var config = {
+      analyzer: $('#sp-def-analyzer').val(),
+      size: $('#sp-def-size').val(),
+      facets: [],
+      results: {
+        title: $('#sp-def-res-title').val(),
+        thumbnail: $('#sp-def-res-thumbnail').val(),
+        url: $('#sp-def-res-url').val(),
+        excerp: $('#sp-def-res-excerp').val()
+      },
+      suggest:[],
+      more_like_this:[]
+    }
+    $('#sp-def-facets .facet-option').each(function(){
+      if($(this).find('select').val() != '') {
+        var obj = {};
+        obj[$(this).find('select').val()] = $(this).find('input').val()
+        config.facets.push(obj);
+      }
+    });
+    config.suggest = $('#suggest-container select').val() != null ? $('#suggest-container select').val() : [];
+    config.more_like_this = $('#mlt-container select').val() != null ? $('#mlt-container select').val() : [];
+    return config;
   }
 
 

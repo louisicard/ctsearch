@@ -69,4 +69,12 @@ class RestController extends Controller
       return new Response('{"error": "Missing mapping parameter"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
     }
   }
+
+  /**
+   * @Route("/api/sp-definition/{id}", name="api-sp-def")
+   */
+  public function getSearchPageAction(Request $request, $id) {
+    $sp = IndexManager::getInstance()->getSearchPage($id);
+    return new Response(json_encode($sp != null ? $sp->getDefinition() : null, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json; charset=utf-8'));
+  }
 }

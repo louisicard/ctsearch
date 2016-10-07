@@ -16,11 +16,14 @@ class SearchController extends Controller
     if ($request->get('mapping') == NULL) {
       return new Response('Missing mapping parameter', 400);
     }
+    if ($request->get('sp_id') == NULL) {
+      return new Response('Missing search page ID parameter', 400);
+    }
     if ($serviceUrl == NULL) {
       $serviceUrl = $request->getSchemeAndHttpHost() . $request->getBaseUrl() . '/search-api/v2';
     }
 
-    $searchParams = json_decode($request->get('searchParams'), TRUE);
+    $searchParams = $this->getSearchPageDefinition($request, $request->get('sp_id'));
 
     $highlight = '';
     if(isset($searchParams['results']['title']) && !empty($searchParams['results']['title'])){
@@ -32,7 +35,13 @@ class SearchController extends Controller
       $highlight .= $searchParams['results']['excerp'] . "|200|3|300";
     }
 
-    $context = new SearchContext($request, $serviceUrl, $request->get('mapping'), implode(',', array_keys($searchParams['facets'])), $request->get('analyzer'), $request->get('suggest'), $highlight);
+    $facet_list = [];
+    foreach($searchParams['facets'] as $facet){
+      $facet_list[] = array_keys($facet)[0];
+    }
+
+    $context = new SearchContext($request, $serviceUrl, $request->get('mapping'), implode(',', $facet_list), $searchParams['analyzer'], isset($searchParams['suggest']) ? implode(',', $searchParams['suggest']) : '', $highlight);
+    $context->setSize($searchParams['size']);
     $context->execute();
 
     $facets = array();
@@ -49,11 +58,23 @@ class SearchController extends Controller
 
     return $this->render('CtSearchClientBundle:Default:search.html.twig', array(
       'facets' => $facets,
+      'mapping' => $request->get('mapping'),
       'context' => $context,
       'searchParams' => $searchParams,
-      'searchParamsStr' => $request->get('searchParams'),
+      'searchPageId' => $request->get('sp_id'),
       'pager' => $this->getPager($context)
     ));
+  }
+
+  private function getSearchPageDefinition(Request $request, $id){
+    $curl = new CurlClient($request->getSchemeAndHttpHost() . $request->getBaseUrl() . '/api/sp-definition/' . $id);
+    $r = $curl->getResponse();
+    if($r['code'] == 200){
+      return json_decode($r['data'], TRUE);
+    }
+    else{
+      return null;
+    }
   }
 
   /**
@@ -93,5 +114,32 @@ class SearchController extends Controller
       return $html;
     else
       return '';
+  }
+
+  public function moreLikeThisAction(Request $request){
+    $mapping = $request->get('mapping');
+    $doc_id = $request->get('doc_id');
+    $fields = $request->get('fields');
+
+    $searchParams = $this->getSearchPageDefinition($request, $request->get('sp_id'));
+
+    $serviceUrl = $request->get('serviceUrl');
+    if ($serviceUrl == NULL) {
+      $serviceUrl = $request->getSchemeAndHttpHost() . $request->getBaseUrl() . '/search-api/v2/more-like-this';
+    }
+    $serviceUrl .= '?mapping=' . urlencode($mapping) . '&doc_id=' . urlencode($doc_id) . '&fields=' . urlencode($fields);
+    $curl = new CurlClient($serviceUrl);
+    $r = $curl->getResponse();
+    $html = '';
+    if($r['code'] == 200){
+      $data = json_decode($r['data'], TRUE);
+      foreach($data as $result){
+        $html .= '<div class="more-like-this-item">' . $this->renderView('CtSearchClientBundle:Default:result-item.html.twig', array(
+          'result' => $result,
+          'searchParams' => $searchParams
+        )) . '</div>';
+      }
+    }
+    return new Response($html, 200, array('Content-type' => 'text/html; charset=utf-8'));
   }
 }

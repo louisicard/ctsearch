@@ -380,4 +380,45 @@ class SearchAPIController extends Controller {
     }
   }
 
+  /**
+   * @Route("/search-api/v2/more-like-this", name="search-api-mor-like-this")
+   */
+  public function seeMoreLikeThisAction(Request $request)
+  {
+    if ($request->get('mapping') != null && $request->get('doc_id') != null && $request->get('fields') != null) {
+      $mapping = $request->get('mapping');
+      if(count(explode('.', $mapping)) > 1) {
+        $indexName = explode('.', $mapping)[0];
+        $type = explode('.', $mapping)[1];
+        $body = array(
+          'query' => array(
+            'more_like_this' => array(
+              'fields' => explode(',', $request->get('fields')),
+              'like' => array(
+                array(
+                  '_index' => $indexName,
+                  '_type' => $type,
+                  '_id' => $request->get('doc_id'),
+                )
+              )
+            )
+          )
+        );
+
+        $r = IndexManager::getInstance()->search($indexName, json_encode($body), 0, 5);
+
+        if(isset($r['hits']['hits'])) {
+          return new Response(json_encode($r['hits']['hits'], JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json;charset=utf-8'));
+        }
+        else{
+          return new Response('[]', 400, array('Content-type' => 'application/json;charset=utf-8'));
+        }
+      } else {
+        return new Response('{"error": "Mapping format is incorrect"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
+      }
+    } else {
+      return new Response('{"error": "Missing one or more required parameters"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
+    }
+  }
+
 }
