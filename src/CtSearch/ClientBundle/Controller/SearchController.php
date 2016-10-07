@@ -56,6 +56,12 @@ class SearchController extends Controller
       $facets[$facet_name] = $facet;
     }
 
+    foreach($facets as $i => $facet){
+      if(!isset($facet['buckets']) || empty($facet['buckets'])){
+        unset($facets[$i]);
+      }
+    }
+
     return $this->render('CtSearchClientBundle:Default:search.html.twig', array(
       'facets' => $facets,
       'mapping' => $request->get('mapping'),

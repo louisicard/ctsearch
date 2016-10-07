@@ -65,12 +65,15 @@ main{
   left:0;
   width:20em;
   overflow-y:auto;
-  background:#ccc;
+  background:#fff;
   border-right:1px solid #eee;
 }
 .results {
-  margin-left:21em;
-  padding-right:1em;
+  margin-left:20em;
+  padding:0 1em;
+}
+.results.no-facets {
+  margin-left:0em;
 }
 .facets h2{
   font-size:1em;
@@ -82,7 +85,8 @@ main{
   cursor: pointer;
   position:relative;
   border-bottom:1px solid #cadfee;
-  color:#253352;
+  color:#fff;
+  font-weight:300;
 }
 .facets .facet-block h2:after {
   display:block;
@@ -90,7 +94,7 @@ main{
   height:16px;
   content:".";
   position:absolute;
-  top:0.5em;
+  top:0.7em;
   right:1em;
   line-height:9999px;
   overflow:hidden;

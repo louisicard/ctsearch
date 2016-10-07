@@ -86,7 +86,7 @@
             {% endfor %}
         </div>
     {% endif %}
-    <div class="results">
+    <div class="results{% if facets is not defined or facets is empty %} no-facets{% endif %}">
         <div class="search-stat"><strong>{{ context.total }}</strong> results</div>
         <div class="results-list">
             {% if context.didYouMean is not null and context.total < 5 %}
