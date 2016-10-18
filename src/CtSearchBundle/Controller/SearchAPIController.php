@@ -367,6 +367,13 @@ class SearchAPIController extends Controller {
               }
             }
           }
+          if(isset($res['hits']['hits'])) { //Remove the sort item on hits (pb with json_decode on the client side for too large integer value)
+            foreach ($res['hits']['hits'] as $i => $hit) {
+              if (isset($hit['sort'])) {
+                unset($res['hits']['hits'][$i]['sort']);
+              }
+            }
+          }
           return new Response(json_encode($res, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json;charset=utf-8'));
         }
         else{
