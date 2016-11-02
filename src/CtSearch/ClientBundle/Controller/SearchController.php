@@ -42,6 +42,11 @@ class SearchController extends Controller
 
     $context = new SearchContext($request, $serviceUrl, $request->get('mapping'), implode(',', $facet_list), $searchParams['analyzer'], isset($searchParams['suggest']) ? implode(',', $searchParams['suggest']) : '', $highlight);
     $context->setSize($searchParams['size']);
+
+    if($request->get('sort') == null && isset($searchParams['sorting']['default']['field']) && isset($searchParams['sorting']['default']['order']) && $context->getQuery() == ''){
+      $context->setSort($searchParams['sorting']['default']['field'] . ',' . $searchParams['sorting']['default']['order']);
+    }
+
     $context->execute();
 
     $facets = array();
@@ -62,8 +67,30 @@ class SearchController extends Controller
       }
     }
 
+    if(isset($searchParams['sorting']['fields'])){
+      $sortingOptions = array();
+      foreach($searchParams['sorting']['fields'] as $field){
+        $key = array_keys($field)[0];
+        $sortingOptions[] = array(
+          'key' => $key,
+          'label' => $field[$key] . ($key != '_score' ? ' (asc)' : ''),
+          'active' => $context->getSort() == ($key . ',' . ($key != '_score' ? 'asc' : 'desc')),
+          'url' => $context->getPagedUrl(0, $key . ',' . ($key != '_score' ? 'asc' : 'desc'))
+        );
+        if($key != '_score'){
+          $sortingOptions[] = array(
+            'key' => $key,
+            'label' => $field[$key] . ($key != '_score' ? ' (desc)' : ''),
+            'active' => $context->getSort() == ($key . ',desc'),
+            'url' => $context->getPagedUrl(0, $key . ',desc')
+          );
+        }
+      }
+    }
+
     return $this->render('CtSearchClientBundle:Default:search.html.twig', array(
       'facets' => $facets,
+      'sortingOptions' => isset($sortingOptions) ? $sortingOptions : array(),
       'mapping' => $request->get('mapping'),
       'context' => $context,
       'searchParams' => $searchParams,

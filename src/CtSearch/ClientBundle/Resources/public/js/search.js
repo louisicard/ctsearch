@@ -1,5 +1,6 @@
 (function($){
   $(document).ready(function(){
+    bindSortingLinks();
     bindSeeMoreLink();
     bindPagerLink();
     bindFacetLink();
@@ -15,8 +16,8 @@
   function sizeElements(){
     var topHeight = $('.search-form').height();
     $('main').css('margin-top', topHeight);
-    $('.facets').css('top', topHeight);
-    $('.facets').height($(window).height() - topHeight);
+    $('.sidebar').css('top', topHeight);
+    $('.sidebar').height($(window).height() - topHeight);
   }
 
   function showObjects(){
@@ -48,6 +49,33 @@
         var selector = '#' + link.parents('.facet-block').attr('id') + ' .facet-content';
         var content = $(html).find(selector).html();
         $(selector).html(content);
+        bindSeeMoreLink();
+        bindFacetLink();
+      });
+      return false;
+    });
+  }
+
+  function bindSortingLinks(){
+    $('.sorting a').unbind('click');
+    $('.sorting a').click(function(e){
+      e.preventDefault();
+      var link = $(this);
+      link.addClass('ajax-loading');
+      $.ajax({
+        url: link.attr('href')
+      }).success(function(html){
+        var selector = '.results';
+        var selector2 = '.sorting';
+        var selector3 = '.facets';
+        var content = $(html).find(selector).html();
+        var content2 = $(html).find(selector2).html();
+        var content3 = $(html).find(selector3).html();
+        $(selector).html(content);
+        $(selector2).html(content2);
+        $(selector3).html(content3);
+        bindPagerLink();
+        bindSortingLinks();
         bindSeeMoreLink();
         bindFacetLink();
       });
@@ -93,11 +121,14 @@
         url: link.attr('href')
       }).success(function (html) {
         var selector = '.results';
-        var selector2 = '.facets';
+        var selector2 = '.sorting';
+        var selector3 = '.facets';
         var content = $(html).find(selector).html();
         var content2 = $(html).find(selector2).html();
+        var content3 = $(html).find(selector3).html();
         $(selector).html(content);
         $(selector2).html(content2);
+        $(selector3).html(content3);
         $('html, body').animate({
           scrollTop: 0
         }, 500);
@@ -106,6 +137,7 @@
         bindSeeMoreLink();
         showObjects();
         bindMltLink();
+        bindSortingLinks();
       });
       return false;
     });

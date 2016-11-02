@@ -818,13 +818,13 @@
 
         container.find('.content').html('');
 
-        var analyzer = $('<div class="form-item required"><label for="sp-def-analyzer">Analyzer</label><input type="text" id="sp-def-analyzer" /></div>');
+        var analyzer = $('<div class="form-item required"><label for="sp-def-analyzer">Analyzer</label><input type="text" id="sp-def-analyzer" required="required" /></div>');
         container.find('.content').append(analyzer);
         if (typeof def.analyzer !== 'undefined') {
           $('#sp-def-analyzer').val(def.analyzer);
         }
 
-        var size = $('<div class="form-item required"><label for="sp-def-size">Size</label><input type="text" id="sp-def-size" /></div>');
+        var size = $('<div class="form-item required"><label for="sp-def-size">Size</label><input type="text" id="sp-def-size" required="required" /></div>');
         container.find('.content').append(size);
         if (typeof def.size !== 'undefined') {
           $('#sp-def-size').val(def.size);
@@ -839,7 +839,7 @@
             for (var k in def.facets[i]) {
               facet_name = k;
             }
-            var facet_option_container = $('<div class="facet-option"></div>');
+            var facet_option_container = $('<div class="facet-option sortable-option"></div>');
 
             var select = fieldSelect.clone();
             select.find('option').each(function () {
@@ -865,7 +865,59 @@
             facets.append(facet_option_container);
           }
         }
-        facets.append($('<a href="#" class="add">Add</a>'));
+        facets.append($('<a href="#" class="add">Add facet</a>'));
+
+        var sorting = $('<div id="sp-def-sorting"></div>');
+        sorting.append($('<h3>Sorting</h3>'));
+        container.find('.content').append(sorting);
+        var defaultSorting = $('<div class="form-item required"><label for="sp-def-default-sorting">Empty search sorting field:</label></div>');
+        var defaultSortingSelect = fieldSelect.clone();
+        defaultSortingSelect.find('option[value="_id"]').detach();
+        defaultSortingSelect.attr('id', 'sp-def-default-sorting');
+        defaultSortingSelect.attr('required', 'required');
+        defaultSorting.append(defaultSortingSelect);
+        sorting.append(defaultSorting);
+        if (typeof def.sorting !== 'undefined') {
+          $('#sp-def-default-sorting').val(def.sorting.default.field);
+        }
+        var defaultSortingOrder = $('<div class="form-item required"><label for="sp-def-default-sorting-order">Empty search sorting order:</label><select id="sp-def-default-sorting-order" required="required"><option value="">Select</option><option value="asc">asc</option><option value="desc">desc</option></select></div>');
+        sorting.append(defaultSortingOrder);
+        if (typeof def.sorting !== 'undefined') {
+          $('#sp-def-default-sorting-order').val(def.sorting.default.order);
+        }
+        if (typeof def.sorting !== 'undefined' && typeof def.sorting.fields !== 'undefined') {
+          for (var i = 0; i < def.sorting.fields.length; i++) {
+            var field = '';
+            for (var k in def.sorting.fields[i]) {
+              field = k;
+            }
+            var sorting_option_container = $('<div class="sorting-option sortable-option"></div>');
+
+            var select = fieldSelect.clone();
+            select.find('option').each(function () {
+              if ($(this).attr('value') == field) {
+                $(this).attr('selected', 'selected');
+              }
+            });
+            sorting_option_container.append(select);
+            $('<label for="">Field</label>').insertBefore(select);
+
+            var label = $('<input type="text" />');
+            label.val(def.sorting.fields[i][field]);
+            sorting_option_container.append(label);
+            $('<label for="">Sorting option label</label>').insertBefore(label);
+
+            var up = $('<a href="#" class="up">Move up</a>');
+            var down = $('<a href="#" class="down">Move down</a>');
+            var remove = $('<a href="#" class="remove">Remove</a>');
+            sorting_option_container.append(up);
+            sorting_option_container.append(down);
+            sorting_option_container.append(remove);
+
+            sorting.append(sorting_option_container);
+          }
+        }
+        sorting.append($('<a href="#" class="add">Add sorting option</a>'));
 
         var results = $('<div id="sp-def-results"></div>');
         results.append($('<h3>Results</h3>'));
@@ -937,25 +989,15 @@
 
         $('#sp-def-facets a.add').click(function(e){
           e.preventDefault();
-          var facet_option_container = $('<div class="facet-option"></div>');
+          handleSearchPageConfigurationAddFieldOption($(this), fieldSelect, 'facet-option', 'Field', 'Facet label');
+        });
 
-          var select = fieldSelect.clone();
-          facet_option_container.append(select);
-          $('<label for="">Field</label>').insertBefore(select);
-
-          var label = $('<input type="text" />');
-          facet_option_container.append(label);
-          $('<label for="">Facet label</label>').insertBefore(label);
-
-          var up = $('<a href="#" class="up">Move up</a>');
-          var down = $('<a href="#" class="down">Move down</a>');
-          var remove = $('<a href="#" class="remove">Remove</a>');
-          facet_option_container.append(up);
-          facet_option_container.append(down);
-          facet_option_container.append(remove);
-
-          facet_option_container.insertBefore($(this));
-          bindEventsOnSearchPageConfigurator();
+        $('#sp-def-sorting a.add').click(function(e){
+          e.preventDefault();
+          var sortingFieldSelect = fieldSelect.clone();
+          sortingFieldSelect.find('option[value="_id"]').detach();
+          $('<option value="_score">_score</option>').insertAfter(sortingFieldSelect.find('option').first());
+          handleSearchPageConfigurationAddFieldOption($(this), sortingFieldSelect, 'sorting-option', 'Field', 'Sorting option label');
         });
       });
     }
@@ -969,29 +1011,51 @@
     }
   }
 
+  function handleSearchPageConfigurationAddFieldOption(target, fieldSelect, containerClass, fieldLabel, fieldLabelLabel){
+    var container = $('<div class="' + containerClass + ' sortable-option"></div>');
+
+    var select = fieldSelect.clone();
+    container.append(select);
+    $('<label for="">' + fieldLabel + '</label>').insertBefore(select);
+
+    var label = $('<input type="text" />');
+    container.append(label);
+    $('<label for="">' + fieldLabelLabel + '</label>').insertBefore(label);
+
+    var up = $('<a href="#" class="up">Move up</a>');
+    var down = $('<a href="#" class="down">Move down</a>');
+    var remove = $('<a href="#" class="remove">Remove</a>');
+    container.append(up);
+    container.append(down);
+    container.append(remove);
+
+    container.insertBefore(target);
+    bindEventsOnSearchPageConfigurator();
+  }
+
   function bindEventsOnSearchPageConfigurator(){
     $('#search-page-configurator').find('select, input').unbind('change');
-    $('#search-page-configurator').find('.facet-option a').unbind('click');
+    $('#search-page-configurator').find('.sortable-option a').unbind('click');
     $('#search-page-configurator').find('select, input').change(function(){
       var config = getSearchPageConfiguration();
       $('#form_definition').val(JSON.stringify(config));
     });
-    $('#search-page-configurator').find('.facet-option a').click(function(e){
+    $('#search-page-configurator').find('.sortable-option a').click(function(e){
       e.preventDefault();
       if($(this).hasClass('up')){
-        var parent = $(this).parents('.facet-option');
-        if(parent.prev('.facet-option') != null){
-          parent.insertBefore(parent.prev('.facet-option'));
+        var parent = $(this).parents('.sortable-option');
+        if(parent.prev('.sortable-option') != null){
+          parent.insertBefore(parent.prev('.sortable-option'));
         }
       }
       else if($(this).hasClass('down')){
-        var parent = $(this).parents('.facet-option');
-        if(parent.next('.facet-option') != null){
-          parent.insertAfter(parent.next('.facet-option'));
+        var parent = $(this).parents('.sortable-option');
+        if(parent.next('.sortable-option') != null){
+          parent.insertAfter(parent.next('.sortable-option'));
         }
       }
       else if($(this).hasClass('remove')){
-        var parent = $(this).parents('.facet-option');
+        var parent = $(this).parents('.sortable-option');
         parent.detach();
       }
       var config = getSearchPageConfiguration();
@@ -1004,6 +1068,13 @@
       analyzer: $('#sp-def-analyzer').val(),
       size: $('#sp-def-size').val(),
       facets: [],
+      sorting: {
+        default: {
+          field: $('#sp-def-default-sorting').val(),
+          order: $('#sp-def-default-sorting-order').val(),
+        },
+        fields: []
+      },
       results: {
         title: $('#sp-def-res-title').val(),
         thumbnail: $('#sp-def-res-thumbnail').val(),
@@ -1012,12 +1083,19 @@
       },
       suggest:[],
       more_like_this:[]
-    }
+    };
     $('#sp-def-facets .facet-option').each(function(){
       if($(this).find('select').val() != '') {
         var obj = {};
         obj[$(this).find('select').val()] = $(this).find('input').val()
         config.facets.push(obj);
+      }
+    });
+    $('#sp-def-sorting .sorting-option').each(function(){
+      if($(this).find('select').val() != '') {
+        var obj = {};
+        obj[$(this).find('select').val()] = $(this).find('input').val()
+        config.sorting.fields.push(obj);
       }
     });
     config.suggest = $('#suggest-container select').val() != null ? $('#suggest-container select').val() : [];

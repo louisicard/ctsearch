@@ -781,7 +781,7 @@ table.log-table tbody td.object{
   float:right;
   margin:1em 0;
 }
-#sp-def-facets .facet-option label,
+#search-page-configurator .sortable-option label,
 #sp-def-results .result-mapping label{
   display:inline-block;
 }

@@ -59,7 +59,7 @@ main{
   width:3em;
   overflow:hidden;
 }
-.facets {
+.sidebar {
   position:fixed;
   top:3.5625em;
   left:0;
@@ -75,6 +75,7 @@ main{
 .results.no-facets {
   margin-left:0em;
 }
+.sorting h2,
 .facets h2{
   font-size:1em;
   margin:0;
@@ -104,15 +105,21 @@ main{
 .facets .facet-block.active h2:after{
   transform: rotate(180deg);
 }
+.sorting .sorting-content,
 .facets .facet-block {
   background:#fff;
 }
 .results ul,
 .results li
 .facets .facet-block ul,
-.facets .facet-block li {
+.facets .facet-block li,
+.sorting ul,
+.sorting li {
   display:block;
   list-style:none;
+}
+.sorting .sorting-content{
+  padding:0.5em;
 }
 .facets .facet-block .facet-content {
   padding:0.5em;
@@ -121,6 +128,7 @@ main{
 .facets .facet-block.active .facet-content {
   display:block;
 }
+.sorting .sorting-content li,
 .facets .facet-block li {
   line-height:1.3em;
 }
@@ -196,4 +204,7 @@ a.ajax-link.ajax-loading{
 }
 .results li .more-like-this a{
   font-size:0.8em;
+}
+.sorting li.active{
+  font-weight:bold;
 }

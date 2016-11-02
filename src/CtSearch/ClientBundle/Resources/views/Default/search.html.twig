@@ -44,49 +44,65 @@
             </div>
         </form>
     </div>
-    {% if facets is defined and facets is not empty %}
-        <div class="facets">
-            {% for facet_def in searchParams.facets %}
-                {% set facet_name = facet_def|keys.0 %}
-                {% set facet_label = facet_def[facet_def|keys.0] %}
-                {% if facets[facet_name] is defined %}
-                    {% set facet = facets[facet_name] %}
-                    {% if facet.buckets|length > 0 %}
-                        {% set active = false %}
-                        {% for value in facet.buckets %}
-                            {% if value.applied %}
-                                {% set active = true %}
-                            {% endif %}
+    {% if sortingOptions is defined and sortingOptions is not empty or facets is defined and facets is not empty%}
+    <div class="sidebar">
+        {% if sortingOptions is defined and sortingOptions is not empty %}
+            <div class="sorting">
+                <h2>Sort by</h2>
+                <div class="sorting-content">
+                    <ul>
+                        {% for sortingOption in sortingOptions %}
+                        <li{{ sortingOption.active ? ' class="active"' : '' }}><a href="{{ sortingOption.url }}" class="ajax-link">{{ sortingOption.label }}</a></li>
                         {% endfor %}
-                        <div id="facet-block-{{ facet_name|replace('.', '_') }}" class="facet-block{% if active %} active{% endif %}">
-                            <h2>{{ facet_label }}</h2>
-                            <div class="facet-content">
-                                <ul class="facet-list">
-                                    {% for value in facet.buckets %}
-                                        {% if value.applied %}
-                                            <li>{{ value.key }} ({{ value.doc_count }}) <a href="{{ value.facet_link }}"
-                                                                                           class="remove-filter ajax-link">Remove</a>
-                                            </li>
-                                        {% else %}
-                                            <li><a href="{{ value.facet_link }}" class="ajax-link">{{ value.key }}</a>
-                                                ({{ value.doc_count }})
-                                            </li>
-                                        {% endif %}
-                                    {% endfor %}
-                                </ul>
-                                {% if facet.see_more_link is defined %}
-                                    <div class="see-more">
-                                        <a href="{{ facet.see_more_link }}" class="ajax-link">See more</a>
-                                    </div>
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+        {% if facets is defined and facets is not empty %}
+            <div class="facets">
+                {% for facet_def in searchParams.facets %}
+                    {% set facet_name = facet_def|keys.0 %}
+                    {% set facet_label = facet_def[facet_def|keys.0] %}
+                    {% if facets[facet_name] is defined %}
+                        {% set facet = facets[facet_name] %}
+                        {% if facet.buckets|length > 0 %}
+                            {% set active = false %}
+                            {% for value in facet.buckets %}
+                                {% if value.applied %}
+                                    {% set active = true %}
                                 {% endif %}
+                            {% endfor %}
+                            <div id="facet-block-{{ facet_name|replace('.', '_') }}" class="facet-block{% if active %} active{% endif %}">
+                                <h2>{{ facet_label }}</h2>
+                                <div class="facet-content">
+                                    <ul class="facet-list">
+                                        {% for value in facet.buckets %}
+                                            {% if value.applied %}
+                                                <li>{{ value.key }} ({{ value.doc_count }}) <a href="{{ value.facet_link }}"
+                                                                                               class="remove-filter ajax-link">Remove</a>
+                                                </li>
+                                            {% else %}
+                                                <li><a href="{{ value.facet_link }}" class="ajax-link">{{ value.key }}</a>
+                                                    ({{ value.doc_count }})
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                    {% if facet.see_more_link is defined %}
+                                        <div class="see-more">
+                                            <a href="{{ facet.see_more_link }}" class="ajax-link">See more</a>
+                                        </div>
+                                    {% endif %}
+                                </div>
                             </div>
-                        </div>
+                        {% endif %}
                     {% endif %}
-                {% endif %}
-            {% endfor %}
-        </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
     {% endif %}
-    <div class="results{% if facets is not defined or facets is empty %} no-facets{% endif %}">
+    <div class="results{% if (facets is not defined or facets is empty) and (sortingOptions is not defined or sortingOptions is empty) %} no-facets{% endif %}">
         <div class="search-stat"><strong>{{ context.total }}</strong> results</div>
         <div class="results-list">
             {% if context.didYouMean is not null and context.total < 5 %}
