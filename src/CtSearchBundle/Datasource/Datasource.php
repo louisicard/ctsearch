@@ -196,25 +196,7 @@ abstract class Datasource {
               }
             }
           }
-          $target_r = explode('.', $definition['target']);
-          $indexName = $target_r[0];
-          $mappingName = $target_r[1];
-          IndexManager::getInstance()->indexDocument($indexName, $mappingName, $to_index);
-          $ac_settings = IndexManager::getInstance()->getACSettings($indexName);
-          $ac_fields = array();
-          if($ac_settings != null){
-            foreach($ac_settings['fields'] as $field){
-              if(explode('.', $field)[0] == $mappingName){
-                $ac_fields[] = explode('.', $field)[1];
-              }
-            }
-          }
-          foreach($ac_fields as $field){
-            if(isset($to_index[$field]) & !empty($to_index[$field])){
-              IndexManager::getInstance()->feedAutocomplete($indexName, is_array($to_index[$field]) ? $to_index[$field][0] : $to_index[$field]);
-              //$indexManager->log('debug', 'Feeding AC with content', is_array($to_index[$field]) ? $to_index[$field][0] : $to_index[$field]);
-            }
-          }
+
           if ($debug) {
             try {
               IndexManager::getInstance()->log('debug', 'Indexing document from datasource "' . $this->getName() . '"', $to_index, $this);

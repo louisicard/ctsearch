@@ -209,69 +209,6 @@ class IndexController extends Controller {
   }
 
   /**
-   * @Route("/indexes/ac-settings/{index_name}", name="index-ac-settings")
-   */
-  public function editACSettingsAction(Request $request, $index_name) {
-    $ac_settings = IndexManager::getInstance()->getACSettings($index_name);
-
-    $infos = IndexManager::getInstance()->getElasticInfo()[$index_name];
-    $mappings = isset($infos['mappings']) ? $infos['mappings'] : array();
-    $field_choices = array();
-    foreach ($mappings as $index => $mapping) {
-      if ($mapping['name'] != '.ctsearch-autocomplete') {
-        $fields = array_keys(json_decode(IndexManager::getInstance()->getMapping($index_name, $mapping['name'])->getMappingDefinition(), true));
-        foreach ($fields as $field) {
-          $field_choices[$mapping['name'] . '.' . $field] = $mapping['name'] . '.' . $field;
-        }
-      }
-    }
-
-    $filter_choices = array();
-    foreach (IndexManager::getInstance()->getAvailableFilters($index_name) as $filter) {
-      $filter_choices[$filter] = $filter;
-    }
-    if (isset($filter_choices['ctsearch_ac_shingle'])) {
-      unset($filter_choices['ctsearch_ac_shingle']);
-    }
-
-    $form = $this->createFormBuilder($ac_settings != null ? $ac_settings : array('index_name' => $index_name))
-      ->add('index_name', TextType::class, array(
-        'label' => $this->get('translator')->trans('Index name'),
-        'disabled' => true,
-        'required' => true,
-      ))
-      ->add('fields', ChoiceType::class, array(
-        'label' => $this->get('translator')->trans('Fields'),
-        'expanded' => true,
-        'multiple' => true,
-        'choices' => $field_choices,
-        'attr' => array('class' => 'type-choices')
-      ))
-      ->add('analyzer_filters', ChoiceType::class, array(
-        'label' => $this->get('translator')->trans('Analyzer filters'),
-        'expanded' => true,
-        'multiple' => true,
-        'choices' => $filter_choices,
-        'attr' => array('class' => 'type-choices')
-      ))
-      ->add('save', SubmitType::class, array('label' => $this->get('translator')->trans('Save')))
-      ->getForm();
-    $form->handleRequest($request);
-
-    if ($form->isValid()) {
-      IndexManager::getInstance()->saveACSettings($form->getData());
-      CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Settings have been saved'));
-      return $this->redirect($this->generateUrl('indexes'));
-    }
-    $vars = array(
-      'title' => $this->get('translator')->trans('Edit autocomplete settings'),
-      'main_menu_item' => 'indexes',
-      'form' => $form->createView(),
-    );
-    return $this->render('ctsearch/indexes.html.twig', $vars);
-  }
-
-  /**
    * @Route("/indexes/mapping-stat/{index_name}/{mapping_name}", name="index-mapping-stat")
    */
   public function mappingStatAction(Request $request, $index_name, $mapping_name) {
