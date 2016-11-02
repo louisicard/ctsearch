@@ -7,6 +7,9 @@
     {% stylesheets '@CtSearchClientBundle/Resources/public/css/*' filter='cssrewrite' %}
     <link rel="stylesheet" type="text/css" href="{{ asset_url }}"/>
     {% endstylesheets %}
+    <script type="text/javascript">
+        var __searchclient_base_url = '{{path('ct_search_client_homepage')}}';
+    </script>
     {% javascripts '@CtSearchClientBundle/Resources/public/js/*' %}
     <script src="{{ asset_url }}"></script>
     {% endjavascripts %}

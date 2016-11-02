@@ -98,6 +98,10 @@ class IndexManager {
     $params = array(
       'index' => $index->getIndexName(),
     );
+    $settings['analysis']['analyzer']['transliterator'] = array(
+      'filter' => array('standard', 'asciifolding', 'lowercase'),
+      'tokenizer' => 'standard'
+    );
     if (count($settings) > 0) {
       $params['body'] = array(
         'settings' => $settings,

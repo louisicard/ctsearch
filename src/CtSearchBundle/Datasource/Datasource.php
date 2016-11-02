@@ -196,7 +196,10 @@ abstract class Datasource {
               }
             }
           }
-
+          $target_r = explode('.', $definition['target']);
+          $indexName = $target_r[0];
+          $mappingName = $target_r[1];
+          IndexManager::getInstance()->indexDocument($indexName, $mappingName, $to_index);
           if ($debug) {
             try {
               IndexManager::getInstance()->log('debug', 'Indexing document from datasource "' . $this->getName() . '"', $to_index, $this);

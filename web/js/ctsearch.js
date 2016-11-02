@@ -340,7 +340,7 @@
 
   function initMappingAssistant() {
     $('#mapping-table').detach();
-    var table = $('<table id="mapping-table"><thead><tr><th>' + __ctsearch_js_translations.FieldName + '</th><th>' + __ctsearch_js_translations.FieldType + '</th><th>' + __ctsearch_js_translations.FieldFormat + '</th><th>' + __ctsearch_js_translations.FieldAnalysis + '</th><th>' + __ctsearch_js_translations.FieldIncludeRaw + '</th><th>' + __ctsearch_js_translations.FieldIncludeStandard + '</th><th>' + __ctsearch_js_translations.FieldStore + '</th><th>' + __ctsearch_js_translations.FieldBoost + '</th><th>&nbsp;</th></tr></thead><tbody></tbody></table>').insertBefore($('#mapping-json-toggle-container'));
+    var table = $('<table id="mapping-table"><thead><tr><th>' + __ctsearch_js_translations.FieldName + '</th><th>' + __ctsearch_js_translations.FieldType + '</th><th>' + __ctsearch_js_translations.FieldFormat + '</th><th>' + __ctsearch_js_translations.FieldAnalysis + '</th><th>' + __ctsearch_js_translations.FieldIncludeRaw + '</th><th>' + __ctsearch_js_translations.FieldIncludeTransliterated + '</th><th>' + __ctsearch_js_translations.FieldStore + '</th><th>' + __ctsearch_js_translations.FieldBoost + '</th><th>&nbsp;</th></tr></thead><tbody></tbody></table>').insertBefore($('#mapping-json-toggle-container'));
     var json = JSON.parse($('#form_mappingDefinition').val());
     if (json.length == 0) {
       json = {};
@@ -353,9 +353,9 @@
       var analyzed = typeof json[field].index !== 'undefined' && json[field].index == 'not_analyzed' ? __ctsearch_js_translations.FieldNotAnalyzed : __ctsearch_js_translations.FieldAnalyzed;
       var analyzer = typeof json[field].analyzer !== 'undefined' ? json[field].analyzer : null;
       var includeRaw = typeof json[field].fields !== 'undefined' && typeof json[field].fields.raw !== 'undefined';
-      var includeStandard = typeof json[field].fields !== 'undefined' && typeof json[field].fields.standard !== 'undefined';
+      var includeTransliterated = typeof json[field].fields !== 'undefined' && typeof json[field].fields.transliterated !== 'undefined';
       var boost = typeof json[field].boost !== 'undefined' ? json[field].boost : '1';
-      table.find('tbody').append('<tr><td>' + field + '</td><td>' + type + '</td><td>' + format + '</td><td>' + analyzed + (analyzer != null ? ' (' + analyzer + ')' : '') + '</td><td>' + (includeRaw ? __ctsearch_js_translations.Yes : __ctsearch_js_translations.No) + '</td><td>' + (includeStandard ? __ctsearch_js_translations.Yes : __ctsearch_js_translations.No) + '</td><td>' + store + '</td><td>' + boost + '</td><td><a href="javascript:void(0)" class="mapping-delete-field action-delete">' + __ctsearch_js_translations.FieldDelete + '</a></td></tr>');
+      table.find('tbody').append('<tr><td>' + field + '</td><td>' + type + '</td><td>' + format + '</td><td>' + analyzed + (analyzer != null ? ' (' + analyzer + ')' : '') + '</td><td>' + (includeRaw ? __ctsearch_js_translations.Yes : __ctsearch_js_translations.No) + '</td><td>' + (includeTransliterated ? __ctsearch_js_translations.Yes : __ctsearch_js_translations.No) + '</td><td>' + store + '</td><td>' + boost + '</td><td><a href="javascript:void(0)" class="mapping-delete-field action-delete">' + __ctsearch_js_translations.FieldDelete + '</a></td></tr>');
     }
     var type_select = '<select id="mapping-definition-field-type" tabindex="2">';
     type_select += '<option value="">' + __ctsearch_js_translations.FieldType + '</option>';
@@ -386,18 +386,18 @@
       boost_select += '<option value="' + i + '">' + i + '</option>';
     }
     boost_select += '</select>';
-    table.find('tbody').append('<tr><td><input type="text" id="mapping-definition-field-name" placeholder="' + __ctsearch_js_translations.FieldName + '" tabindex="1" /><br /><a href="javascript:void(0)" id="mapping-add-field" tabindex="7">' + __ctsearch_js_translations.FieldAdd + '</a></td><td>' + type_select + '</td><td>' + format_select + '</td><td>' + analysis_select + '</td><td><input id="mapping-definition-field-include-raw" type="checkbox" disabled="disabled" /></td><td><input id="mapping-definition-field-include-standard" type="checkbox" disabled="disabled" /></td><td>' + store_select + '</td><td>' + boost_select + '</td><td></td></tr>');
+    table.find('tbody').append('<tr><td><input type="text" id="mapping-definition-field-name" placeholder="' + __ctsearch_js_translations.FieldName + '" tabindex="1" /><br /><a href="javascript:void(0)" id="mapping-add-field" tabindex="7">' + __ctsearch_js_translations.FieldAdd + '</a></td><td>' + type_select + '</td><td>' + format_select + '</td><td>' + analysis_select + '</td><td><input id="mapping-definition-field-include-raw" type="checkbox" disabled="disabled" /></td><td><input id="mapping-definition-field-include-transliterated" type="checkbox" disabled="disabled" /></td><td>' + store_select + '</td><td>' + boost_select + '</td><td></td></tr>');
     table.wrap('<div class="mapping-table-container"></div>');
     $('#mapping-definition-field-type, #mapping-definition-field-analysis').change(function(){
       if($('#mapping-definition-field-type').val() != 'string' || $('#mapping-definition-field-analysis').val() == 'not_analyzed'){
         $('#mapping-definition-field-include-raw').attr('disabled', 'disabled');
         $('#mapping-definition-field-include-raw').removeAttr('checked');
-        $('#mapping-definition-field-include-standard').attr('disabled', 'disabled');
-        $('#mapping-definition-field-include-standard').removeAttr('checked');
+        $('#mapping-definition-field-include-transliterated').attr('disabled', 'disabled');
+        $('#mapping-definition-field-include-transliterated').removeAttr('checked');
       }
       else{
         $('#mapping-definition-field-include-raw').removeAttr('disabled');
-        $('#mapping-definition-field-include-standard').removeAttr('disabled');
+        $('#mapping-definition-field-include-transliterated').removeAttr('disabled');
       }
     });
     $('#mapping-add-field').click(function () {
@@ -431,12 +431,12 @@
             }
           }
           if($('#mapping-definition-field-analysis').val() != 'not_analyzed'){
-            if($('#mapping-definition-field-include-standard').is(':checked')) {
+            if($('#mapping-definition-field-include-transliterated').is(':checked')) {
               if(typeof json[field_name].fields === 'undefined')
                 json[field_name].fields = {};
-              json[field_name].fields.standard = {
+              json[field_name].fields.transliterated = {
                 type: "string",
-                analyzer: "standard",
+                analyzer: "transliterator",
                 store: true
               };
             }
