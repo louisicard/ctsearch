@@ -75,9 +75,11 @@
         $(selector2).html(content2);
         $(selector3).html(content3);
         bindPagerLink();
-        bindSortingLinks();
-        bindSeeMoreLink();
         bindFacetLink();
+        bindSeeMoreLink();
+        showObjects();
+        bindMltLink();
+        bindSortingLinks();
       });
       return false;
     });
