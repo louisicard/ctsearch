@@ -444,7 +444,7 @@ class SearchAPIController extends Controller
     $field = $request->get('field');
     $group = $request->get('group');
     $text = $request->get('text');
-    $text = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
+    $text = $this->transliterate($text);
     if ($group != null && !empty($group)) {
       $body = array(
         'query' => array(
@@ -511,6 +511,26 @@ class SearchAPIController extends Controller
       }
     }
     return new Response(json_encode($ret, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json; charset=utf8'));
+  }
+
+  private function transliterate($str){
+    $chars = array("aàáâãäåāąă","AÀÁÂÃÄÅĀĄĂ","cçćč","CÇĆČ","dđď","DĐĎ","eèéêëěēę","EÈÉÊËĚĒĘ","iìíîïī","IÌÍÎÏĪ","lł","LŁ","nñňń","NÑŇŃ","oòóôõöøō","OÒÓÔÕÖØŌ","rř","RŘ","sšśș","SŠŚȘ","tťț","TŤȚ","uùúûüůū","UÙÚÛÜŮŪ","yÿý","YŸÝ","zžżź","ZŽŻŹ");
+    $str_c = preg_split('/(?<!^)(?!$)/u', $str );
+    $out = '';
+    foreach($str_c as $c){
+      $repl = false;
+      foreach($chars as $char_seq){
+        if(strpos($char_seq, $c) !== false){
+          $out .= substr($char_seq, 0, 1);
+          $repl = true;
+          break;
+        }
+      }
+      if(!$repl){
+        $out .= $c;
+      }
+    }
+    return $out;
   }
 
 }
