@@ -21,25 +21,37 @@ class RebuildCommand extends ContainerAwareCommand
     $this
       ->setName('ctsearch:rebuild')
       ->setDescription('Rebuild index')
-      ->addArgument('mapping', InputArgument::REQUIRED, 'Mapping')
+      ->addArgument('source', InputArgument::REQUIRED, 'Source')
+      ->addArgument('target', InputArgument::REQUIRED, 'Target')
     ;
   }
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-    $mapping = $input->getArgument('mapping');
-    if(count(explode('.', $mapping)) == 2){
-      $index = explode('.', $mapping)[0];
-      $mapping_name = explode('.', $mapping)[1];
-      $this->iterate($index, $mapping_name, 0, 1000, function($index, $hit){
-        print $index . ' -> Reindexing ' . $hit['_id'] . PHP_EOL;
-        $indexManager = IndexManager::getInstance();
+    $source = $input->getArgument('source');
+    $target = $input->getArgument('target');
+    if(count(explode('.', $source)) == 2 && count(explode('.', $target)) == 2){
+      $indexSource = explode('.', $source)[0];
+      $mappingSource = explode('.', $source)[1];
+      IndexManager::getInstance()->scroll(array(
+        'query' => array(
+          'match_all' => array()
+        )
+      ), $indexSource, $mappingSource, function($hit, &$context){
+        $context['count']++;
+        $indexTarget = explode('.', $context['target'])[0];
+        $mappingTarget = explode('.', $context['target'])[1];
         $doc = $hit['_source'];
         $doc['_id'] = $hit['_id'];
-        $indexManager->indexDocument($hit['_index'], $hit['_type'], $doc, true);
-      });
+        IndexManager::getInstance()->indexDocument($indexTarget, $mappingTarget, $doc, false);
+        print 'Indexing doc #' . $context['count'] . ' ID ' . $hit['_id'] . PHP_EOL;
+      }, array(
+        'count' => 0,
+        'target' => $target,
+      ));
+      IndexManager::getInstance()->flush();
     }
     else{
-      $output->writeln('Incorrect mapping');
+      $output->writeln('Incorrect source and/or target');
     }
   }
 

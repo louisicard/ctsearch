@@ -9,6 +9,9 @@
     {% endstylesheets %}
     <script type="text/javascript">
         var __searchclient_base_url = '{{path('ct_search_client_homepage')}}';
+        var __searchclient_service_url = '{{ serviceUrl|raw }}';
+        var __searchclient_mapping = '{{ mapping }}';
+        var __searchclient_params = {{ searchParams|json_encode()|trim()|raw }};
     </script>
     {% javascripts '@CtSearchClientBundle/Resources/public/js/*' %}
     <script src="{{ asset_url }}"></script>
@@ -40,7 +43,7 @@
             <input type="hidden" name="mapping" value="{{ context.mapping }}"/>
             <input type="hidden" name="sp_id" value="{{ searchPageId }}"/>
             <div class="form-item">
-                <input type="text" name="query" value="{{ context.query }}" placeholder="Search : enter keywords..."/>
+                <input type="text" name="query" value="{{ context.query }}" placeholder="Search : enter keywords..." autocomplete="off" />
             </div>
             <div class="form-action">
                 <input type="submit" value="Search"/>

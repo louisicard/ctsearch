@@ -100,7 +100,7 @@ class IndexManager {
     );
     $settings['analysis']['analyzer']['transliterator'] = array(
       'filter' => array('standard', 'asciifolding', 'lowercase'),
-      'tokenizer' => 'standard'
+      'tokenizer' => 'keyword'
     );
     if (count($settings) > 0) {
       $params['body'] = array(
@@ -569,6 +569,10 @@ class IndexManager {
     }
     unset($params);
     return $r;
+  }
+
+  public function flush(){
+    $this->getClient()->indices()->flush();
   }
 
   /**
@@ -1249,6 +1253,31 @@ class IndexManager {
       'snapshot' => $name,
       'body' => $body
     ));
+  }
+
+  public function scroll($queryBody, $index, $mapping, $callback, $context = array()){
+    $r = $this->getClient()->search(array(
+      'index' => $index,
+      'type' => $mapping,
+      'body' => $queryBody,
+      'scroll' => '1ms'
+    ));
+    if(isset($r['_scroll_id'])){
+      $scrollId = $r['_scroll_id'];
+      while(count($r['hits']['hits']) > 0){
+        foreach($r['hits']['hits'] as $hit){
+          $callback($hit, $context);
+        }
+        $r = $this->client->scroll(array(
+          'scroll_id' => $scrollId,
+          'scroll' => '1m'
+        ));
+      }
+    }
+  }
+
+  public function customSearch($params){
+    return $this->getClient()->search($params);
   }
 
 }

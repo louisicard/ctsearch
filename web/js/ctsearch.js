@@ -929,14 +929,16 @@
             }
             var sorting_option_container = $('<div class="sorting-option sortable-option"></div>');
 
-            var select = fieldSelect.clone();
-            select.find('option').each(function () {
+            var sortingFieldSelect = fieldSelect.clone();
+            sortingFieldSelect.find('option[value="_id"]').detach();
+            $('<option value="_score">_score</option>').insertAfter(sortingFieldSelect.find('option').first());
+            sortingFieldSelect.find('option').each(function () {
               if ($(this).attr('value') == field) {
                 $(this).attr('selected', 'selected');
               }
             });
-            sorting_option_container.append(select);
-            $('<label for="">Field</label>').insertBefore(select);
+            sorting_option_container.append(sortingFieldSelect);
+            $('<label for="">Field</label>').insertBefore(sortingFieldSelect);
 
             var label = $('<input type="text" />');
             label.val(def.sorting.fields[i][field]);
@@ -1020,6 +1022,27 @@
             }
           });
         }
+
+        var autocomplete = $('<div id="sp-def-autocomplete"></div>');
+        autocomplete.append($('<h3>Autocomplete</h3>'));
+        container.find('.content').append(autocomplete);
+        var autoCompleteField = $('<div class="form-item"><label for="sp-def-autocomplete-field">Autocomplete field:</label></div>');
+        var autoCompleteFieldSelect = fieldSelect.clone();
+        autoCompleteFieldSelect.find('option[value="_id"]').detach();
+        autoCompleteFieldSelect.attr('id', 'sp-def-autocomplete-field');
+        autoCompleteField.append(autoCompleteFieldSelect);
+        autocomplete.append(autoCompleteField);
+        var autoCompleteGroupField = $('<div class="form-item"><label for="sp-def-autocomplete-group-field">Autocomplete group field:</label></div>');
+        var autoCompleteGroupSelect = fieldSelect.clone();
+        autoCompleteGroupSelect.find('option[value="_id"]').detach();
+        autoCompleteGroupSelect.attr('id', 'sp-def-autocomplete-group-field');
+        autoCompleteGroupField.append(autoCompleteGroupSelect);
+        autocomplete.append(autoCompleteGroupField);
+        if(typeof def.autocomplete !== 'undefined'){
+          $('#sp-def-autocomplete-field').val(def.autocomplete.field);
+          $('#sp-def-autocomplete-group-field').val(def.autocomplete.group);
+        }
+
 
         bindEventsOnSearchPageConfigurator();
 
@@ -1136,6 +1159,10 @@
     });
     config.suggest = $('#suggest-container select').val() != null ? $('#suggest-container select').val() : [];
     config.more_like_this = $('#mlt-container select').val() != null ? $('#mlt-container select').val() : [];
+    config.autocomplete = {
+      field: $('#sp-def-autocomplete-field').val(),
+      group: $('#sp-def-autocomplete-group-field').val()
+    };
     return config;
   }
 

@@ -208,3 +208,20 @@ a.ajax-link.ajax-loading{
 .sorting li.active{
   font-weight:bold;
 }
+#autocomplete-suggestions {
+  position:fixed!important;
+}
+#autocomplete-suggestions.grouped .group {
+  color:#fff;
+  background:#31861c;
+  padding:0.5em;
+}
+#autocomplete-suggestions.not-grouped ul {
+  padding:0.5em;
+}
+#autocomplete-suggestions.grouped ul ul {
+  padding:0.2em 0.5em;
+}
+#autocomplete-suggestions li.active{
+  background:#ccc;
+}

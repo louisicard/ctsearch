@@ -95,7 +95,8 @@ class SearchController extends Controller
       'context' => $context,
       'searchParams' => $searchParams,
       'searchPageId' => $request->get('sp_id'),
-      'pager' => $this->getPager($context)
+      'pager' => $this->getPager($context),
+      'serviceUrl' => $serviceUrl,
     ));
   }
 
