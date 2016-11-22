@@ -38,7 +38,7 @@
       <div id="messages">
         <ul>
           {%for message in app.session.get('messages')%}
-            <li class="message-type-{{message.type}}">{{message.text}}</li>
+            <li class="message-type-{{message.type}}">{{message.text|raw}}</li>
           {%endfor%}
         </ul>
       </div>

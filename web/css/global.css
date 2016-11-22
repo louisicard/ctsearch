@@ -674,6 +674,10 @@ ul.actions li a.index-add{
   padding-left:20px;
   background:url(../images/index-add.png) no-repeat 0 0;
 }
+ul.actions li a.synonyms-list{
+  padding-left:20px;
+  background:url(../images/equal.png) no-repeat 0 0;
+}
 a.action-delete{
   color:#dd2209;
   border-bottom:1px dotted #dd2209;
@@ -784,4 +788,10 @@ table.log-table tbody td.object{
 #search-page-configurator .sortable-option label,
 #sp-def-results .result-mapping label{
   display:inline-block;
+}
+#synomyms-form textarea{
+  width:100%;
+  min-height:30em;
+  font-family: 'Courier new', sans-serif;
+  font-size:0.8em;
 }
