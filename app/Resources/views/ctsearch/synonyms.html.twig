@@ -37,6 +37,9 @@
   {% endif %}
   {% if form is defined %}
     <h2>{{ sub_title }}</h2>
+    <ul class="actions">
+      <li><a href="{{ path('synonyms-list') }}">{{ "Back to list"|trans }}</a></li>
+    </ul>
     {{ form(form, {id: "synomyms-form"}) }}
   {% endif %}
 {%endblock%}
