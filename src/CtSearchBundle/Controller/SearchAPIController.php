@@ -10,6 +10,8 @@ use CtSearchBundle\Classes\IndexManager;
 use \CtSearchBundle\Classes\Processor;
 use \Symfony\Component\HttpFoundation\Response;
 
+define('SEARCH_API_DEBUG', false);
+
 class SearchAPIController extends Controller
 {
 
@@ -89,64 +91,6 @@ class SearchAPIController extends Controller
           );
         }
 
-        if ($request->get('facets') != null) {
-          $facets = explode(',', $request->get('facets'));
-          foreach ($facets as $facet) {
-            if (strpos($facet, '.') === FALSE) {
-              $query['aggs'][$facet]['terms'] = array(
-                'field' => $facet
-              );
-            } else {
-              $facet_parts = explode('.', $facet);
-              if (count($facet_parts) == 3 && $facet_parts[2] == 'raw') {
-                $query['aggs'][$facet]['nested']['path'] = $facet_parts[0];
-                $query['aggs'][$facet]['aggs'][$facet]['terms'] = array(
-                  'field' => $facet
-                );
-              } elseif (count($facet_parts) == 2 && $facet_parts[1] == 'raw') {
-                $query['aggs'][$facet]['terms'] = array(
-                  'field' => $facet
-                );
-              } elseif (count($facet_parts) == 2) {
-                $query['aggs'][$facet]['nested']['path'] = $facet_parts[0];
-                $query['aggs'][$facet]['aggs'][$facet]['terms'] = array(
-                  'field' => $facet
-                );
-              }
-            }
-          }
-        }
-        if ($request->get('facetOptions') != null) {
-          foreach ($request->get('facetOptions') as $option) {
-            $option_parts = explode(',', $option);
-            if (count($option_parts == 3)) {
-              switch ($option_parts[1]) {
-                case 'size':
-                  if (isset($query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms'])) {
-                    $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms']['size'] = $option_parts[2];
-                  } elseif (isset($query['aggs'][$option_parts[0]]['terms'])) {
-                    $query['aggs'][$option_parts[0]]['terms']['size'] = $option_parts[2];
-                  }
-                  break;
-                case 'order':
-                  if (isset($query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms'])) {
-                    $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms']['order'] = array($option_parts[2] => 'asc');
-                  } elseif (isset($query['aggs'][$option_parts[0]]['terms'])) {
-                    $query['aggs'][$option_parts[0]]['terms']['order'] = array($option_parts[2] => 'asc');
-                  }
-                  break;
-                case 'custom_def':
-                  if (isset($query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]])) {
-                    $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]] = json_decode($option_parts[2], true);
-                  } elseif (isset($query['aggs'][$option_parts[0]])) {
-                    $query['aggs'][$option_parts[0]] = json_decode($option_parts[2], true);
-                  }
-                  break;
-              }
-            }
-          }
-        }
-
         $applied_facets = array();
         $refactor_for_boolean_query = FALSE;
         if ($request->get('filter') != null) {
@@ -164,6 +108,8 @@ class SearchAPIController extends Controller
               }
             }
           }
+          if(SEARCH_API_DEBUG)
+            var_dump($filters);
           if (count($filters) > 0) {
             $refactor_for_boolean_query = TRUE;
             $query['query'] = array(
@@ -171,6 +117,7 @@ class SearchAPIController extends Controller
                 'must' => array($query['query'])
               )
             );
+            $filterQueries = array();
             foreach ($filters as $filter) {
               switch ($filter['operator']) {
                 case '=':
@@ -182,8 +129,12 @@ class SearchAPIController extends Controller
                   break;
                 case '!=':
                   $subquery = array(
-                    'term' => array(
-                      $filter['field'] => $filter['value']
+                    'bool' => array(
+                      'must_not' => array(
+                        'term' => array(
+                          $filter['field'] => $filter['value']
+                        )
+                      )
                     )
                   );
                   break;
@@ -230,19 +181,12 @@ class SearchAPIController extends Controller
                   break;
               }
               if (isset($subquery)) {
-                $field_parts = explode('.', $filter['field']);
-                if (count($field_parts) == 2 && $field_parts[1] != 'raw' || count($field_parts) == 3) {
-                  $query['query']['bool'][$filter['operator'] != '!=' ? 'must' : 'must_not'][] = array(
-                    'nested' => array(
-                      'path' => $field_parts[0],
-                      'query' => $subquery
-                    )
-                  );
-                } else {
-                  $query['query']['bool'][$filter['operator'] != '!=' ? 'must' : 'must_not'][] = $subquery;
-                }
+                $filterQueries[$filter['field']][] = $subquery;
               }
             }
+            if(SEARCH_API_DEBUG)
+              var_dump($filterQueries);
+            $query['filter'] = $this->computeFilter($filterQueries);
           }
         }
         if ($request->get('ids') != null) {
@@ -303,6 +247,77 @@ class SearchAPIController extends Controller
           }
         }
 
+        if ($request->get('facetOptions') != null) {
+          foreach ($request->get('facetOptions') as $option) {
+            $option_parts = explode(',', $option);
+            if (count($option_parts == 3)) {
+              switch ($option_parts[1]) {
+                case 'size':
+                  if (isset($query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms'])) {
+                    $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms']['size'] = $option_parts[2];
+                  } elseif (isset($query['aggs'][$option_parts[0]]['terms'])) {
+                    $query['aggs'][$option_parts[0]]['terms']['size'] = $option_parts[2];
+                  }
+                  break;
+                case 'order':
+                  if (isset($query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms'])) {
+                    $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms']['order'] = array($option_parts[2] => 'asc');
+                  } elseif (isset($query['aggs'][$option_parts[0]]['terms'])) {
+                    $query['aggs'][$option_parts[0]]['terms']['order'] = array($option_parts[2] => 'asc');
+                  }
+                  break;
+                case 'custom_def':
+                  if (isset($query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]])) {
+                    $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]] = json_decode($option_parts[2], true);
+                  } elseif (isset($query['aggs'][$option_parts[0]])) {
+                    $query['aggs'][$option_parts[0]] = json_decode($option_parts[2], true);
+                  }
+                  break;
+              }
+            }
+          }
+        }
+
+        if ($request->get('facets') != null) {
+          $facets = explode(',', $request->get('facets'));
+          foreach ($facets as $facet) {
+            if (strpos($facet, '.') === FALSE) {
+              $query['aggs'][$facet]['terms'] = array(
+                'field' => $facet
+              );
+            } else {
+              $facet_parts = explode('.', $facet);
+              if (count($facet_parts) == 3 && $facet_parts[2] == 'raw') {
+                $query['aggs'][$facet]['nested']['path'] = $facet_parts[0];
+                $query['aggs'][$facet]['aggs'][$facet]['terms'] = array(
+                  'field' => $facet
+                );
+              } elseif (count($facet_parts) == 2 && $facet_parts[1] == 'raw') {
+                $query['aggs'][$facet]['terms'] = array(
+                  'field' => $facet
+                );
+              } elseif (count($facet_parts) == 2) {
+                $query['aggs'][$facet]['nested']['path'] = $facet_parts[0];
+                $query['aggs'][$facet]['aggs'][$facet]['terms'] = array(
+                  'field' => $facet
+                );
+              }
+            }
+          }
+          if(isset($query['filter'])) {
+            foreach ($query['aggs'] as $agg_name => $agg) {
+              unset($query['aggs'][$agg_name]);
+              $query['aggs'][$agg_name] = array(
+                'filter' => $this->computeFilter($filterQueries, $agg_name),//Put null in $skipField to disable sticky facets
+                'aggs' => array(
+                  $agg_name => $agg
+                )
+              );
+            }
+          }
+        }
+
+
         if ($request->get('sort') != null && count(explode(',', $request->get('sort'))) == 2) {
           $query['sort'] = array(
             explode(',', $request->get('sort'))[0] => array(
@@ -337,6 +352,10 @@ class SearchAPIController extends Controller
             );
           }
         }
+
+
+        if(SEARCH_API_DEBUG)
+          var_dump($query);
 
         try {
           $res = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], json_encode($query), $request->get('from') != null ? $request->get('from') : 0, $request->get('size') != null ? $request->get('size') : 10);
@@ -392,6 +411,43 @@ class SearchAPIController extends Controller
     } else {
       return new Response('{"error": "Missing mapping parameter"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
     }
+  }
+
+  private function computeFilter($filterQueries, $skipField = NULL){
+    $query_filter = array();
+    foreach($filterQueries as $field => $queries){
+      if($field == $skipField){
+        continue;
+      }
+      if(count($queries) == 1){
+        $field_parts = explode('.', $field);
+        if (count($field_parts) == 2 && $field_parts[1] != 'raw' || count($field_parts) == 3) {
+          $query_filter[] = array(
+            'nested' => array(
+              'path' => $field_parts[0],
+              'query' => $queries[0]
+            )
+          );
+        } else {
+          $query_filter['bool']['must'][] = $queries[0];
+        }
+      }
+      else{
+        $compoundQuery = array();
+        foreach($queries as $compoundPart){
+          $compoundQuery['bool']['should'][] = $compoundPart;
+        }
+        if(SEARCH_API_DEBUG)
+          var_dump($compoundQuery);
+        $query_filter['bool']['must'][] = $compoundQuery;
+      }
+    }
+    if(empty($query_filter)){
+      $query_filter['bool']['must'][] = array(
+        'match_all' => array()
+      );
+    }
+    return $query_filter;
   }
 
   /**
