@@ -88,6 +88,7 @@ class SearchContext
   private $serviceUrl;
   private $mapping;
   private $requestedFacets;
+  private $stickyFacets;
   private $analyzer;
   private $suggest;
   private $highlights;
@@ -103,7 +104,7 @@ class SearchContext
    * @param $args
    * @param Request $request
    */
-  public function __construct($request, $serviceUrl, $mapping, $requestedFacets = NULL, $analyzer = NULL, $suggest = NULL, $highlights = NULL)
+  public function __construct($request, $serviceUrl, $mapping, $requestedFacets = NULL, $analyzer = NULL, $suggest = NULL, $highlights = NULL, $stickyFacets = NULL)
   {
     $this->serviceUrl = $serviceUrl;
     $this->mapping = $mapping;
@@ -112,6 +113,7 @@ class SearchContext
     $this->analyzer = $analyzer;
     $this->suggest = $suggest;
     $this->highlights = $highlights;
+    $this->stickyFacets = $stickyFacets;
     $this->build();
   }
 
@@ -190,6 +192,7 @@ class SearchContext
       $params = array(
         'mapping' => $this->mapping,
         'facets' => $this->requestedFacets,
+        'sticky_facets' => $this->stickyFacets,
       );
       if ($this->analyzer != null) {
         $params['analyzer'] = $this->analyzer;

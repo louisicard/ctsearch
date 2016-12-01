@@ -36,11 +36,16 @@ class SearchController extends Controller
     }
 
     $facet_list = [];
+    $sticky_facets = [];
     foreach($searchParams['facets'] as $facet){
-      $facet_list[] = array_keys($facet)[0];
+      $facet_name = array_keys($facet)[0];
+      $facet_list[] = $facet_name;
+      if(isset($facet[$facet_name]['sticky']) && $facet[$facet_name]['sticky']){
+        $sticky_facets[] = array_keys($facet)[0];
+      }
     }
 
-    $context = new SearchContext($request, $serviceUrl, $request->get('mapping'), implode(',', $facet_list), $searchParams['analyzer'], isset($searchParams['suggest']) ? implode(',', $searchParams['suggest']) : '', $highlight);
+    $context = new SearchContext($request, $serviceUrl, $request->get('mapping'), implode(',', $facet_list), $searchParams['analyzer'], isset($searchParams['suggest']) ? implode(',', $searchParams['suggest']) : '', $highlight, implode(',', $sticky_facets));
     $context->setSize($searchParams['size']);
 
     if($request->get('sort') == null && isset($searchParams['sorting']['default']['field']) && isset($searchParams['sorting']['default']['order']) && $context->getQuery() == ''){
@@ -51,6 +56,8 @@ class SearchController extends Controller
 
     $facets = array();
     foreach($context->getFacets() as $facet_name => $facet){
+      if(isset($facet[$facet_name]))
+        $facet = $facet[$facet_name];
       foreach($facet['buckets'] as $i => $bucket){
         $facet['buckets'][$i]['applied'] = $context->isFilterApplied($facet_name, $bucket['key']);
         $facet['buckets'][$i]['facet_link'] = $context->isFilterApplied($facet_name, $bucket['key']) ? $context->buildFilterRemovalUrl($facet_name, $bucket['key']) : $context->buildFilterUrl($facet_name, $bucket['key']);

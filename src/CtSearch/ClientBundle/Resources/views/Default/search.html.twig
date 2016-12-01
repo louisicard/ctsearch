@@ -68,7 +68,7 @@
             <div class="facets">
                 {% for facet_def in searchParams.facets %}
                     {% set facet_name = facet_def|keys.0 %}
-                    {% set facet_label = facet_def[facet_def|keys.0] %}
+                    {% set facet_label = facet_def[facet_def|keys.0].label is defined ? facet_def[facet_def|keys.0].label : 'No name' %}
                     {% if facets[facet_name] is defined %}
                         {% set facet = facets[facet_name] %}
                         {% if facet.buckets|length > 0 %}

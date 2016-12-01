@@ -795,3 +795,57 @@ table.log-table tbody td.object{
   font-family: 'Courier new', sans-serif;
   font-size:0.8em;
 }
+#search-page-configurator .sortable-option,
+#search-page-configurator .result-mapping{
+  padding:0.25em 0.5em;
+}
+#search-page-configurator h3 + .sortable-option,
+#search-page-configurator h3 + .result-mapping{
+  padding-top:0;
+}
+#search-page-configurator .result-mapping select,
+#search-page-configurator .sortable-option select,
+#search-page-configurator .sortable-option input{
+  margin:0 1em 0 0.25em;
+}
+#search-page-configurator #sp-def-facets .action,
+#search-page-configurator #sp-def-sorting .action{
+  margin-top:0.5em;
+}
+#search-page-configurator .sortable-option a,
+#search-page-configurator .action a{
+  color:#000;
+  border-bottom:1px dotted #000;
+  text-decoration: none;
+}
+#search-page-configurator .sortable-option a {
+  display:inline-block;
+  overflow:hidden;
+  width:16px;
+  height:19px;
+  margin-right:0.5em;
+  text-indent:999px;
+  border:none;
+}
+#search-page-configurator .sortable-option a.up {
+  background:url(../images/arrow-up.png) no-repeat 50% 50%;
+}
+#search-page-configurator .sortable-option a.down {
+  background:url(../images/arrow-down.png) no-repeat 50% 50%;
+}
+#search-page-configurator .sortable-option a.remove {
+  background:url(../images/remove.png) no-repeat 50% 50%;
+}
+#search-page-configurator .result-mapping .result-mapping-field {
+  display:inline-block;
+  width:13em;
+  max-width:100%;
+}
+#search-page-configurator #suggest-container,
+#search-page-configurator #mlt-container{
+  margin:0.75em 0;
+}
+#search-page-configurator #suggest-container label,
+#search-page-configurator #mlt-container label{
+  margin-bottom:0.25em;
+}
