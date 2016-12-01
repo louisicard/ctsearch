@@ -342,7 +342,7 @@ foo => foo bar, baz',
 
     if($form->isValid()){
       $name = $form->getData()['name'];
-      $name = rtrim($name, '.txt');
+      $name = str_replace('.txt', '', $name);
       $name = preg_replace('/\W/i', '_', strtolower($name));
       $file = $location . DIRECTORY_SEPARATOR . $name . '.txt';
       $translator = $this->get('translator');
