@@ -579,7 +579,7 @@ class SearchAPIController extends Controller
         }
       }
     }
-    return new Response(json_encode($ret, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json; charset=utf8'));
+    return new Response(json_encode($ret, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json; charset=utf8', 'Access-Control-Allow-Origin' => '*'));
   }
 
   private function transliterate($str){

@@ -107,8 +107,10 @@ class SearchPageController extends Controller {
     $info = IndexManager::getInstance()->getElasticInfo();
     $mappingChoices = array();
     foreach ($info as $k => $data) {
-      foreach($data['mappings'] as $mapping){
-        $mappingChoices[$k . '.' . $mapping['name']] = $k . '.' . $mapping['name'];
+      if(isset($data['mappings'])) {
+        foreach ($data['mappings'] as $mapping) {
+          $mappingChoices[$k . '.' . $mapping['name']] = $k . '.' . $mapping['name'];
+        }
       }
     }
     asort($mappingChoices);
