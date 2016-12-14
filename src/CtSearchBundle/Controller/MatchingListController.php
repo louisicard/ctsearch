@@ -99,14 +99,16 @@ class MatchingListController extends Controller {
       $infos = IndexManager::getInstance()->getElasticInfo();
       $select = '<select id="matching-list-field-selector"><option value="">Select a field</option>';
       foreach ($infos as $index => $info) {
-        $select .= '<optgroup label="' . htmlentities($index) . '">';
-        foreach ($info['mappings'] as $mapping) {
-          $mapping = IndexManager::getInstance()->getMapping($index, $mapping['name']);
-          foreach (json_decode($mapping->getMappingDefinition(), true) as $field => $info_field) {
-            $select .= '<option value="' . $index . '.' . $mapping->getMappingName() . '.' . $field . '">' . $index . '.' . $mapping->getMappingName() . '.' . $field . '</option>';
+        if(isset($info['mappings'])) {
+          $select .= '<optgroup label="' . htmlentities($index) . '">';
+          foreach ($info['mappings'] as $mapping) {
+            $mapping = IndexManager::getInstance()->getMapping($index, $mapping['name']);
+            foreach (json_decode($mapping->getMappingDefinition(), true) as $field => $info_field) {
+              $select .= '<option value="' . $index . '.' . $mapping->getMappingName() . '.' . $field . '">' . $index . '.' . $mapping->getMappingName() . '.' . $field . '</option>';
+            }
           }
+          $select .= '</optgroup>';
         }
-        $select .= '</optgroup>';
       }
       $select .= '</select>';
       $select_size = '<select id="matching-list-size-selector"><option value="">Select max number of values to import</option>';
