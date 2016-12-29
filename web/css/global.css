@@ -315,9 +315,11 @@ form .form-item.required label:after{
 }
 #processor-stack .stack-item .inside .filter-id{
   position:absolute;
-  bottom:5px;
-  left:5px;
+  top:4px;
+  left:40px;
   font-size:10px;
+  background: #ccc;
+  z-index: 2;
 }
 #processor-stack .stack-item .inside .remove-filter{
   position:absolute;

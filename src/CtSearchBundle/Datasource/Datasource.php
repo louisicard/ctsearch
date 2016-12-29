@@ -5,6 +5,8 @@ namespace CtSearchBundle\Datasource;
 use CtSearchBundle\Controller\CtSearchController;
 use \CtSearchBundle\CtSearchBundle;
 use \CtSearchBundle\Classes\IndexManager;
+use CtSearchBundle\Processor\ProcessorFilter;
+use CtSearchBundle\Processor\SmartMapper;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 abstract class Datasource {
@@ -122,6 +124,7 @@ abstract class Datasource {
       if ($processors == null) {
         $processors = IndexManager::getInstance()->getRawProcessorsByDatasource($this->id);
       }
+      $smartMappersToDump = [];
       foreach ($processors as $proc) {
         $data = array();
         foreach ($doc as $k => $v) {
@@ -149,6 +152,15 @@ abstract class Datasource {
           //  $indexManager->log('debug', 'URL : ' . $data['datasource.url'], $filterOutput);
           if (empty($data)) {
             break;
+          }
+          if(get_class($procFilter) == SmartMapper::class){
+            /** @var ProcessorFilter $procFilter */
+            $smartSettings = $procFilter->getSettings();
+            if(isset($smartSettings['force_index']) && $smartSettings['force_index']){
+              if(isset($filterOutput['smart_array'])) {
+                $smartMappersToDump[] = $filterOutput['smart_array'];
+              }
+            }
           }
           foreach ($filterOutput as $k => $v) {
             if ($procFilter->getAutoImplode()) {
@@ -188,11 +200,37 @@ abstract class Datasource {
         if (!empty($data)) {
           $to_index = array();
           foreach ($definition['mapping'] as $k => $input) {
-            if (isset($data[$input])) {
-              if (is_array($data[$input]) && count($data[$input]) == 1) {
-                $to_index[$k] = $data[$input][0];
-              } else {
-                $to_index[$k] = $data[$input];
+            if(strpos($input, '.smart_array') === FALSE) {
+              if (isset($data[$input])) {
+                if (is_array($data[$input]) && count($data[$input]) == 1) {
+                  $to_index[$k] = $data[$input][0];
+                } else {
+                  $to_index[$k] = $data[$input];
+                }
+              }
+            }
+            else{
+              if (isset($data[$input][$k])) {
+                if (is_array($data[$input][$k]) && count($data[$input][$k]) == 1) {
+                  $to_index[$k] = $data[$input][$k][0];
+                } else {
+                  $to_index[$k] = $data[$input][$k];
+                }
+              }
+            }
+          }
+          //taking care of smart mappers which force indexing all their fields
+          foreach($smartMappersToDump as $smartMapper){
+            foreach($smartMapper as $k => $v){
+              if(!is_array($v)) {
+                $to_index[$k] = trim($this->cleanNonUtf8Chars($v));
+              }
+              else{
+                foreach($v as $vv){
+                  if(is_array($vv)){
+                    $to_index[$k][] = trim($this->cleanNonUtf8Chars($vv));
+                  }
+                }
               }
             }
           }

@@ -31,6 +31,10 @@ services:
     class: CtSearchBundle\Datasource\XMLParser
     tags:
       - { name: ctsearch.datasource }
+  ctsearch.datasource.pdodatabase:
+    class: CtSearchBundle\Datasource\PDODatabase
+    tags:
+      - { name: ctsearch.datasource }
   ctsearch.filter.arrayimplodefilter:
     class: CtSearchBundle\Processor\ArrayImplodeFilter
     tags:
@@ -101,6 +105,14 @@ services:
       - { name: ctsearch.filter }
   ctsearch.filter.xpathselectorfilter:
     class: CtSearchBundle\Processor\XPathSelectorFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.smartmapper:
+    class: CtSearchBundle\Processor\SmartMapper
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.pdoqueryfilter:
+    class: CtSearchBundle\Processor\PDOQueryFilter
     tags:
       - { name: ctsearch.filter }
   ctsearch.analytics.rawkeywordsstatcompiler:
