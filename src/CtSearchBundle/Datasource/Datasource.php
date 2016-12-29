@@ -7,6 +7,7 @@ use \CtSearchBundle\CtSearchBundle;
 use \CtSearchBundle\Classes\IndexManager;
 use CtSearchBundle\Processor\ProcessorFilter;
 use CtSearchBundle\Processor\SmartMapper;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 abstract class Datasource {
@@ -28,6 +29,12 @@ abstract class Datasource {
    * @var string
    */
   private $id;
+
+  /**
+   *
+   * @var boolean
+   */
+  private $hasBatchExecution;
 
   /**
    *
@@ -69,6 +76,22 @@ abstract class Datasource {
   }
 
   /**
+   * @return boolean
+   */
+  public function isHasBatchExecution()
+  {
+    return $this->hasBatchExecution;
+  }
+
+  /**
+   * @param boolean $hasBatchExecution
+   */
+  public function setHasBatchExecution($hasBatchExecution)
+  {
+    $this->hasBatchExecution = $hasBatchExecution;
+  }
+
+  /**
    * @return object
    */
   abstract function getSettings();
@@ -95,10 +118,14 @@ abstract class Datasource {
    */
   function getSettingsForm() {
     if ($this->getController() != null) {
-      return $this->getController()->createFormBuilder($this)->add('name', TextType::class, array(
-            'label' => $this->getController()->get('translator')->trans('Source name'),
-            'required' => true
-      ));
+      return $this->getController()->createFormBuilder($this)
+        ->add('name', TextType::class, array(
+          'label' => $this->getController()->get('translator')->trans('Source name'),
+          'required' => true))
+        ->add('hasBatchExecution', CheckboxType::class, array(
+          'label' => $this->getController()->get('translator')->trans('Batch execution?'),
+          'required' => false
+        ));
     } else {
       return null;
     }
@@ -120,6 +147,8 @@ abstract class Datasource {
   protected function index($doc, $processors = null) {
     global $kernel;
     $debug = $kernel->getContainer()->getParameter('ct_search.debug');
+    $startTime = round(microtime(true) * 1000);
+    $debugTimeStat = [];
     try {
       if ($processors == null) {
         $processors = IndexManager::getInstance()->getRawProcessorsByDatasource($this->id);
@@ -132,6 +161,7 @@ abstract class Datasource {
         }
         $definition = json_decode($proc['definition'], true);
         foreach ($definition['filters'] as $filter) {
+          $filterStartTime = round(microtime(true) * 1000);
           $className = $filter['class'];
           $procFilter = new $className(array(), IndexManager::getInstance());
           $procFilter->setOutput($this->getOutput());
@@ -192,6 +222,9 @@ abstract class Datasource {
             }
             unset($v);
           }
+          if($debug){
+            $debugTimeStat['filter_' . $filter['id']] = round(microtime(true) * 1000) - $filterStartTime;
+          }
           unset($filter);
           unset($procFilter);
           unset($filterOutput);
@@ -237,9 +270,13 @@ abstract class Datasource {
           $target_r = explode('.', $definition['target']);
           $indexName = $target_r[0];
           $mappingName = $target_r[1];
-          IndexManager::getInstance()->indexDocument($indexName, $mappingName, $to_index);
-          if ($debug) {
+          $indexStartTime = round(microtime(true) * 1000);
+          $this->indexDocument($indexName, $mappingName, $to_index);
+          if ($debug && !$this->isHasBatchExecution()) {
             try {
+              $debugTimeStat['indexing'] = round(microtime(true) * 1000) - $indexStartTime;
+              $debugTimeStat['global'] = round(microtime(true) * 1000) - $startTime;
+              IndexManager::getInstance()->log('debug', 'Timing info', $debugTimeStat, $this);
               IndexManager::getInstance()->log('debug', 'Indexing document from datasource "' . $this->getName() . '"', $to_index, $this);
             } catch (Exception $ex) {
               
@@ -282,6 +319,34 @@ abstract class Datasource {
     gc_enable();
     gc_collect_cycles();
     
+  }
+
+  private $batchStack = [];
+  const BATCH_STACK_SIZE = 500;
+
+  private function indexDocument($indexName, $mappingName, $to_index){
+    if($this->isHasBatchExecution()){
+      $this->batchStack[] = array(
+        'indexName' => $indexName,
+        'mappingName' => $mappingName,
+        'body' => $to_index,
+      );
+      if(count($this->batchStack) >= static::BATCH_STACK_SIZE){
+        $this->emptyBatchStack();
+      }
+    }
+    else{
+      IndexManager::getInstance()->indexDocument($indexName, $mappingName, $to_index);
+    }
+  }
+
+  private function emptyBatchStack(){
+    IndexManager::getInstance()->bulkIndex($this->batchStack);
+    unset($this->batchStack);
+    if ($this->getOutput() != null) {
+      $this->getOutput()->writeln('Indexing documents in batch stack (stack size is ' . static::BATCH_STACK_SIZE . ')');
+    }
+    $this->batchStack = [];
   }
 
   private function truncateArray($array) {

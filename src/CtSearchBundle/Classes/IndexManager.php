@@ -301,9 +301,11 @@ class IndexManager {
         ));
         if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
           $hit = $r['hits']['hits'][0];
+          /** @var Datasource $datasource */
           $datasource = new $hit['_source']['class']($hit['_source']['name'], $controller);
           $datasource->initFromSettings(unserialize($hit['_source']['definition']));
           $datasource->setId($id);
+          $datasource->setHasBatchExecution(isset($hit['_source']['has_batch_execution']) ? $hit['_source']['has_batch_execution'] : false);
           unset($r);
           return $datasource;
         }
@@ -359,7 +361,8 @@ class IndexManager {
       'body' => array(
         'class' => get_class($datasource),
         'definition' => serialize($datasource->getSettings()),
-        'name' => $datasource->getName()
+        'name' => $datasource->getName(),
+        'has_batch_execution' => $datasource->isHasBatchExecution()
       )
     );
     if ($id != null) {
@@ -1278,6 +1281,28 @@ class IndexManager {
 
   public function customSearch($params){
     return $this->getClient()->search($params);
+  }
+
+  /**
+   * @param $items
+   */
+  public function bulkIndex($items){
+    $bulkString = '';
+    foreach ($items as $item) {
+      $data = array('index' => array('_index' => $item['indexName'], '_type' => $item['mappingName']));
+      if(isset($item['body']['_id'])){
+        $data['index']['_id'] = $item['body']['_id'];
+        unset($item['body']['_id']);
+      }
+      $bulkString .= json_encode($data) . "\n";
+      $bulkString .= json_encode($item['body']) . "\n";
+    }
+    if(count($items) > 0) {
+      $params['index'] = $items[0]['indexName'];
+      $params['type'] = $items[0]['mappingName'];
+      $params['body'] = $bulkString;
+      $this->getClient()->bulk($params);
+    }
   }
 
 }

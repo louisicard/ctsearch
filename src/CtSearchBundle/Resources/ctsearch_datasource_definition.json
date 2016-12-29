@@ -13,5 +13,9 @@
         "type": "string",
         "analyzer": "case_insensitive_sort",
         "store": true
+    },
+    "has_batch_execution": {
+        "type": "boolean",
+        "store": true
     }
 }
