@@ -43,6 +43,7 @@ class JSONParser extends Datasource {
         $r[] = $tmp;
     }
     $this->batchIndex($r);
+    parent::execute($execParams);
   }
 
   public function getSettingsForm() {

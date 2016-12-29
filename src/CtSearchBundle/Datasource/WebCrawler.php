@@ -98,6 +98,7 @@ class WebCrawler extends Datasource {
       if ($this->getController() != null)
         CtSearchBundle::addSessionMessage($this->getController(), 'error', 'No valid response from server');
     }
+    parent::execute($execParams);
   }
 
   private function getRestData($url, $data) {

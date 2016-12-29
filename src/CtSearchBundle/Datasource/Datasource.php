@@ -142,7 +142,9 @@ abstract class Datasource {
    * 
    * @param Datasource $source
    */
-  abstract function execute($execParams = null);
+  public function execute($execParams = null){
+    $this->emptyBatchStack();
+  }
 
   protected function index($doc, $processors = null) {
     global $kernel;

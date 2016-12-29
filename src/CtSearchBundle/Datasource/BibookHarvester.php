@@ -51,16 +51,10 @@ class BibookHarvester extends Datasource {
           unset($xml);
         }
       }
+      parent::execute($execParams);
     } catch (Exception $ex) {
       print $ex->getMessage();
     }
-    /*
-    if ($this->getOutput() != null) {
-      $this->getOutput()->writeln('Found ' . $count . ' documents');
-    }
-    if ($this->getController() != null) {
-      CtSearchBundle::addSessionMessage($this->getController(), 'status', 'Found ' . $count . ' documents');
-    }*/
   }
 
   private function getContentFromUrl($url) {

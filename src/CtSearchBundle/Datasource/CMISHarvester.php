@@ -107,6 +107,7 @@ class CMISHarvester extends Datasource {
       if ($this->getController() != null) {
         CtSearchBundle::addSessionMessage($this->getController(), 'status', 'Found ' . $count . ' documents');
       }
+      parent::execute($execParams);
     }
   }
 
