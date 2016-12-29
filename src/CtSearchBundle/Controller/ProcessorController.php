@@ -2,6 +2,7 @@
 
 namespace CtSearchBundle\Controller;
 
+use CtSearchBundle\Datasource\Datasource;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -244,6 +245,7 @@ class ProcessorController extends CtSearchController {
             'class' => get_class($datasource),
             'id' => $datasource->getId(),
             'name' => $datasource->getName(),
+            'has_batch_execution' => $datasource->isHasBatchExecution() ? 1 : 0,
             'settings' => $datasource->getSettings()
           ),
           'matching_lists' => $matchingLists,
@@ -295,14 +297,17 @@ class ProcessorController extends CtSearchController {
       $datasourceExists = IndexManager::getInstance()->getDatasource($json['datasource']['id'], $this) != null;
       if ($datasourceExists && $override) {
         IndexManager::getInstance()->deleteDatasource($json['datasource']['id']);
+        /** @var Datasource $datasource */
         $datasource = new $json['datasource']['class']($json['datasource']['name'], $this);
         $datasource->initFromSettings($json['datasource']['settings']);
         $datasource->setId($json['datasource']['id']);
+        $datasource->setHasBatchExecution($json['datasource']['has_batch_execution']);
         IndexManager::getInstance()->saveDatasource($datasource, $json['datasource']['id']);
       } elseif (!$datasourceExists) {
         $datasource = new $json['datasource']['class']($json['datasource']['name'], $this);
         $datasource->initFromSettings($json['datasource']['settings']);
         $datasource->setId($json['datasource']['id']);
+        $datasource->setHasBatchExecution($json['datasource']['has_batch_execution']);
         IndexManager::getInstance()->saveDatasource($datasource, $json['datasource']['id']);
       }
 
