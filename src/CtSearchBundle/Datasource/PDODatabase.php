@@ -59,7 +59,7 @@ class PDODatabase extends Datasource
         $res = $pdo->query($sql);
         $continue = false;
         while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
-          $continue = true;
+          $continue = $this->hasPagination();
           $count++;
           $this->index(array(
             'row' => $row
@@ -78,6 +78,11 @@ class PDODatabase extends Datasource
       CtSearchBundle::addSessionMessage($this->getController(), 'status', 'Found ' . $count . ' documents');
     }
     parent::execute($execParams);
+  }
+
+  private function hasPagination(){
+    $sql = $this->getSql();
+    return strpos($sql, '@limit') !== FALSE && strpos($sql, '@offset') !== FALSE;
   }
 
   public function getSettingsForm()
