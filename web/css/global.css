@@ -220,7 +220,8 @@ form .form-item.required label:after{
 #form_search_page #form_definition,
 #form_processor #form_definition,
 #form_settings,
-#form_mappingDefinition{
+#form_mappingDefinition,
+#form_dynamicTemplates{
   width:500px;
   height:300px;
   font-size:12px;

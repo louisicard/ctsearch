@@ -317,6 +317,15 @@
       });
     }
 
+    $('<div id="dynamic-tpl-json-toggle-container"><a href="javascript:void(0)" id="dynamic-tpl-json-toggle" class="json-link">' + __ctsearch_js_translations.ShowHideJSONDef + '</a></div>').insertBefore(
+      $('#form_dynamicTemplates'));
+    $('#form_dynamicTemplates').css('width', '100%');
+    $('#form_dynamicTemplates').hide();
+    $('#dynamic-tpl-json-toggle').click(function(e){
+      e.preventDefault();
+      $('#form_dynamicTemplates').slideToggle();
+    })
+
   });
 
   function reactResponsive() {

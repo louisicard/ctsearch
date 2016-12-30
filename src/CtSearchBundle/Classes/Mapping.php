@@ -7,12 +7,14 @@ class Mapping {
   private $indexName;
   private $mappingName;
   private $mappingDefinition;
+  private $dynamicTemplates;
   private $wipeData;
 
-  function __construct($indexName, $mappingName, $mappingDefinition = '{}', $wipeData = false) {
+  function __construct($indexName, $mappingName, $mappingDefinition = '{}', $dynamicTemplates = NULL, $wipeData = false) {
     $this->indexName = $indexName;
     $this->mappingName = $mappingName;
     $this->mappingDefinition = $mappingDefinition;
+    $this->dynamicTemplates = $dynamicTemplates;
     $this->wipeData = $wipeData;
   }
   function getIndexName() {
@@ -37,6 +39,16 @@ class Mapping {
 
   function setMappingDefinition($mappingDefinition) {
     $this->mappingDefinition = $mappingDefinition;
+  }
+
+  public function getDynamicTemplates()
+  {
+    return $this->dynamicTemplates;
+  }
+
+  public function setDynamicTemplates($dynamicTemplates)
+  {
+    $this->dynamicTemplates = $dynamicTemplates;
   }
   
   function getWipeData() {

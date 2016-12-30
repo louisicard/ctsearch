@@ -163,12 +163,20 @@ class IndexController extends Controller {
         'label' => $this->get('translator')->trans('Mapping definition'),
         'required' => true
       ))
+      ->add('dynamicTemplates', TextareaType::class, array(
+        'label' => $this->get('translator')->trans('Dynamic templates'),
+        'required' => false
+      ))
       ->add('save', SubmitType::class, array('label' => $this->get('translator')->trans('Save mapping')))
       ->getForm();
     $form->handleRequest($request);
 
     if ($form->isValid()) {
+      /** @var Mapping $mapping */
       $mapping = $form->getData();
+      if($mapping->getDynamicTemplates() == ''){
+        $mapping->setDynamicTemplates(NULL);
+      }
       try {
         IndexManager::getInstance()->updateMapping($mapping);
         CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Mapping has been updated'));

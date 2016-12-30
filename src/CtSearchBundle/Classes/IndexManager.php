@@ -175,8 +175,13 @@ class IndexManager {
         'index' => $indexName,
         'type' => $mappingName,
       ));
-      if (isset($mapping[$indexName]['mappings'][$mappingName]['properties']))
-        return new Mapping($indexName, $mappingName, json_encode($mapping[$indexName]['mappings'][$mappingName]['properties'], JSON_PRETTY_PRINT));
+      if (isset($mapping[$indexName]['mappings'][$mappingName]['properties'])) {
+        $obj = new Mapping($indexName, $mappingName, json_encode($mapping[$indexName]['mappings'][$mappingName]['properties'], JSON_PRETTY_PRINT));
+        if(isset($mapping[$indexName]['mappings'][$mappingName]['dynamic_templates'])){
+          $obj->setDynamicTemplates(json_encode($mapping[$indexName]['mappings'][$mappingName]['dynamic_templates'], JSON_PRETTY_PRINT));
+        }
+        return $obj;
+      }
       else
         return null;
     } catch (\Exception $ex) {
@@ -200,12 +205,16 @@ class IndexManager {
         )
       ));
     }
+    $body = array(
+      'properties' => json_decode($mapping->getMappingDefinition(), true),
+    );
+    if($mapping->getDynamicTemplates() != NULL){
+      $body['dynamic_templates'] = json_decode($mapping->getDynamicTemplates(), true);
+    }
     $this->getClient()->indices()->putMapping(array(
       'index' => $mapping->getIndexName(),
       'type' => $mapping->getMappingName(),
-      'body' => array(
-        'properties' => json_decode($mapping->getMappingDefinition(), true),
-      ),
+      'body' => $body,
     ));
   }
 
