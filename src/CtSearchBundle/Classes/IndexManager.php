@@ -314,7 +314,7 @@ class IndexManager {
           $datasource = new $hit['_source']['class']($hit['_source']['name'], $controller);
           $datasource->initFromSettings(unserialize($hit['_source']['definition']));
           $datasource->setId($id);
-          $datasource->setHasBatchExecution(isset($hit['_source']['has_batch_execution']) ? $hit['_source']['has_batch_execution'] : false);
+          $datasource->setHasBatchExecution(isset($hit['_source']['has_batch_execution']) && $hit['_source']['has_batch_execution']);
           unset($r);
           return $datasource;
         }
