@@ -10,7 +10,7 @@ use CtSearchBundle\Classes\IndexManager;
 use \CtSearchBundle\Classes\Processor;
 use \Symfony\Component\HttpFoundation\Response;
 
-define('SEARCH_API_DEBUG', false);
+define('SEARCH_API_DEBUG', true);
 
 class SearchAPIController extends Controller
 {
@@ -58,9 +58,11 @@ class SearchAPIController extends Controller
         $query = array();
 
         $query_string = $request->get('query') != null ? $request->get('query') : '*';
-        $query_string = str_replace(':', '\:', $query_string);
-        $query_string = str_replace('!', '\!', $query_string);
-        $query_string = str_replace('?', '\?', $query_string);
+        if($request->get('escapeQuery') == null || $request->get('escapeQuery') == 1) {
+          $query_string = str_replace(':', '\:', $query_string);
+          $query_string = str_replace('!', '\!', $query_string);
+          $query_string = str_replace('?', '\?', $query_string);
+        }
 
         if (count($nested_analyzed_fields) > 0) {
           $query['query']['bool']['should'][0]['query_string'] = array(
