@@ -279,27 +279,28 @@ class SearchAPIController extends Controller
           if ($request->get('facetOptions') != null) {
             foreach ($request->get('facetOptions') as $option) {
               $option_parts = explode(',', $option);
+              $option_def = substr($option, strpos($option, ',', strpos($option, ',') + 1) + 1);
               if (count($option_parts == 3)) {
                 switch ($option_parts[1]) {
                   case 'size':
                     if (isset($query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms'])) {
-                      $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms']['size'] = $option_parts[2];
+                      $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms']['size'] = $option_def;
                     } elseif (isset($query['aggs'][$option_parts[0]]['terms'])) {
-                      $query['aggs'][$option_parts[0]]['terms']['size'] = $option_parts[2];
+                      $query['aggs'][$option_parts[0]]['terms']['size'] = $option_def;
                     }
                     break;
                   case 'order':
                     if (isset($query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms'])) {
-                      $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms']['order'] = array($option_parts[2] => 'asc');
+                      $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms']['order'] = array($option_def => 'asc');
                     } elseif (isset($query['aggs'][$option_parts[0]]['terms'])) {
-                      $query['aggs'][$option_parts[0]]['terms']['order'] = array($option_parts[2] => 'asc');
+                      $query['aggs'][$option_parts[0]]['terms']['order'] = array($option_def => 'asc');
                     }
                     break;
                   case 'custom_def':
                     if (isset($query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]])) {
-                      $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]] = json_decode($option_parts[2], true);
+                      $query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]] = json_decode($option_def, true);
                     } elseif (isset($query['aggs'][$option_parts[0]])) {
-                      $query['aggs'][$option_parts[0]] = json_decode($option_parts[2], true);
+                      $query['aggs'][$option_parts[0]] = json_decode($option_def, true);
                     }
                     break;
                 }
