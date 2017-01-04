@@ -91,7 +91,7 @@ class PDODatabase extends Datasource
       $formBuilder = parent::getSettingsForm();
       $formBuilder
         ->add('driver', TextType::class, array(
-          'label' => $this->getController()->get('translator')->trans('PD driver (E.g.: mysql, postgresl)'),
+          'label' => $this->getController()->get('translator')->trans('PDO driver (E.g.: mysql, postgresl)'),
           'required' => true
         ))
         ->add('host', TextType::class, array(
