@@ -43,6 +43,10 @@ services:
     class: CtSearchBundle\Datasource\PDODatabase
     tags:
       - { name: ctsearch.datasource }
+  ctsearch.datasource.pdbv1database:
+    class: CtSearchBundle\Datasource\PDBV1Database
+    tags:
+      - { name: ctsearch.datasource }
   ctsearch.filter.arrayimplodefilter:
     class: CtSearchBundle\Processor\ArrayImplodeFilter
     tags:
