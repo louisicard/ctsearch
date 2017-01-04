@@ -1,3 +1,7 @@
+ct_search_client:
+    resource: "@CtSearchClientBundle/Resources/config/routing.yml"
+    prefix:   /
+
 ct_search:
     resource: "@CtSearchBundle/Controller/"
     type:     annotation

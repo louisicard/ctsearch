@@ -11,10 +11,15 @@
     },
     "object": {
         "type": "string",
-        "index": "no",
-        "store": true
+        "store": true,
+        "analyzer": "standard"
     },
     "type": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "log_datasource_name": {
         "type": "string",
         "index": "not_analyzed",
         "store": true

@@ -5,6 +5,9 @@ namespace CtSearchBundle\Datasource;
 use CtSearchBundle\Controller\CtSearchController;
 use \CtSearchBundle\CtSearchBundle;
 use \CtSearchBundle\Classes\IndexManager;
+use CtSearchBundle\Processor\ProcessorFilter;
+use CtSearchBundle\Processor\SmartMapper;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 abstract class Datasource {
@@ -26,6 +29,12 @@ abstract class Datasource {
    * @var string
    */
   private $id;
+
+  /**
+   *
+   * @var boolean
+   */
+  private $hasBatchExecution;
 
   /**
    *
@@ -67,6 +76,22 @@ abstract class Datasource {
   }
 
   /**
+   * @return boolean
+   */
+  public function isHasBatchExecution()
+  {
+    return $this->hasBatchExecution;
+  }
+
+  /**
+   * @param boolean $hasBatchExecution
+   */
+  public function setHasBatchExecution($hasBatchExecution)
+  {
+    $this->hasBatchExecution = $hasBatchExecution;
+  }
+
+  /**
    * @return object
    */
   abstract function getSettings();
@@ -93,10 +118,14 @@ abstract class Datasource {
    */
   function getSettingsForm() {
     if ($this->getController() != null) {
-      return $this->getController()->createFormBuilder($this)->add('name', TextType::class, array(
-            'label' => $this->getController()->get('translator')->trans('Source name'),
-            'required' => true
-      ));
+      return $this->getController()->createFormBuilder($this)
+        ->add('name', TextType::class, array(
+          'label' => $this->getController()->get('translator')->trans('Source name'),
+          'required' => true))
+        ->add('hasBatchExecution', CheckboxType::class, array(
+          'label' => $this->getController()->get('translator')->trans('Batch execution?'),
+          'required' => false
+        ));
     } else {
       return null;
     }
@@ -113,15 +142,20 @@ abstract class Datasource {
    * 
    * @param Datasource $source
    */
-  abstract function execute($execParams = null);
+  public function execute($execParams = null){
+    $this->emptyBatchStack();
+  }
 
   protected function index($doc, $processors = null) {
     global $kernel;
     $debug = $kernel->getContainer()->getParameter('ct_search.debug');
+    $startTime = round(microtime(true) * 1000);
+    $debugTimeStat = [];
     try {
       if ($processors == null) {
         $processors = IndexManager::getInstance()->getRawProcessorsByDatasource($this->id);
       }
+      $smartMappersToDump = [];
       foreach ($processors as $proc) {
         $data = array();
         foreach ($doc as $k => $v) {
@@ -129,6 +163,7 @@ abstract class Datasource {
         }
         $definition = json_decode($proc['definition'], true);
         foreach ($definition['filters'] as $filter) {
+          $filterStartTime = round(microtime(true) * 1000);
           $className = $filter['class'];
           $procFilter = new $className(array(), IndexManager::getInstance());
           $procFilter->setOutput($this->getOutput());
@@ -149,6 +184,15 @@ abstract class Datasource {
           //  $indexManager->log('debug', 'URL : ' . $data['datasource.url'], $filterOutput);
           if (empty($data)) {
             break;
+          }
+          if(get_class($procFilter) == SmartMapper::class){
+            /** @var ProcessorFilter $procFilter */
+            $smartSettings = $procFilter->getSettings();
+            if(isset($smartSettings['force_index']) && $smartSettings['force_index']){
+              if(isset($filterOutput['smart_array'])) {
+                $smartMappersToDump[] = $filterOutput['smart_array'];
+              }
+            }
           }
           foreach ($filterOutput as $k => $v) {
             if ($procFilter->getAutoImplode()) {
@@ -180,6 +224,9 @@ abstract class Datasource {
             }
             unset($v);
           }
+          if($debug){
+            $debugTimeStat['filter_' . $filter['id']] = round(microtime(true) * 1000) - $filterStartTime;
+          }
           unset($filter);
           unset($procFilter);
           unset($filterOutput);
@@ -188,36 +235,51 @@ abstract class Datasource {
         if (!empty($data)) {
           $to_index = array();
           foreach ($definition['mapping'] as $k => $input) {
-            if (isset($data[$input])) {
-              if (is_array($data[$input]) && count($data[$input]) == 1) {
-                $to_index[$k] = $data[$input][0];
-              } else {
-                $to_index[$k] = $data[$input];
+            if(strpos($input, '.smart_array') === FALSE) {
+              if (isset($data[$input])) {
+                if (is_array($data[$input]) && count($data[$input]) == 1) {
+                  $to_index[$k] = $data[$input][0];
+                } else {
+                  $to_index[$k] = $data[$input];
+                }
+              }
+            }
+            else{
+              if (isset($data[$input][$k])) {
+                if (is_array($data[$input][$k]) && count($data[$input][$k]) == 1) {
+                  $to_index[$k] = $data[$input][$k][0];
+                } else {
+                  $to_index[$k] = $data[$input][$k];
+                }
+              }
+            }
+          }
+          //taking care of smart mappers which force indexing all their fields
+          foreach($smartMappersToDump as $smartMapper){
+            foreach($smartMapper as $k => $v){
+              if(!is_array($v)) {
+                $to_index[$k] = trim($this->cleanNonUtf8Chars($v));
+              }
+              else{
+                foreach($v as $vv){
+                  if(is_array($vv)){
+                    $to_index[$k][] = trim($this->cleanNonUtf8Chars($vv));
+                  }
+                }
               }
             }
           }
           $target_r = explode('.', $definition['target']);
           $indexName = $target_r[0];
           $mappingName = $target_r[1];
-          IndexManager::getInstance()->indexDocument($indexName, $mappingName, $to_index);
-          $ac_settings = IndexManager::getInstance()->getACSettings($indexName);
-          $ac_fields = array();
-          if($ac_settings != null){
-            foreach($ac_settings['fields'] as $field){
-              if(explode('.', $field)[0] == $mappingName){
-                $ac_fields[] = explode('.', $field)[1];
-              }
-            }
-          }
-          foreach($ac_fields as $field){
-            if(isset($to_index[$field]) & !empty($to_index[$field])){
-              IndexManager::getInstance()->feedAutocomplete($indexName, is_array($to_index[$field]) ? $to_index[$field][0] : $to_index[$field]);
-              //$indexManager->log('debug', 'Feeding AC with content', is_array($to_index[$field]) ? $to_index[$field][0] : $to_index[$field]);
-            }
-          }
-          if ($debug) {
+          $indexStartTime = round(microtime(true) * 1000);
+          $this->indexDocument($indexName, $mappingName, $to_index);
+          if ($debug && !$this->isHasBatchExecution()) {
             try {
-              IndexManager::getInstance()->log('debug', 'Indexing document from datasource "' . $this->getName() . '"', $to_index);
+              $debugTimeStat['indexing'] = round(microtime(true) * 1000) - $indexStartTime;
+              $debugTimeStat['global'] = round(microtime(true) * 1000) - $startTime;
+              IndexManager::getInstance()->log('debug', 'Timing info', $debugTimeStat, $this);
+              IndexManager::getInstance()->log('debug', 'Indexing document from datasource "' . $this->getName() . '"', $to_index, $this);
             } catch (Exception $ex) {
               
             } catch (\Exception $ex2) {
@@ -244,7 +306,7 @@ abstract class Datasource {
         'File' => $ex->getFile(),
         'Line' => $ex->getLine(),
         'Data in process' => isset($data) ? $this->truncateArray($data) : array(),
-      ));
+      ), $this);
     } catch (\Exception $ex2) {
       //var_dump($ex2);
       IndexManager::getInstance()->log('error', 'Exception occured while indexing document from datasource "' . $this->getName() . '"', array(
@@ -253,12 +315,40 @@ abstract class Datasource {
         'File' => $ex2->getFile(),
         'Line' => $ex2->getLine(),
         'Data in process' => isset($data) ? $this->truncateArray($data) : array(),
-      ));
+      ), $this);
     }
     
     gc_enable();
     gc_collect_cycles();
     
+  }
+
+  private $batchStack = [];
+  const BATCH_STACK_SIZE = 500;
+
+  private function indexDocument($indexName, $mappingName, $to_index){
+    if($this->isHasBatchExecution()){
+      $this->batchStack[] = array(
+        'indexName' => $indexName,
+        'mappingName' => $mappingName,
+        'body' => $to_index,
+      );
+      if(count($this->batchStack) >= static::BATCH_STACK_SIZE){
+        $this->emptyBatchStack();
+      }
+    }
+    else{
+      IndexManager::getInstance()->indexDocument($indexName, $mappingName, $to_index);
+    }
+  }
+
+  private function emptyBatchStack(){
+    IndexManager::getInstance()->bulkIndex($this->batchStack);
+    unset($this->batchStack);
+    if ($this->getOutput() != null) {
+      $this->getOutput()->writeln('Indexing documents in batch stack (stack size is ' . static::BATCH_STACK_SIZE . ')');
+    }
+    $this->batchStack = [];
   }
 
   private function truncateArray($array) {

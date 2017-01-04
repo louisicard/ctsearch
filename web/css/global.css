@@ -220,7 +220,8 @@ form .form-item.required label:after{
 #form_search_page #form_definition,
 #form_processor #form_definition,
 #form_settings,
-#form_mappingDefinition{
+#form_mappingDefinition,
+#form_dynamicTemplates{
   width:500px;
   height:300px;
   font-size:12px;
@@ -315,9 +316,11 @@ form .form-item.required label:after{
 }
 #processor-stack .stack-item .inside .filter-id{
   position:absolute;
-  bottom:5px;
-  left:5px;
+  top:4px;
+  left:40px;
   font-size:10px;
+  background: #ccc;
+  z-index: 2;
 }
 #processor-stack .stack-item .inside .remove-filter{
   position:absolute;
@@ -674,6 +677,10 @@ ul.actions li a.index-add{
   padding-left:20px;
   background:url(../images/index-add.png) no-repeat 0 0;
 }
+ul.actions li a.synonyms-list{
+  padding-left:20px;
+  background:url(../images/equal.png) no-repeat 0 0;
+}
 a.action-delete{
   color:#dd2209;
   border-bottom:1px dotted #dd2209;
@@ -754,4 +761,94 @@ body.page-analytics form#stat-form .actions{
 }
 body.page-analytics #stat-display.chart-loaded{
   min-height:20em;
+}
+table.log-table{
+  width:100%;
+}
+table.log-table tbody td.object{
+  width:40%;
+}
+.log-form .form-item {
+  float: left;
+  margin-right: 1em;
+  margin-bottom:0.25em;
+}
+.log-form .form-action {
+  float: none;
+  clear:both;
+}
+.log-form {
+  margin:1em 0;
+}
+.page-show-logs .prev{
+  float:left;
+  margin:1em 0;
+}
+.page-show-logs .next{
+  float:right;
+  margin:1em 0;
+}
+#search-page-configurator .sortable-option label,
+#sp-def-results .result-mapping label{
+  display:inline-block;
+}
+#synomyms-form textarea{
+  width:100%;
+  min-height:30em;
+  font-family: 'Courier new', sans-serif;
+  font-size:0.8em;
+}
+#search-page-configurator .sortable-option,
+#search-page-configurator .result-mapping{
+  padding:0.25em 0.5em;
+}
+#search-page-configurator h3 + .sortable-option,
+#search-page-configurator h3 + .result-mapping{
+  padding-top:0;
+}
+#search-page-configurator .result-mapping select,
+#search-page-configurator .sortable-option select,
+#search-page-configurator .sortable-option input{
+  margin:0 1em 0 0.25em;
+}
+#search-page-configurator #sp-def-facets .action,
+#search-page-configurator #sp-def-sorting .action{
+  margin-top:0.5em;
+}
+#search-page-configurator .sortable-option a,
+#search-page-configurator .action a{
+  color:#000;
+  border-bottom:1px dotted #000;
+  text-decoration: none;
+}
+#search-page-configurator .sortable-option a {
+  display:inline-block;
+  overflow:hidden;
+  width:16px;
+  height:19px;
+  margin-right:0.5em;
+  text-indent:999px;
+  border:none;
+}
+#search-page-configurator .sortable-option a.up {
+  background:url(../images/arrow-up.png) no-repeat 50% 50%;
+}
+#search-page-configurator .sortable-option a.down {
+  background:url(../images/arrow-down.png) no-repeat 50% 50%;
+}
+#search-page-configurator .sortable-option a.remove {
+  background:url(../images/remove.png) no-repeat 50% 50%;
+}
+#search-page-configurator .result-mapping .result-mapping-field {
+  display:inline-block;
+  width:13em;
+  max-width:100%;
+}
+#search-page-configurator #suggest-container,
+#search-page-configurator #mlt-container{
+  margin:0.75em 0;
+}
+#search-page-configurator #suggest-container label,
+#search-page-configurator #mlt-container label{
+  margin-bottom:0.25em;
 }

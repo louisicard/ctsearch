@@ -11,7 +11,7 @@
       <thead>
         <tr>
           <th>{{'Name'|trans}}</th>
-          <th>{{'index'|trans}}</th>
+          <th>{{'Mapping'|trans}}</th>
           <th>&nbsp;</th>
         </tr>
       </thead>
@@ -21,7 +21,7 @@
           {%if class=='even'%}{%set class='odd'%}{%else%}{%set class='even'%}{%endif%}
           <tr class="{{class}}">
             <td>{{searchPage.name}}</td>
-            <td>{{searchPage.indexName}}</td>
+            <td>{{searchPage.mapping}}</td>
             <td class="actions">
               <ul>
                 <li><a href="{{path('search-page-display', {'id': searchPage.id})}}" target="_blank">{{'Open'|trans}}</a></li>

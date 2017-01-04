@@ -11,6 +11,7 @@
 /composer.phar
 /vendor/
 /web/bundles/
+/web/assetic/
 /composer.phar
 /nbproject/
 /.idea

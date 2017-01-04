@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CtSearch search</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+    {% stylesheets '@CtSearchClientBundle/Resources/public/css/*' filter='cssrewrite' %}
+    <link rel="stylesheet" type="text/css" href="{{ asset_url }}"/>
+    {% endstylesheets %}
+    <script type="text/javascript">
+        var __searchclient_base_url = '{{path('ct_search_client_homepage')}}';
+        var __searchclient_service_url = '{{ serviceUrl|raw }}';
+        var __searchclient_mapping = '{{ mapping }}';
+        var __searchclient_params = {{ searchParams|json_encode()|trim()|raw }};
+    </script>
+    {% javascripts '@CtSearchClientBundle/Resources/public/js/*' %}
+    <script src="{{ asset_url }}"></script>
+    {% endjavascripts %}
+    <style type="text/css">
+        a.ajax-link {
+        {% image '@CtSearchClientBundle/Resources/public/images/loading_small.gif' %} background: url('{{ asset_url }}') no-repeat -2em -2em;
+        {% endimage %}
+        }
+
+        .search-form input[type="submit"] {
+        {% image '@CtSearchClientBundle/Resources/public/images/search.png' %} background-image: url('{{ asset_url }}');
+        {% endimage %}
+        }
+
+        .facet-block h2:after {
+        {% image '@CtSearchClientBundle/Resources/public/images/arrow.png' %} background-image: url('{{ asset_url }}');
+        {% endimage %}
+        }
+    </style>
+    {% image '@CtSearchClientBundle/Resources/public/images/logo.png' %}
+    <link rel="icon" type="image/png" href="{{ asset_url }}"/>
+    {% endimage %}
+</head>
+<body>
+<main>
+    <div class="search-form">
+        <form method="get" action="">
+            <input type="hidden" name="mapping" value="{{ context.mapping }}"/>
+            <input type="hidden" name="sp_id" value="{{ searchPageId }}"/>
+            <div class="form-item">
+                <input type="text" name="query" value="{{ context.query }}" placeholder="Search : enter keywords..." autocomplete="off" />
+            </div>
+            <div class="form-action">
+                <input type="submit" value="Search"/>
+            </div>
+        </form>
+    </div>
+    {% if sortingOptions is defined and sortingOptions is not empty or facets is defined and facets is not empty%}
+    <div class="sidebar">
+        {% if sortingOptions is defined and sortingOptions is not empty %}
+            <div class="sorting">
+                <h2>Sort by</h2>
+                <div class="sorting-content">
+                    <ul>
+                        {% for sortingOption in sortingOptions %}
+                        <li{{ sortingOption.active ? ' class="active"' : '' }}><a href="{{ sortingOption.url }}" class="ajax-link">{{ sortingOption.label }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+        {% if facets is defined and facets is not empty %}
+            <div class="facets">
+                {% for facet_def in searchParams.facets %}
+                    {% set facet_name = facet_def|keys.0 %}
+                    {% set facet_label = facet_def[facet_def|keys.0].label is defined ? facet_def[facet_def|keys.0].label : 'No name' %}
+                    {% if facets[facet_name] is defined %}
+                        {% set facet = facets[facet_name] %}
+                        {% if facet.buckets|length > 0 %}
+                            {% set active = false %}
+                            {% for value in facet.buckets %}
+                                {% if value.applied %}
+                                    {% set active = true %}
+                                {% endif %}
+                            {% endfor %}
+                            <div id="facet-block-{{ facet_name|replace('.', '_') }}" class="facet-block{% if active %} active{% endif %}">
+                                <h2>{{ facet_label }}</h2>
+                                <div class="facet-content">
+                                    <ul class="facet-list">
+                                        {% for value in facet.buckets %}
+                                            {% if value.applied %}
+                                                <li>{{ value.key }} ({{ value.doc_count }}) <a href="{{ value.facet_link }}"
+                                                                                               class="remove-filter ajax-link">Remove</a>
+                                                </li>
+                                            {% else %}
+                                                <li><a href="{{ value.facet_link }}" class="ajax-link">{{ value.key }}</a>
+                                                    ({{ value.doc_count }})
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                    {% if facet.see_more_link is defined %}
+                                        <div class="see-more">
+                                            <a href="{{ facet.see_more_link }}" class="ajax-link">See more</a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    <div class="results{% if (facets is not defined or facets is empty) and (sortingOptions is not defined or sortingOptions is empty) %} no-facets{% endif %}">
+        <div class="search-stat"><strong>{{ context.total }}</strong> results</div>
+        <div class="results-list">
+            {% if context.didYouMean is not null and context.total < 5 %}
+                <div class="did-you-mean">Did you mean <em><a
+                                href="{{ path('ct_search_client_homepage', {mapping: mapping, sp_id: searchPageId, query: context.didYouMean}) }}">{{ context.didYouMean }}</a></em>?
+                </div>
+            {% endif %}
+            <ul>
+                {% for result in context.results %}
+                    <li>
+                        {% include "CtSearchClientBundle:Default:result-item.html.twig" %}
+                        <div class="source">
+                            {{ result|json_encode() }}
+                        </div>
+                        {% if searchParams.more_like_this is defined and searchParams.more_like_this|length > 0 %}
+                            <div class="more-like-this">
+                                <a href="{{ path('ct_search_client_mlt', {mapping: mapping, sp_id: searchPageId, doc_id: result._id, fields: searchParams.more_like_this|join(',')}) }}"
+                                   class="ajax-link">See more like this</a>
+                            </div>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="pager">
+            {{ pager|raw }}
+        </div>
+    </div>
+</main>
+</body>
+</html>

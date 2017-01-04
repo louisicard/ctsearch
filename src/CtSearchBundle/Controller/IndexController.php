@@ -4,6 +4,7 @@ namespace CtSearchBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -15,6 +16,8 @@ use CtSearchBundle\Classes\IndexManager;
 use CtSearchBundle\Classes\Index;
 use CtSearchBundle\Classes\Mapping;
 use \Exception;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Translation\Translator;
 
 class IndexController extends Controller {
 
@@ -160,12 +163,20 @@ class IndexController extends Controller {
         'label' => $this->get('translator')->trans('Mapping definition'),
         'required' => true
       ))
+      ->add('dynamicTemplates', TextareaType::class, array(
+        'label' => $this->get('translator')->trans('Dynamic templates'),
+        'required' => false
+      ))
       ->add('save', SubmitType::class, array('label' => $this->get('translator')->trans('Save mapping')))
       ->getForm();
     $form->handleRequest($request);
 
     if ($form->isValid()) {
+      /** @var Mapping $mapping */
       $mapping = $form->getData();
+      if($mapping->getDynamicTemplates() == ''){
+        $mapping->setDynamicTemplates(NULL);
+      }
       try {
         IndexManager::getInstance()->updateMapping($mapping);
         CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Mapping has been updated'));
@@ -209,69 +220,6 @@ class IndexController extends Controller {
   }
 
   /**
-   * @Route("/indexes/ac-settings/{index_name}", name="index-ac-settings")
-   */
-  public function editACSettingsAction(Request $request, $index_name) {
-    $ac_settings = IndexManager::getInstance()->getACSettings($index_name);
-
-    $infos = IndexManager::getInstance()->getElasticInfo()[$index_name];
-    $mappings = isset($infos['mappings']) ? $infos['mappings'] : array();
-    $field_choices = array();
-    foreach ($mappings as $index => $mapping) {
-      if ($mapping['name'] != '.ctsearch-autocomplete') {
-        $fields = array_keys(json_decode(IndexManager::getInstance()->getMapping($index_name, $mapping['name'])->getMappingDefinition(), true));
-        foreach ($fields as $field) {
-          $field_choices[$mapping['name'] . '.' . $field] = $mapping['name'] . '.' . $field;
-        }
-      }
-    }
-
-    $filter_choices = array();
-    foreach (IndexManager::getInstance()->getAvailableFilters($index_name) as $filter) {
-      $filter_choices[$filter] = $filter;
-    }
-    if (isset($filter_choices['ctsearch_ac_shingle'])) {
-      unset($filter_choices['ctsearch_ac_shingle']);
-    }
-
-    $form = $this->createFormBuilder($ac_settings != null ? $ac_settings : array('index_name' => $index_name))
-      ->add('index_name', TextType::class, array(
-        'label' => $this->get('translator')->trans('Index name'),
-        'disabled' => true,
-        'required' => true,
-      ))
-      ->add('fields', ChoiceType::class, array(
-        'label' => $this->get('translator')->trans('Fields'),
-        'expanded' => true,
-        'multiple' => true,
-        'choices' => $field_choices,
-        'attr' => array('class' => 'type-choices')
-      ))
-      ->add('analyzer_filters', ChoiceType::class, array(
-        'label' => $this->get('translator')->trans('Analyzer filters'),
-        'expanded' => true,
-        'multiple' => true,
-        'choices' => $filter_choices,
-        'attr' => array('class' => 'type-choices')
-      ))
-      ->add('save', SubmitType::class, array('label' => $this->get('translator')->trans('Save')))
-      ->getForm();
-    $form->handleRequest($request);
-
-    if ($form->isValid()) {
-      IndexManager::getInstance()->saveACSettings($form->getData());
-      CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Settings have been saved'));
-      return $this->redirect($this->generateUrl('indexes'));
-    }
-    $vars = array(
-      'title' => $this->get('translator')->trans('Edit autocomplete settings'),
-      'main_menu_item' => 'indexes',
-      'form' => $form->createView(),
-    );
-    return $this->render('ctsearch/indexes.html.twig', $vars);
-  }
-
-  /**
    * @Route("/indexes/mapping-stat/{index_name}/{mapping_name}", name="index-mapping-stat")
    */
   public function mappingStatAction(Request $request, $index_name, $mapping_name) {
@@ -295,6 +243,146 @@ class IndexController extends Controller {
       $data['fields'] = count(json_decode($mapping->getMappingDefinition(), TRUE));
     }
     return new \Symfony\Component\HttpFoundation\Response(json_encode($data), 200, array('Content-type' => 'application/json'));
+  }
+
+  /**
+   * @Route("/indexes/synonyms", name="synonyms-list")
+   * @param Request $request
+   * @return Response
+   */
+  public function listSynonymsDictionariesAction(Request $request){
+    $vars = array(
+      'title' => $this->get('translator')->trans('Synonyms'),
+      'main_menu_item' => 'indexes'
+    );
+
+    $location = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'web' . DIRECTORY_SEPARATOR . 'synonyms';
+    /** @var Translator $translator */
+    $translator = $this->get('translator');
+    if(!realpath($location)) {
+      CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('Path @path does not exist', array('@path' => $location)));
+    }
+    else{
+      if(!is_writable($location)){
+        CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('Path <strong>@path</strong> is not writable', array('@path' => realpath($location))));
+      }
+      else{
+        $files = scandir($location);
+        $dictionaries = array();
+        foreach($files as $file){
+          if(is_file($location . DIRECTORY_SEPARATOR . $file)){
+            $dictionaries[] = array(
+              'name' => $file,
+              'path' => realpath($location . DIRECTORY_SEPARATOR . $file)
+            );
+          }
+        }
+      }
+      $vars['dictionaries'] = $dictionaries;
+    }
+
+    return $this->render('ctsearch/synonyms.html.twig', $vars);
+  }
+
+  /**
+   * @Route("/indexes/synonyms/add", name="synonyms-add")
+   * @Route("/indexes/synonyms/edit/{fileName}", name="synonyms-edit")
+   * @param Request $request
+   * @return Response
+   */
+  public function addSynonymsDictionariesAction(Request $request, $fileName = null){
+    $vars = array(
+      'title' => $this->get('translator')->trans('Synonyms'),
+      'sub_title' => $fileName == null ? $this->get('translator')->trans('New dictionary') : $this->get('translator')->trans('Edit dictionary'),
+      'main_menu_item' => 'indexes'
+    );
+
+    $location = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'web' . DIRECTORY_SEPARATOR . 'synonyms';
+
+    $data = array(
+      'name' => $fileName != null ? $fileName : '',
+      'content' => $fileName != null ? file_get_contents($location . DIRECTORY_SEPARATOR . $fileName) : '# Blank lines and lines starting with pound are comments.
+
+# Explicit mappings match any token sequence on the LHS of "=>"
+# and replace with all alternatives on the RHS.  These types of mappings
+# ignore the expand parameter in the schema.
+# Examples:
+i-pod, i pod => ipod,
+sea biscuit, sea biscit => seabiscuit
+
+# Equivalent synonyms may be separated with commas and give
+# no explicit mapping.  In this case the mapping behavior will
+# be taken from the expand parameter in the schema.  This allows
+# the same synonym file to be used in different synonym handling strategies.
+# Examples:
+ipod, i-pod, i pod
+foozball , foosball
+universe , cosmos
+
+# If expand==true, "ipod, i-pod, i pod" is equivalent
+# to the explicit mapping:
+ipod, i-pod, i pod => ipod, i-pod, i pod
+# If expand==false, "ipod, i-pod, i pod" is equivalent
+# to the explicit mapping:
+ipod, i-pod, i pod => ipod
+
+# Multiple synonym mapping entries are merged.
+foo => foo bar
+foo => baz
+# is equivalent to
+foo => foo bar, baz',
+    );
+    $form = $this->createFormBuilder($data)
+      ->add('name', TextType::class, array(
+        'label' => $this->get('translator')->trans('Name'),
+        'required' => true,
+      ))
+      ->add('content', TextareaType::class, array(
+        'label' => $this->get('translator')->trans('Content'),
+        'required' => true,
+      ))
+      ->add('submit', SubmitType::class, array(
+        'label' => $this->get('translator')->trans('Save')
+      ))
+      ->getForm();
+
+    $form->handleRequest($request);
+
+    if($form->isValid()){
+      $name = $form->getData()['name'];
+      $name = str_replace('.txt', '', $name);
+      $name = preg_replace('/\W/i', '_', strtolower($name));
+      $file = $location . DIRECTORY_SEPARATOR . $name . '.txt';
+      $translator = $this->get('translator');
+      if (!file_exists($file) || rtrim($fileName, '.txt') == $name) {
+        file_put_contents($file, $form->getData()['content']);
+        CtSearchBundle::addSessionMessage($this, 'status', $translator->trans('File <strong>@path</strong> has been updated', array('@path' => realpath($file))));
+        if($fileName !=null && rtrim($fileName, '.txt') != $name) {
+          unlink($location . DIRECTORY_SEPARATOR . $fileName);
+        }
+        return $this->redirectToRoute('synonyms-list');
+      } else {
+        CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('File <strong>@path</strong> already exists', array('@path' => realpath($file))));
+      }
+    }
+
+    $vars['form'] = $form->createView();
+
+    return $this->render('ctsearch/synonyms.html.twig', $vars);
+  }
+
+  /**
+   * @Route("/indexes/synonyms/delete/{fileName}", name="synonyms-delete")
+   * @param Request $request
+   * @return Response
+   */
+  public function deleteSynonymsDictionariesAction(Request $request, $fileName){
+    $location = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'web' . DIRECTORY_SEPARATOR . 'synonyms';
+    $file = $location . DIRECTORY_SEPARATOR . $fileName;
+    unlink($file);
+    $translator = $this->get('translator');
+    CtSearchBundle::addSessionMessage($this, 'status', $translator->trans('File <strong>@path</strong> has been deleted', array('@path' => realpath($file))));
+    return $this->redirectToRoute('synonyms-list');
   }
 
 }

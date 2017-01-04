@@ -98,6 +98,10 @@ class IndexManager {
     $params = array(
       'index' => $index->getIndexName(),
     );
+    $settings['analysis']['analyzer']['transliterator'] = array(
+      'filter' => array('standard', 'asciifolding', 'lowercase'),
+      'tokenizer' => 'keyword'
+    );
     if (count($settings) > 0) {
       $params['body'] = array(
         'settings' => $settings,
@@ -171,8 +175,13 @@ class IndexManager {
         'index' => $indexName,
         'type' => $mappingName,
       ));
-      if (isset($mapping[$indexName]['mappings'][$mappingName]['properties']))
-        return new Mapping($indexName, $mappingName, json_encode($mapping[$indexName]['mappings'][$mappingName]['properties'], JSON_PRETTY_PRINT));
+      if (isset($mapping[$indexName]['mappings'][$mappingName]['properties'])) {
+        $obj = new Mapping($indexName, $mappingName, json_encode($mapping[$indexName]['mappings'][$mappingName]['properties'], JSON_PRETTY_PRINT));
+        if(isset($mapping[$indexName]['mappings'][$mappingName]['dynamic_templates'])){
+          $obj->setDynamicTemplates(json_encode($mapping[$indexName]['mappings'][$mappingName]['dynamic_templates'], JSON_PRETTY_PRINT));
+        }
+        return $obj;
+      }
       else
         return null;
     } catch (\Exception $ex) {
@@ -196,12 +205,16 @@ class IndexManager {
         )
       ));
     }
+    $body = array(
+      'properties' => json_decode($mapping->getMappingDefinition(), true),
+    );
+    if($mapping->getDynamicTemplates() != NULL){
+      $body['dynamic_templates'] = json_decode($mapping->getDynamicTemplates(), true);
+    }
     $this->getClient()->indices()->putMapping(array(
       'index' => $mapping->getIndexName(),
       'type' => $mapping->getMappingName(),
-      'body' => array(
-        'properties' => json_decode($mapping->getMappingDefinition(), true),
-      ),
+      'body' => $body,
     ));
   }
 
@@ -297,9 +310,11 @@ class IndexManager {
         ));
         if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
           $hit = $r['hits']['hits'][0];
+          /** @var Datasource $datasource */
           $datasource = new $hit['_source']['class']($hit['_source']['name'], $controller);
           $datasource->initFromSettings(unserialize($hit['_source']['definition']));
           $datasource->setId($id);
+          $datasource->setHasBatchExecution(isset($hit['_source']['has_batch_execution']) && $hit['_source']['has_batch_execution']);
           unset($r);
           return $datasource;
         }
@@ -355,7 +370,8 @@ class IndexManager {
       'body' => array(
         'class' => get_class($datasource),
         'definition' => serialize($datasource->getSettings()),
-        'name' => $datasource->getName()
+        'name' => $datasource->getName(),
+        'has_batch_execution' => $datasource->isHasBatchExecution()
       )
     );
     if ($id != null) {
@@ -567,6 +583,10 @@ class IndexManager {
     return $r;
   }
 
+  public function flush(){
+    $this->getClient()->indices()->flush();
+  }
+
   /**
    * 
    * @return \CtSearchBundle\Classes\SearchPage[]
@@ -583,7 +603,9 @@ class IndexManager {
         $searchPages = array();
         if (isset($r['hits']['hits'])) {
           foreach ($r['hits']['hits'] as $hit) {
-            $searchPages[] = new SearchPage($hit['_source']['name'], $hit['_source']['index_name'], unserialize($hit['_source']['definition']), unserialize($hit['_source']['config']), $hit['_id']);
+            if(isset($hit['_source']['mapping'])) {//Check for CtSearch 2.2 compatibility
+              $searchPages[] = new SearchPage($hit['_source']['name'], $hit['_source']['mapping'], unserialize($hit['_source']['definition']), $hit['_id']);
+            }
           }
         }
         unset($r);
@@ -646,7 +668,7 @@ class IndexManager {
         ));
         if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
           $hit = $r['hits']['hits'][0];
-          return new SearchPage($hit['_source']['name'], $hit['_source']['index_name'], unserialize($hit['_source']['definition']), unserialize($hit['_source']['config']), $hit['_id']);
+          return new SearchPage($hit['_source']['name'], $hit['_source']['mapping'], unserialize($hit['_source']['definition']), $hit['_id']);
         }
         return null;
       } catch (\Exception $ex) {
@@ -676,9 +698,8 @@ class IndexManager {
       'type' => 'search_page',
       'body' => array(
         'name' => $searchPage->getName(),
-        'index_name' => $searchPage->getIndexName(),
-        'definition' => serialize(json_decode($searchPage->getDefinition(), true)),
-        'config' => serialize(json_decode($searchPage->getConfig(), true))
+        'mapping' => $searchPage->getMapping(),
+        'definition' => serialize(json_decode($searchPage->getDefinition(), true))
       )
     );
     if ($searchPage->getId() != null) {
@@ -743,12 +764,19 @@ class IndexManager {
     ));
   }
 
-  public function log($type, $message, $object) {
+  /**
+   * @param string $type
+   * @param string $message
+   * @param mixed $object
+   * @param Datasource $datasource
+   */
+  public function log($type, $message, $object, $datasource) {
     $this->indexDocument('.ctsearch', 'logs', array(
       'type' => $type,
       'message' => $message,
       'object' => json_encode($object),
       'date' => date('Y-m-d\TH:i:s'),
+      'log_datasource_name' => $datasource->getName()
     ));
   }
 
@@ -859,41 +887,6 @@ class IndexManager {
     $this->getClient()->indices()->flush();
   }
 
-  public function getACSettings($indexName) {
-    if ($this->getIndex('.ctsearch') == null) {
-      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_index_settings.json');
-      $this->createIndex(new Index('.ctsearch', $settingsDefinition));
-    }
-    if ($this->getMapping('.ctsearch', 'ac_settings') == null) {
-      $acSettingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_ac_settings_defintion.json');
-      $this->updateMapping(new Mapping('.ctsearch', 'ac_settings', $acSettingsDefinition));
-    }
-    try {
-      $r = $this->getClient()->search(array(
-        'index' => '.ctsearch',
-        'type' => 'ac_settings',
-        'body' => array(
-          'query' => array(
-            'match' => array(
-              'ct_index_name' => $indexName,
-            )
-          )
-        )
-      ));
-      if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
-        $hit = $r['hits']['hits'][0];
-        return array(
-          'index_name' => $hit['_source']['index_name'],
-          'fields' => json_decode($hit['_source']['fields'], true),
-          'analyzer_filters' => json_decode($hit['_source']['analyzer_filters'], true),
-        );
-      }
-      return null;
-    } catch (\Exception $ex) {
-      return null;
-    }
-  }
-
   public function getAvailableFilters($indexName) {
     $infos = $this->getClient()->indices()->getSettings(array(
       'index' => $indexName
@@ -919,123 +912,6 @@ class IndexManager {
     }
     unset($infos);
     return $filters;
-  }
-
-  public function saveACSettings($settings) {
-    $this->getACSettings($settings['index_name']);
-    $this->getClient()->deleteByQuery(array(
-      'index' => '.ctsearch',
-      'type' => 'ac_settings',
-      'body' => array(
-        'query' => array(
-          'match' => array(
-            'ct_index_name' => $settings['index_name'],
-          )
-        )
-      )
-    ));
-    $this->indexDocument('.ctsearch', 'ac_settings', array(
-      'ct_index_name' => $settings['index_name'],
-      'fields' => json_encode($settings['fields']),
-      'analyzer_filters' => json_encode($settings['analyzer_filters']),
-    ));
-    $this->getClient()->indices()->close(array(
-      'index' => $settings['index_name']
-    ));
-    $this->getClient()->indices()->putSettings(array(
-      'index' => $settings['index_name'],
-      'body' => array(
-        'analysis' => array(
-          'filter' => array(
-            'ctsearch_ac_shingle' => array(
-              'max_shingle_size' => '5',
-              'min_shingle_size' => '2',
-              'output_unigrams_if_no_shingles' => 'true',
-              'type' => 'shingle',
-              'output_unigrams' => 'false',
-              'filler_token' => ''
-            )
-          ),
-          'analyzer' => array(
-            'ctsearch_ac' => array(
-              'type' => 'custom',
-              'tokenizer' => 'standard',
-              'filter' => array_values(array_unique(array_merge($settings['analyzer_filters'], array('ctsearch_ac_shingle', 'trim', 'unique'))))
-            ),
-            'ctsearch_ac_transliterate' => array(
-              'type' => 'custom',
-              'tokenizer' => 'standard',
-              'filter' => array('asciifolding')
-            )
-          )
-        )
-      )
-    ));
-    $this->getClient()->indices()->open(array(
-      'index' => $settings['index_name']
-    ));
-  }
-
-  public function feedAutocomplete($indexName, $text) {
-    $infos = $this->getClient()->indices()->getSettings(array(
-      'index' => $indexName
-    ));
-    if (isset($infos[$indexName]['settings']['index']['analysis']['analyzer']['ctsearch_ac'])) {
-      $shingles_raw = $this->getClient()->indices()->analyze(array(
-        'index' => $indexName,
-        'analyzer' => 'ctsearch_ac',
-        'text' => $text
-      ));
-      $shingles = array();
-      foreach ($shingles_raw['tokens'] as $shingle) {
-        $shingle = preg_replace('/\s+/', ' ', trim($shingle['token']));
-        if (!in_array($shingle, $shingles)) {
-          $shingles[] = $shingle;
-        }
-      }
-      if ($this->getMapping($indexName, '.ctsearch-autocomplete') == null) {
-        $mappingDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_ac_mapping_defintion.json');
-        $this->updateMapping(new Mapping($indexName, '.ctsearch-autocomplete', $mappingDefinition));
-      }
-      foreach ($shingles as $shingle) {
-        $res = $this->search($indexName, json_encode(array(
-          'query' => array(
-            'bool' => array(
-              'must' => array(
-                'type' => array(
-                  'value' => '.ctsearch-autocomplete'
-                )
-              ),
-              'must' => array(
-                'term' => array(
-                  'text' => $shingle
-                )
-              )
-            )
-          )
-        )));
-        if ($res['hits']['total'] == 0) {
-          $r = $this->indexDocument($indexName, '.ctsearch-autocomplete', array(
-            '_id' => $shingle,
-            'text' => $shingle,
-            'text_transliterate' => $shingle,
-            'counter' => 1,
-              ), false);
-        } else {
-          $r = $this->indexDocument($indexName, '.ctsearch-autocomplete', array(
-            '_id' => $shingle,
-            'text' => $shingle,
-            'text_transliterate' => $shingle,
-            'counter' => $res['hits']['hits'][0]['_source']['counter'] + 1,
-              ), false);
-        }
-        unset($r);
-      }
-      unset($shingles);
-      $this->getClient()->indices()->flush(array(
-        'index' => $indexName
-      ));
-    }
   }
 
   public function deleteByQuery($indexName, $mappingName, $query) {
@@ -1389,6 +1265,53 @@ class IndexManager {
       'snapshot' => $name,
       'body' => $body
     ));
+  }
+
+  public function scroll($queryBody, $index, $mapping, $callback, $context = array()){
+    $r = $this->getClient()->search(array(
+      'index' => $index,
+      'type' => $mapping,
+      'body' => $queryBody,
+      'scroll' => '1ms'
+    ));
+    if(isset($r['_scroll_id'])){
+      $scrollId = $r['_scroll_id'];
+      while(count($r['hits']['hits']) > 0){
+        foreach($r['hits']['hits'] as $hit){
+          $callback($hit, $context);
+        }
+        $r = $this->client->scroll(array(
+          'scroll_id' => $scrollId,
+          'scroll' => '1m'
+        ));
+      }
+    }
+  }
+
+  public function customSearch($params){
+    return $this->getClient()->search($params);
+  }
+
+  /**
+   * @param $items
+   */
+  public function bulkIndex($items){
+    $bulkString = '';
+    foreach ($items as $item) {
+      $data = array('index' => array('_index' => $item['indexName'], '_type' => $item['mappingName']));
+      if(isset($item['body']['_id'])){
+        $data['index']['_id'] = $item['body']['_id'];
+        unset($item['body']['_id']);
+      }
+      $bulkString .= json_encode($data) . "\n";
+      $bulkString .= json_encode($item['body']) . "\n";
+    }
+    if(count($items) > 0) {
+      $params['index'] = $items[0]['indexName'];
+      $params['type'] = $items[0]['mappingName'];
+      $params['body'] = $bulkString;
+      $this->getClient()->bulk($params);
+    }
   }
 
 }

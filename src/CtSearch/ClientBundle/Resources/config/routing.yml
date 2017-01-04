@@ -1,0 +1,6 @@
+ct_search_client_homepage:
+    path:     /search-client/search
+    defaults: { _controller: CtSearchClientBundle:Search:search }
+ct_search_client_mlt:
+    path:     /search-client/mlt
+    defaults: { _controller: CtSearchClientBundle:Search:moreLikeThis }

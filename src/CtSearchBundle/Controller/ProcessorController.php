@@ -2,6 +2,7 @@
 
 namespace CtSearchBundle\Controller;
 
+use CtSearchBundle\Datasource\Datasource;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -244,11 +245,15 @@ class ProcessorController extends CtSearchController {
             'class' => get_class($datasource),
             'id' => $datasource->getId(),
             'name' => $datasource->getName(),
+            'has_batch_execution' => $datasource->isHasBatchExecution() ? 1 : 0,
             'settings' => $datasource->getSettings()
           ),
           'matching_lists' => $matchingLists,
           'processor_definition' => $procDefinition
         );
+        if($mapping->getDynamicTemplates() != NULL){
+          $export['mapping']['dynamic_templates'] = json_decode($mapping->getDynamicTemplates(), true);
+        }
         return new Response(json_encode($export, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json;charset=utf-8', 'Content-disposition' => 'attachment;filename=processor_' . $proc->getTarget() . '.json'));
       } else {
         CtSearchBundle::addSessionMessage($this, 'error', $this->get('translator')->trans('No processor found for this id'));
@@ -290,19 +295,26 @@ class ProcessorController extends CtSearchController {
         IndexManager::getInstance()->createIndex(new \CtSearchBundle\Classes\Index($json['index']['name'], json_encode($json['index']['settings'])));
       }
 
-      IndexManager::getInstance()->updateMapping(new \CtSearchBundle\Classes\Mapping($json['index']['name'], $json['mapping']['name'], json_encode($json['mapping']['definition'])));
+      $mapping = new \CtSearchBundle\Classes\Mapping($json['index']['name'], $json['mapping']['name'], json_encode($json['mapping']['definition']));
+      if(isset($json['mapping']['dynamic_templates'])){
+        $mapping->setDynamicTemplates(json_encode($json['mapping']['dynamic_templates']));
+      }
+      IndexManager::getInstance()->updateMapping($mapping);
 
       $datasourceExists = IndexManager::getInstance()->getDatasource($json['datasource']['id'], $this) != null;
       if ($datasourceExists && $override) {
         IndexManager::getInstance()->deleteDatasource($json['datasource']['id']);
+        /** @var Datasource $datasource */
         $datasource = new $json['datasource']['class']($json['datasource']['name'], $this);
         $datasource->initFromSettings($json['datasource']['settings']);
         $datasource->setId($json['datasource']['id']);
+        $datasource->setHasBatchExecution($json['datasource']['has_batch_execution']);
         IndexManager::getInstance()->saveDatasource($datasource, $json['datasource']['id']);
       } elseif (!$datasourceExists) {
         $datasource = new $json['datasource']['class']($json['datasource']['name'], $this);
         $datasource->initFromSettings($json['datasource']['settings']);
         $datasource->setId($json['datasource']['id']);
+        $datasource->setHasBatchExecution($json['datasource']['has_batch_execution']);
         IndexManager::getInstance()->saveDatasource($datasource, $json['datasource']['id']);
       }
 
