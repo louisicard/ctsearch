@@ -143,7 +143,9 @@ abstract class Datasource {
    * @param Datasource $source
    */
   public function execute($execParams = null){
-    $this->emptyBatchStack();
+    if($this->isHasBatchExecution()) {
+      $this->emptyBatchStack();
+    }
   }
 
   protected function index($doc, $processors = null) {

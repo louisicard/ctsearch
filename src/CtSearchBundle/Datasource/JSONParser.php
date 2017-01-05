@@ -6,56 +6,66 @@ use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
-class JSONParser extends Datasource {
+class JSONParser extends Datasource
+{
 
   private $jsonFields;
 
-  public function getSettings() {
+  public function getSettings()
+  {
     return array(
       'jsonFields' => $this->getJsonFields() != null ? $this->getJsonFields() : '',
     );
   }
-  
-  public function initFromSettings($settings) {
-    foreach($settings as $k => $v){
+
+  public function initFromSettings($settings)
+  {
+    foreach ($settings as $k => $v) {
       $this->{$k} = $v;
     }
   }
 
-  public function execute($execParams = null) {
-    if($execParams != null){
-      if(isset($execParams['json_file']) && ($execParams['json_file']->getMimeType() == 'application/json' || $execParams['json_file']->getMimeType() == 'text/plain')){
-        $json = file_get_contents($execParams['json_file']->getRealPath());
+  public function execute($execParams = null)
+  {
+    if ($execParams != null) {
+      if (isset($execParams['json_file'])) {
+        if(is_string($execParams['json_file']) && file_exists($execParams['json_file'])){
+          $json = file_get_contents($execParams['json_file']);
+        }
+        elseif ($execParams['json_file']->getMimeType() == 'application/json' || $execParams['json_file']->getMimeType() == 'text/plain') {
+          $json = file_get_contents($execParams['json_file']->getRealPath());
+        }
       }
     }
-    if(!isset($json))
+    if (!isset($json))
       $json = "[]";
     $data = json_decode($json, true);
-    if($data == null){
+    if ($data == null) {
       $data = array();
     }
     $r = array();
     $fields = array_map('trim', explode(',', $this->getJsonFields()));
-    foreach($data as $doc){
+    foreach ($data as $doc) {
       $tmp = array();
-      foreach($fields as $field){
-        if(isset($doc[$field]))
+      foreach ($fields as $field) {
+        if (isset($doc[$field]))
           $tmp[$field] = $doc[$field];
       }
-      if(!empty($tmp))
+      if (!empty($tmp))
         $r[] = $tmp;
     }
     $this->multiIndex($r);
     parent::execute($execParams);
   }
 
-  public function getSettingsForm() {
+  public function getSettingsForm()
+  {
     if ($this->getController() != null) {
       $formBuilder = parent::getSettingsForm();
       $formBuilder->add('jsonFields', TextType::class, array(
-          'label' => $this->getController()->get('translator')->trans('JSON fields (comma separated)'),
-          'required' => true
-        ))
+        'label' => $this->getController()->get('translator')->trans('JSON fields (comma separated)'),
+        'required' => true
+      ))
         ->add('ok', SubmitType::class, array('label' => $this->getController()->get('translator')->trans('Save')));
       return $formBuilder;
     } else {
@@ -63,7 +73,8 @@ class JSONParser extends Datasource {
     }
   }
 
-  public function getExcutionForm() {
+  public function getExcutionForm()
+  {
     $formBuilder = $this->getController()->createFormBuilder()
       ->add('json_file', FileType::class, array(
         'label' => 'JSON file to import',
@@ -73,19 +84,23 @@ class JSONParser extends Datasource {
     return $formBuilder;
   }
 
-  public function getFields() {
+  public function getFields()
+  {
     return array_map('trim', explode(',', $this->getJsonFields()));
   }
 
-  public function getDatasourceDisplayName() {
+  public function getDatasourceDisplayName()
+  {
     return 'JSON parser';
   }
-  
-  function getJsonFields() {
+
+  function getJsonFields()
+  {
     return $this->jsonFields;
   }
 
-  function setJsonFields($jsonFields) {
+  function setJsonFields($jsonFields)
+  {
     $this->jsonFields = $jsonFields;
   }
 
