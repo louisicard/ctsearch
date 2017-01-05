@@ -15,15 +15,20 @@ class Processor {
    */
   private $target;
   /**
+   * @var array
+   */
+  private $targetSiblings;
+  /**
    *
    * @var array
    */
   private $definition;
   
-  function __construct($datasourceId = null, $target = '', $definition = array()) {
+  function __construct($datasourceId = null, $target = '', $definition = array(), $targetSiblings = array()) {
     $this->datasourceId = $datasourceId;
     $this->target = $target;
     $this->definition = $definition;
+    $this->targetSiblings = $targetSiblings;
   }
   function getDatasourceId() {
     return $this->datasourceId;
@@ -47,6 +52,22 @@ class Processor {
 
   function setDefinition($definition) {
     $this->definition = $definition;
+  }
+
+  /**
+   * @return array
+   */
+  public function getTargetSiblings()
+  {
+    return $this->targetSiblings;
+  }
+
+  /**
+   * @param array $targetSiblings
+   */
+  public function setTargetSiblings($targetSiblings)
+  {
+    $this->targetSiblings = $targetSiblings;
   }
 
 

@@ -5,6 +5,7 @@ namespace CtSearchBundle\Controller;
 use CtSearchBundle\Datasource\Datasource;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -16,12 +17,14 @@ use \CtSearchBundle\Classes\Processor;
 use \Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class ProcessorController extends CtSearchController {
+class ProcessorController extends CtSearchController
+{
 
   /**
    * @Route("/processors", name="processors")
    */
-  public function listProcessorsAction(Request $request) {
+  public function listProcessorsAction(Request $request)
+  {
 
     $datasources = IndexManager::getInstance()->getDatasources($this);
     $indexes = IndexManager::getInstance()->getElasticInfo($this);
@@ -42,35 +45,36 @@ class ProcessorController extends CtSearchController {
     }
     ksort($targetChoices);
     $form = $this->createFormBuilder(null)
-        ->add('datasource', ChoiceType::class, array(
-          'choices' => array($this->get('translator')->trans('Select datasource') => '') + $datasourceChoices,
-          'required' => true,
-        ))
-        ->add('target', ChoiceType::class, array(
-          'choices' => array($this->get('translator')->trans('Select a target') => '') + $targetChoices,
-          'required' => true,
-        ))
-        ->add('ok', SubmitType::class, array(
-          'label' => $this->get('translator')->trans('Add')
-        ))
-        ->getForm();
+      ->add('datasource', ChoiceType::class, array(
+        'choices' => array($this->get('translator')->trans('Select datasource') => '') + $datasourceChoices,
+        'required' => true,
+      ))
+      ->add('target', ChoiceType::class, array(
+        'choices' => array($this->get('translator')->trans('Select a target') => '') + $targetChoices,
+        'required' => true,
+      ))
+      ->add('ok', SubmitType::class, array(
+        'label' => $this->get('translator')->trans('Add')
+      ))
+      ->getForm();
     $form->handleRequest($request);
     if ($form->isValid()) {
       $data = $form->getData();
       return $this->redirect($this->generateUrl('processor-add', array('datasource' => $data['datasource'], 'target' => $data['target'])));
     }
     return $this->render('ctsearch/processor.html.twig', array(
-          'title' => $this->get('translator')->trans('Processors'),
-          'main_menu_item' => 'processors',
-          'processors' => IndexManager::getInstance()->getRawProcessors(),
-          'form_add_processor' => $form->createView()
+      'title' => $this->get('translator')->trans('Processors'),
+      'main_menu_item' => 'processors',
+      'processors' => IndexManager::getInstance()->getRawProcessors(),
+      'form_add_processor' => $form->createView()
     ));
   }
 
   /**
    * @Route("/processors/add", name="processor-add")
    */
-  public function addProcessorAction(Request $request) {
+  public function addProcessorAction(Request $request)
+  {
     if ($request->get('datasource') != null && $request->get('target') != null) {
       return $this->handleAddOrEditProcessor($request);
     } else {
@@ -82,7 +86,8 @@ class ProcessorController extends CtSearchController {
   /**
    * @Route("/processors/edit", name="processor-edit")
    */
-  public function editProcessorAction(Request $request) {
+  public function editProcessorAction(Request $request)
+  {
     if ($request->get('id')) {
       return $this->handleAddOrEditProcessor($request, $request->get('id'));
     } else {
@@ -91,7 +96,8 @@ class ProcessorController extends CtSearchController {
     }
   }
 
-  private function handleAddOrEditProcessor($request, $id = null) {
+  private function handleAddOrEditProcessor($request, $id = null)
+  {
     if ($id == null) { //Add
       $datasource = IndexManager::getInstance()->getDatasource($request->get('datasource'), $this);
       $target = $request->get('target');
@@ -113,27 +119,33 @@ class ProcessorController extends CtSearchController {
       $datasource = IndexManager::getInstance()->getDatasource($processor->getDatasourceId(), $this);
     }
     $form = $this->createFormBuilder($processor)
-        ->add('datasourceName', TextType::class, array(
-          'label' => $this->get('translator')->trans('Datasource'),
-          'data' => $datasource->getName(),
-          'disabled' => true,
-          'required' => true,
-          'mapped' => false
-        ))
-        ->add('target', TextType::class, array(
-          'label' => $this->get('translator')->trans('Target'),
-          'disabled' => true,
-          'required' => true
-        ))
-        ->add('definition', TextareaType::class, array(
-          'label' => $this->get('translator')->trans('JSON Definition'),
-          'required' => true
-        ))
-        ->add('save', SubmitType::class, array('label' => $this->get('translator')->trans('Save')))
-        ->getForm();
+      ->add('datasourceName', TextType::class, array(
+        'label' => $this->get('translator')->trans('Datasource'),
+        'data' => $datasource->getName(),
+        'disabled' => true,
+        'required' => true,
+        'mapped' => false
+      ))
+      ->add('target', TextType::class, array(
+        'label' => $this->get('translator')->trans('Target'),
+        'disabled' => true,
+        'required' => true
+      ))
+      ->add('targetSiblings', HiddenType::class, array())
+      ->add('definition', TextareaType::class, array(
+        'label' => $this->get('translator')->trans('JSON Definition'),
+        'required' => true
+      ))
+      ->add('save', SubmitType::class, array('label' => $this->get('translator')->trans('Save')))
+      ->getForm();
     $form->handleRequest($request);
     if ($form->isValid()) {
-      IndexManager::getInstance()->saveProcessor($form->getData(), $id);
+      /** @var Processor $proc */
+      $proc = $form->getData();
+      if($proc->getTargetSiblings() != ''){
+        $proc->setTargetSiblings(explode(',', $proc->getTargetSiblings()));
+      }
+      IndexManager::getInstance()->saveProcessor($proc, $id);
       if ($id == null) {
         CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('New processor has been added successfully'));
       } else {
@@ -153,20 +165,21 @@ class ProcessorController extends CtSearchController {
     $filterTypes = IndexManager::getInstance()->getFilterTypes($this->container);
     asort($filterTypes);
     return $this->render('ctsearch/processor.html.twig', array(
-          'title' => $id == null ? $this->get('translator')->trans('New processor') : $this->get('translator')->trans('Edit processor'),
-          'main_menu_item' => 'processors',
-          'filterTypes' => $filterTypes,
-          'form' => $form->createView(),
-          'targetFields' => $targetFields,
-          'mappingName' => $mappingName,
-          'datasourceFields' => $datasource->getFields(),
+      'title' => $id == null ? $this->get('translator')->trans('New processor') : $this->get('translator')->trans('Edit processor'),
+      'main_menu_item' => 'processors',
+      'filterTypes' => $filterTypes,
+      'form' => $form->createView(),
+      'targetFields' => $targetFields,
+      'mappingName' => $mappingName,
+      'datasourceFields' => $datasource->getFields(),
     ));
   }
 
   /**
    * @Route("/processor/delete", name="processor-delete")
    */
-  public function deleteProcessorAction(Request $request) {
+  public function deleteProcessorAction(Request $request)
+  {
     if ($request->get('id') != null) {
       IndexManager::getInstance()->deleteProcessor($request->get('id'));
       CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Processor has been deleted'));
@@ -179,7 +192,8 @@ class ProcessorController extends CtSearchController {
   /**
    * @Route("/processors/get-settings-form", name="get-settings-form")
    */
-  public function getSettingsFormAction(Request $request) {
+  public function getSettingsFormAction(Request $request)
+  {
     if ($request->get('class') != null) {
       $class = $request->get('class');
       $data = $request->get('data') != null ? json_decode($request->get('data'), true) : array();
@@ -204,7 +218,7 @@ class ProcessorController extends CtSearchController {
         return new Response(json_encode($response), 200, array('Content-type' => 'application/json'));
       }
       return $this->render('ctsearch/ajaxform.html.twig', array(
-            'form' => $form->createView()
+        'form' => $form->createView()
       ));
     }
   }
@@ -212,7 +226,8 @@ class ProcessorController extends CtSearchController {
   /**
    * @Route("/processors/export", name="processor-export")
    */
-  public function exportProcessorAction(Request $request) {
+  public function exportProcessorAction(Request $request)
+  {
     if ($request->get('id')) {
       $proc = IndexManager::getInstance()->getProcessor($request->get('id'));
       if ($proc != null) {
@@ -251,7 +266,7 @@ class ProcessorController extends CtSearchController {
           'matching_lists' => $matchingLists,
           'processor_definition' => $procDefinition
         );
-        if($mapping->getDynamicTemplates() != NULL){
+        if ($mapping->getDynamicTemplates() != NULL) {
           $export['mapping']['dynamic_templates'] = json_decode($mapping->getDynamicTemplates(), true);
         }
         return new Response(json_encode($export, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json;charset=utf-8', 'Content-disposition' => 'attachment;filename=processor_' . $proc->getTarget() . '.json'));
@@ -268,18 +283,19 @@ class ProcessorController extends CtSearchController {
   /**
    * @Route("/processors/import", name="processor-import")
    */
-  public function importProcessorAction(Request $request) {
+  public function importProcessorAction(Request $request)
+  {
     $form = $this->createFormBuilder()
-        ->add('file', FileType::class, array(
-          'label' => $this->get('translator')->trans('File'),
-          'required' => true,
-        ))
-        ->add('override', CheckboxType::class, array(
-          'label' => $this->get('translator')->trans('Override existing Index/Mapping/Datasource/Processor'),
-          'required' => false
-        ))
-        ->add('import', SubmitType::class, array('label' => $this->get('translator')->trans('Import')))
-        ->getForm();
+      ->add('file', FileType::class, array(
+        'label' => $this->get('translator')->trans('File'),
+        'required' => true,
+      ))
+      ->add('override', CheckboxType::class, array(
+        'label' => $this->get('translator')->trans('Override existing Index/Mapping/Datasource/Processor'),
+        'required' => false
+      ))
+      ->add('import', SubmitType::class, array('label' => $this->get('translator')->trans('Import')))
+      ->getForm();
     $form->handleRequest($request);
     if ($form->isValid()) {
       $file = $form->getData()['file'];
@@ -296,7 +312,7 @@ class ProcessorController extends CtSearchController {
       }
 
       $mapping = new \CtSearchBundle\Classes\Mapping($json['index']['name'], $json['mapping']['name'], json_encode($json['mapping']['definition']));
-      if(isset($json['mapping']['dynamic_templates'])){
+      if (isset($json['mapping']['dynamic_templates'])) {
         $mapping->setDynamicTemplates(json_encode($json['mapping']['dynamic_templates']));
       }
       IndexManager::getInstance()->updateMapping($mapping);
@@ -343,9 +359,9 @@ class ProcessorController extends CtSearchController {
       return $this->redirect($this->generateUrl('processor-import'));
     }
     return $this->render('ctsearch/processor.html.twig', array(
-          'title' => $this->get('translator')->trans('Import'),
-          'main_menu_item' => 'processors',
-          'import_form' => $form->createView(),
+      'title' => $this->get('translator')->trans('Import'),
+      'main_menu_item' => 'processors',
+      'import_form' => $form->createView(),
     ));
   }
 

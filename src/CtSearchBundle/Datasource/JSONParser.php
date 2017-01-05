@@ -31,6 +31,9 @@ class JSONParser extends Datasource {
     if(!isset($json))
       $json = "[]";
     $data = json_decode($json, true);
+    if($data == null){
+      $data = array();
+    }
     $r = array();
     $fields = array_map('trim', explode(',', $this->getJsonFields()));
     foreach($data as $doc){
@@ -42,7 +45,7 @@ class JSONParser extends Datasource {
       if(!empty($tmp))
         $r[] = $tmp;
     }
-    $this->batchIndex($r);
+    $this->multiIndex($r);
     parent::execute($execParams);
   }
 

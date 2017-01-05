@@ -9,6 +9,11 @@
         "store": true,
         "analyzer": "case_insensitive_sort"
     },
+    "datasource_siblings": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
     "definition": {
         "type": "string",
         "index": "not_analyzed",

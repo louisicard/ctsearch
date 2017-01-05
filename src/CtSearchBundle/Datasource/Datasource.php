@@ -394,7 +394,7 @@ abstract class Datasource {
     return strip_tags($xml);
   }
 
-  protected function batchIndex($docs) {
+  protected function multiIndex($docs) {
     $count = 0;
     $error = 0;
     $processors = IndexManager::getInstance()->getRawProcessorsByDatasource($this->id);

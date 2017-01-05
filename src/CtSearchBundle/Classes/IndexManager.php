@@ -419,6 +419,7 @@ class IndexManager {
       'body' => array(
         'datasource' => $processor->getDatasourceId(),
         'datasource_name' => $datasource->getName(),
+        'datasource_siblings' => $processor->getTargetSiblings(),
         'target' => $processor->getTarget(),
         'definition' => serialize(json_decode($processor->getDefinition(), true))
       )
@@ -445,13 +446,17 @@ class IndexManager {
         $processors = array();
         if (isset($r['hits']['hits'])) {
           foreach ($r['hits']['hits'] as $hit) {
-            $processors[] = array(
+            $proc = array(
               'id' => $hit['_id'],
               'datasource_id' => $hit['_source']['datasource'],
               'datasource_name' => $hit['_source']['datasource_name'],
               'target' => $hit['_source']['target'],
               'definition' => json_encode(unserialize($hit['_source']['definition']), JSON_PRETTY_PRINT),
             );
+            if(isset($hit['_source']['datasource_siblings'])){
+              $proc['datasource_siblings'] = $hit['_source']['datasource_siblings'];
+            }
+            $processors[] = $proc;
           }
         }
         unset($r);
@@ -477,8 +482,19 @@ class IndexManager {
           'sort' => 'datasource_name:asc,target:asc',
           'body' => array(
             'query' => array(
-              'match' => array(
-                'datasource' => $datasourceId,
+              'bool' => array(
+                'should' => array(
+                  array(
+                    'match' => array(
+                      'datasource' => $datasourceId
+                    )
+                  ),
+                  array(
+                    'match' => array(
+                      'datasource_siblings' => $datasourceId
+                    )
+                  )
+                )
               )
             )
           )
@@ -486,13 +502,17 @@ class IndexManager {
         $processors = array();
         if (isset($r['hits']['hits'])) {
           foreach ($r['hits']['hits'] as $hit) {
-            $processors[] = array(
+            $proc = array(
               'id' => $hit['_id'],
               'datasource_id' => $hit['_source']['datasource'],
               'datasource_name' => $hit['_source']['datasource_name'],
               'target' => $hit['_source']['target'],
               'definition' => json_encode(unserialize($hit['_source']['definition']), JSON_PRETTY_PRINT),
             );
+            if(isset($hit['_source']['datasource_siblings'])){
+              $proc['datasource_siblings'] = $hit['_source']['datasource_siblings'];
+            }
+            $processors[] = $proc;
           }
         }
         unset($r);
@@ -527,6 +547,9 @@ class IndexManager {
         if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
           $hit = $r['hits']['hits'][0];
           $processor = new Processor($hit['_source']['datasource'], $hit['_source']['target'], json_encode(unserialize($hit['_source']['definition']), JSON_PRETTY_PRINT));
+          if(isset($hit['_source']['datasource_siblings'])){
+            $processor->setTargetSiblings($hit['_source']['datasource_siblings']);
+          }
           unset($r);
           return $processor;
         }
