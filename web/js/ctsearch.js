@@ -180,7 +180,9 @@
               var selectedDS = $('#form_targetSiblings').val().split(',');
               for(var i in list){
                 var ds = list[i];
-                html += '<li><input type="checkbox" id="cb-siblings-' + ds.id + '" value="' + ds.id + '"' + (selectedDS.indexOf(ds.id) >= 0 ? ' checked="checked"' : '') + ' /><label for="cb-siblings-' + ds.id + '">' + ds.name + '</label></li>'
+                if(ds.id != __datasource_id) {
+                  html += '<li><input type="checkbox" id="cb-siblings-' + ds.id + '" value="' + ds.id + '"' + (selectedDS.indexOf(ds.id) >= 0 ? ' checked="checked"' : '') + ' /><label for="cb-siblings-' + ds.id + '">' + ds.name + '</label></li>';
+                }
               }
               html += '</ul><div class="actions"><button>OK</button></div></div>';
               mainDialog.html(html);

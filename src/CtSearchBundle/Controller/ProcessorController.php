@@ -174,6 +174,7 @@ class ProcessorController extends CtSearchController
       'form' => $form->createView(),
       'targetFields' => $targetFields,
       'mappingName' => $mappingName,
+      'datasourceId' => $processor->getDatasourceId(),
       'datasourceFields' => $datasource->getFields(),
     ));
   }
