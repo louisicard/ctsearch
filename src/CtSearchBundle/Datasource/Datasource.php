@@ -2,6 +2,8 @@
 
 namespace CtSearchBundle\Datasource;
 
+use CtSearchBundle\Classes\Exportable;
+use CtSearchBundle\Classes\Importable;
 use CtSearchBundle\Controller\CtSearchController;
 use \CtSearchBundle\CtSearchBundle;
 use \CtSearchBundle\Classes\IndexManager;
@@ -10,7 +12,7 @@ use CtSearchBundle\Processor\SmartMapper;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
-abstract class Datasource {
+abstract class Datasource implements Exportable, Importable {
 
   /**
    *
@@ -440,5 +442,28 @@ abstract class Datasource {
 /x
 END;
     return preg_replace($regex, '$1', $text);
+  }
+
+  public function export()
+  {
+    $export = array(
+      'id' => $this->getId(),
+      'type' => 'datasource',
+      'class' => get_class($this),
+      'id' => $this->getId(),
+      'name' => $this->getName(),
+      'has_batch_execution' => $this->isHasBatchExecution() ? 1 : 0,
+      'settings' => $this->getSettings()
+    );
+    return json_encode($export, JSON_PRETTY_PRINT);
+  }
+
+  public static function import($data)
+  {
+    $datasource = new $data['class']($data['name'], null, $data['id']);
+    $datasource->initFromSettings($data['settings']);
+    $datasource->setHasBatchExecution($data['has_batch_execution']);
+    $datasource->setId($data['id']);
+    IndexManager::getInstance()->saveDatasource($datasource, $datasource->getId());
   }
 }

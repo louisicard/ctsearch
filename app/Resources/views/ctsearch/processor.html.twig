@@ -51,7 +51,9 @@
     var __loading_image_url = '{{asset('images/loading.gif')}}';
     var __proc_settings_ajx_form_url = '{{path('get-settings-form')}}';
     var __database_list_ajax_url = '{{path('datasources_ajaxlist')}}';
+    {% if datasourceId is defined %}
     var __datasource_id = '{{ datasourceId }}';
+    {% endif %}
   {%if filterTypes is defined%}
     {%for class, name in filterTypes%}
     __filter_types.push('{{class}}#{{name}}');

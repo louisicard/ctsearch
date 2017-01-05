@@ -546,7 +546,7 @@ class IndexManager {
         ));
         if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
           $hit = $r['hits']['hits'][0];
-          $processor = new Processor($hit['_source']['datasource'], $hit['_source']['target'], json_encode(unserialize($hit['_source']['definition']), JSON_PRETTY_PRINT));
+          $processor = new Processor($hit['_id'], $hit['_source']['datasource'], $hit['_source']['target'], json_encode(unserialize($hit['_source']['definition']), JSON_PRETTY_PRINT));
           if(isset($hit['_source']['datasource_siblings'])){
             $processor->setTargetSiblings($hit['_source']['datasource_siblings']);
           }
