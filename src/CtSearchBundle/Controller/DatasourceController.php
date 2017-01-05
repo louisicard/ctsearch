@@ -2,6 +2,7 @@
 
 namespace CtSearchBundle\Controller;
 
+use CtSearchBundle\Datasource\Datasource;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -14,6 +15,7 @@ use CtSearchBundle\Classes\IndexManager;
 use CtSearchBundle\Classes\Index;
 use CtSearchBundle\Classes\Mapping;
 use \Exception;
+use Symfony\Component\HttpFoundation\Response;
 
 class DatasourceController extends CtSearchController {
 
@@ -38,11 +40,28 @@ class DatasourceController extends CtSearchController {
       return $this->redirect($this->generateUrl('datasource-add', array('datasourceType' => $data['dataSourceType'])));
     }
     return $this->render('ctsearch/datasource.html.twig', array(
-        'title' => $this->get('translator')->trans('Data sources'),
-        'main_menu_item' => 'datasources',
-        'datasources' => IndexManager::getInstance()->getDatasources($this),
-        'form_add_datasource' => $form->createView()
+      'title' => $this->get('translator')->trans('Data sources'),
+      'main_menu_item' => 'datasources',
+      'datasources' => IndexManager::getInstance()->getDatasources($this),
+      'form_add_datasource' => $form->createView()
     ));
+  }
+
+  /**
+   * @Route("/datasources/ajaxlist", name="datasources_ajaxlist")
+   */
+  public function ajaxListDatasourcesAction(Request $request) {
+    $datasources = IndexManager::getInstance()->getDatasources($this);
+    $r = [];
+    foreach($datasources as $datasource){
+      /** @var Datasource $datasource */
+      $r[] = array(
+        'id' => $datasource->getId(),
+        'name' => $datasource->getName(),
+        'class' => get_class($datasource)
+      );
+    }
+    return new Response(json_encode($r, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json; charset=utf-8'));
   }
 
   /**

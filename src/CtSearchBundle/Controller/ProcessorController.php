@@ -118,6 +118,9 @@ class ProcessorController extends CtSearchController
       $processor = IndexManager::getInstance()->getProcessor($id);
       $datasource = IndexManager::getInstance()->getDatasource($processor->getDatasourceId(), $this);
     }
+    if(is_array($processor->getTargetSiblings())){
+      $processor->setTargetSiblings(implode(',', $processor->getTargetSiblings()));
+    }
     $form = $this->createFormBuilder($processor)
       ->add('datasourceName', TextType::class, array(
         'label' => $this->get('translator')->trans('Datasource'),

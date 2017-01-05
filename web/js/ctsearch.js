@@ -150,6 +150,61 @@
         $('#form_mappingDefinition').slideToggle();
       });
     }
+    if($('#form_processor #form_target').size() > 0){
+      var siblingsLink = $('<a href="#">Siblings (0)</a>');
+      var updateSiblingsText = function(){
+        var siblings = [];
+        if($('#form_targetSiblings').val().length > 0) {
+          siblings = $('#form_targetSiblings').val().split(',');
+        }
+        siblingsLink.text('Siblings (' + siblings.length + ')');
+      };
+      updateSiblingsText();
+      siblingsLink.insertAfter($('#form_processor #form_target'));
+      siblingsLink.click(function(e){
+        e.preventDefault();
+
+        var waitDialog = $('<div style="text-align:center;padding:50px;"><img src="' + __loading_image_url + '" /></div>').dialog({
+          modal: true
+        });
+        var mainDialog = $('<div class="dialog-content datasource-siblings-dialog"></div>').dialog({
+          modal: true,
+          autoOpen: false,
+          title: 'Select datasource siblings',
+          width: 600,
+          create: function () {
+            $.ajax({
+              url: __database_list_ajax_url
+            }).success(function(list){
+              var html = '<div class="datasource-list"><ul>';
+              var selectedDS = $('#form_targetSiblings').val().split(',');
+              for(var i in list){
+                var ds = list[i];
+                html += '<li><input type="checkbox" id="cb-siblings-' + ds.id + '" value="' + ds.id + '"' + (selectedDS.indexOf(ds.id) >= 0 ? ' checked="checked"' : '') + ' /><label for="cb-siblings-' + ds.id + '">' + ds.name + '</label></li>'
+              }
+              html += '</ul><div class="actions"><button>OK</button></div></div>';
+              mainDialog.html(html);
+              mainDialog.find('.actions button').click(function(e){
+                e.preventDefault();
+                var selectedSiblings = [];
+                mainDialog.find('input:checked').each(function(){
+                  selectedSiblings.push($(this).val());
+                });
+                $('#form_targetSiblings').val(selectedSiblings.join(','));
+                updateSiblingsText();
+                mainDialog.dialog('destroy').remove();
+              });
+              $(mainDialog).dialog('open');
+              $(waitDialog).dialog('destroy');
+            });
+          },
+          close: function(){
+            $(this).dialog('destroy').remove();
+          }
+        });
+      });
+      siblingsLink.wrap('<span class="actions"></span>');
+    }
     if ($('#form_processor #form_definition').size() > 0) {
       $('<div id="mapping-json-toggle-container"><a href="javascript:void(0)" id="mapping-json-toggle" class="json-link">' + __ctsearch_js_translations.ShowHideJSONDef + '</a></div>').insertBefore($('#form_processor #form_definition'));
       initProcessorStack();
