@@ -176,6 +176,16 @@ class SearchAPIController extends Controller
                     )
                   );
                   break;
+                case '<=>':
+                  $subquery = array(
+                    'range' => array(
+                      $filter['field'] => array(
+                        'gte' => explode(',', $filter['value'])[0],
+                        'lt' => explode(',', $filter['value'])[1]
+                      )
+                    )
+                  );
+                  break;
                 default:
                   if (isset($subquery)) {
                     unset($subquery);
