@@ -241,7 +241,7 @@ form .form-item.required label:after{
 .mapping-table-container{
   margin:5px 0;
 }
-#form_processor #form_target + .actions {
+#form_processor #form_datasourceName + .actions {
   font-size:0.8em;
   padding-left:0.5em;
 }

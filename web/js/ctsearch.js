@@ -150,7 +150,7 @@
         $('#form_mappingDefinition').slideToggle();
       });
     }
-    if($('#form_processor #form_target').size() > 0){
+    if($('#form_processor #form_datasourceName').size() > 0){
       var siblingsLink = $('<a href="#">Siblings (0)</a>');
       var updateSiblingsText = function(){
         var siblings = [];
@@ -160,7 +160,7 @@
         siblingsLink.text('Siblings (' + siblings.length + ')');
       };
       updateSiblingsText();
-      siblingsLink.insertAfter($('#form_processor #form_target'));
+      siblingsLink.insertAfter($('#form_processor #form_datasourceName'));
       siblingsLink.click(function(e){
         e.preventDefault();
 

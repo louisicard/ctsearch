@@ -77,6 +77,18 @@ class Processor implements Exportable, Importable
       'matching_lists' => $matchingLists,
       'processor_definition' => $procDefinition
     );
+    if(count($this->getTargetSiblings()) > 0){
+      foreach($this->getTargetSiblings() as $sibling){
+        $siblingDS = IndexManager::getInstance()->getDatasource($sibling, null);
+        $export['siblings'][] = array(
+          'class' => get_class($siblingDS),
+          'id' => $siblingDS->getId(),
+          'name' => $siblingDS->getName(),
+          'has_batch_execution' => $siblingDS->isHasBatchExecution() ? 1 : 0,
+          'settings' => $siblingDS->getSettings()
+        );
+      }
+    }
     if ($mapping->getDynamicTemplates() != NULL) {
       $export['mapping']['dynamic_templates'] = json_decode($mapping->getDynamicTemplates(), true);
     }
@@ -110,7 +122,17 @@ class Processor implements Exportable, Importable
       $list = new \CtSearchBundle\Classes\MatchingList($matchingList['name'], json_encode($matchingList['list']), $matchingList['id']);
       IndexManager::getInstance()->saveMatchingList($list);
     }
-    $processor = new Processor($data['id'], $data['datasource']['id'], $data['index']['name'] . '.' . $data['mapping']['name'], json_encode($data['processor_definition']));
+    $siblings = isset($data['siblings']) ? $data['siblings'] : array();
+    $siblingsIds = array();
+    foreach($siblings as $sibling){
+      $datasource = new $sibling['class']($sibling['name'], null);
+      $datasource->initFromSettings($sibling['settings']);
+      $datasource->setId($sibling['id']);
+      $datasource->setHasBatchExecution($sibling['has_batch_execution']);
+      IndexManager::getInstance()->saveDatasource($datasource, $sibling['id']);
+      $siblingsIds[] = $sibling['id'];
+    }
+    $processor = new Processor($data['id'], $data['datasource']['id'], $data['index']['name'] . '.' . $data['mapping']['name'], json_encode($data['processor_definition']), $siblingsIds);
     IndexManager::getInstance()->saveProcessor($processor, $data['id']);
   }
 
