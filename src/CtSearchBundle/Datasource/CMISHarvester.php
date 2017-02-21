@@ -6,6 +6,8 @@ use \CtSearchBundle\CtSearchBundle;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
+use \CtSearchBundle\Classes\CmisService;
+
 class CMISHarvester extends Datasource {
 
   private $cmisEndpointUrl;
@@ -44,7 +46,7 @@ class CMISHarvester extends Datasource {
     } else {
       $daysBack = (int) $execParams['daysBack'];
       $settings = $this->getSettings();
-      $client = new \CMISService($settings['cmisEndpointUrl'], $settings['username'], $settings['password']);
+      $client = new CmisService($settings['cmisEndpointUrl'], $settings['username'], $settings['password']);
 
       $folder = $client->getObjectByPath(urlencode($settings['folderPath']));
       $folderId = $folder->properties['cmis:objectId'];
