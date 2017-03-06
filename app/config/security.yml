@@ -12,47 +12,33 @@ security:
         users:
           user:   { password: userpass, roles [ 'ROLE_USER' ] }
           admin:  { password: adminpass, roles [ 'ROLE_ADMIN' ] }
-  
+
   firewalls:
-    open_firewall:
-      pattern:    ^/webcrawler-response
-      anonymous:  ~
-    public_search:
-      pattern:    ^/search-pages/search
-      anonymous:  ~
-    public_search_more_like_this:
-      pattern:    ^/search-pages/more-like-this
-      anonymous:  ~
-    public_search_autocomplete:
-      pattern:    ^/search-pages/autocomplete
-      anonymous:  ~
-    public_search_api:
-      pattern:    ^/search-api
-      anonymous:  ~
-    public_search_api_v2:
-      pattern:    ^/search-api/v2
-      anonymous:  ~
-    drupal_ctexport:
-      pattern:    ^/drupal/ctexport
-      anonymous:  ~
-    drupal_reco_js:
-      pattern:    ^/reco/reco.js
-      anonymous:  ~
-    drupal_reco_report:
-      pattern:    ^/reco/report
-      anonymous:  ~
-    drupal_reco_get:
-      pattern:    ^/reco/get
-      anonymous:  ~
-    search_api_js:
-      pattern:    ^/searchapi
-      anonymous:  ~
-    search_client:
-      pattern:    ^/search-client
-      anonymous:  ~
-    rest_api:
-      pattern:    ^/api
-      anonymous:  ~
-    default_firewall:
-      pattern:    ^/
-      http_basic:  ~
+    main:
+      pattern: ^/
+      form_login:
+        provider: app_users
+        csrf_token_generator: security.csrf.token_manager
+        login_path: login
+        check_path: login
+      anonymous:    true
+      logout:
+        path:   logout
+        target: login
+
+  access_control:
+    - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/webcrawler-response, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/search-pages/search, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/search-pages/more-like-this, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/search-pages/autocomplete, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/search-api, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/search-api/v2, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/drupal/ctexport, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/reco/reco.js, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/reco/report, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/reco/get, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/searchapi, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/search-client, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/api, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/, role: ROLE_ADMIN }

@@ -28,6 +28,7 @@
         <li{%if main_menu_item=='logs'%} class="active"{%endif%}><a href="{{path('show-logs')}}" title="{{'Logs'|trans}}">{{'Logs'|trans}}</a></li>
         <li{%if main_menu_item=='backups'%} class="active"{%endif%}><a href="{{path('backups')}}" title="{{'Backups'|trans}}">{{'Backups'|trans}}</a></li>
         <li{%if main_menu_item=='console'%} class="active"{%endif%}><a href="{{path('console')}}" title="{{'Console'|trans}}">{{'Console'|trans}}</a></li>
+          <li>  <a href="{{ logout_path('main') }}">{{'Logout'|trans}}</a></li>
         {% endif %}
       </ul>
     </nav>
