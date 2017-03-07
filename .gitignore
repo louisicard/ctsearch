@@ -12,6 +12,7 @@
 /vendor/
 /web/bundles/
 /web/assetic/
+/web/synonyms/
 /composer.phar
 /nbproject/
 /.idea

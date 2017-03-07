@@ -17,5 +17,10 @@
     "has_batch_execution": {
         "type": "boolean",
         "store": true
+    },
+    "created_by": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
     }
 }

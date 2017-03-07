@@ -1,4 +1,6 @@
 services:
+  ctsearch_user_provider:
+    class: CtSearchBundle\Classes\UserProvider
   ctsearch.datasource.bibookharvester:
     class: CtSearchBundle\Datasource\BibookHarvester
     tags:

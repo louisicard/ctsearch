@@ -7,6 +7,10 @@ class MatchingList {
   private $name;
   private $list;
   private $id;
+  /**
+   * @var string
+   */
+  private $createdBy;
   function __construct($name, $list = '{}', $id = null) {
     $this->name = $name;
     $this->list = $list;
@@ -34,6 +38,22 @@ class MatchingList {
 
   function setId($id) {
     $this->id = $id;
+  }
+
+  /**
+   * @return string
+   */
+  public function getCreatedBy()
+  {
+    return $this->createdBy;
+  }
+
+  /**
+   * @param string $createdBy
+   */
+  public function setCreatedBy($createdBy)
+  {
+    $this->createdBy = $createdBy;
   }
 
 

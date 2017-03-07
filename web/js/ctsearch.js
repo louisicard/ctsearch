@@ -1,5 +1,25 @@
 (function ($) {
   $(document).ready(function () {
+
+    $('nav#main-menu li.expandable a').click(function(e){
+      e.preventDefault();
+      var ul = $(this).parents('li.expandable').find('ul');
+      ul.toggle();
+      $('nav#main-menu li.expandable ul').each(function(){
+        if($(this)[0] != ul[0]){
+          $(this).hide();
+        }
+      });
+    });
+    $('nav#main-menu li.expandable li a').unbind('click');
+
+    $(window).click(function(e){
+      if(e.clientX > 0 && e.clientY > 0 && $(e.target).parents('nav#main-menu li.expandable').size() == 0){
+        $('nav#main-menu li.expandable ul').hide();
+      }
+    });
+
+
     $('a.index-delete').click(function (e) {
       e.preventDefault();
       var url = $(this).attr('href');
@@ -54,6 +74,20 @@
       e.preventDefault();
       var url = $(this).attr('href');
       return advConfirm(__ctsearch_js_translations.DeleteSnapshotConfirm, function () {
+        window.location = url;
+      });
+    });
+    $('a.user-delete').click(function (e) {
+      e.preventDefault();
+      var url = $(this).attr('href');
+      return advConfirm(__ctsearch_js_translations.UserDeleteConfirm, function () {
+        window.location = url;
+      });
+    });
+    $('a.group-delete').click(function (e) {
+      e.preventDefault();
+      var url = $(this).attr('href');
+      return advConfirm(__ctsearch_js_translations.GroupDeleteConfirm, function () {
         window.location = url;
       });
     });

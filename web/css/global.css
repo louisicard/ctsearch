@@ -1,10 +1,15 @@
 body{
   color:#313131;
 }
+header #logo{
+  display:inline-block;
+  margin-right:10px;
+  vertical-align: middle;
+  padding:3px 0;
+}
 header #logo img{
-  width:48px;
-  height:48px;
-  border-radius:5px;
+  max-height:29px;
+  width:auto;
   display:block;
   margin:0;
 }
@@ -13,40 +18,69 @@ header #logo figcaption{
 }
 header{
   background:#eee;
-  padding:10px 20px;
+  padding:5px 10px;
   border-bottom:1px solid #ccc;
+  position:fixed;
+  top:0;
+  left:0;
+  z-index:999;
+  width:100%;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
-header #logo{
-  float:left;
-  margin-right:20px;
+header #userinfo{
+  float: right;
+  font-size: 12px;
+  padding-top: 4px;
+}
+header #userinfo a{
+  color:#000;
+  text-decoration: underline;
+}
+nav#main-menu {
+  display:inline-block;
+  vertical-align: middle;
+  font-size:14px;
 }
 nav#main-menu li{
-  display:block;
-  float:left;
+  display:inline-block;
   margin:7px 10px;
+  position:relative;
 }
-nav#main-menu li a{
+nav#main-menu li.expandable {
+  background: url(../images/expandable.png) no-repeat 100% 50%;
+  padding-right:15px;
+}
+nav#main-menu ul{
   display:block;
-  padding:8px 15px;
-  border:1px solid #ddd;
-  border-radius: 5px;
-  transition:all ease 0.4s;
-  color:#313131;
-  font-weight:bold;
-  text-decoration:none;
 }
-nav#main-menu li.active a,
-nav#main-menu li a:hover{
-  background:#999999;
-  color:#eee;
-  border-color:#999999;
+nav#main-menu ul ul {
+  display:none;
+  position:absolute;
+  left:0;
+  top:20px;
+  background:#eee;
+  padding:5px 10px;
+  min-width:150px;
+}
+nav#main-menu li li{
+  display:block;
+  white-space: nowrap;
+  padding:4px 0;
+}
+nav#main-menu a {
+  color:#444;
+  text-decoration: none;
 }
 #container{
+  margin-top:50px;
   padding:20px;
 }
 h1{
   font-size:24px;
   margin:0 0 20px 0;
+  font-weight: normal;
 }
 h2{
   font-size:20px;
@@ -199,6 +233,15 @@ table tr:hover{
 #container form label{
   display:block;
 }
+#container form .choice-container{
+}
+#container form .choice-container .choice {
+  display:inline-block;
+  padding-right:15px;
+}
+#container form .choice-container label{
+  display:inline;
+}
 #container form .form-item{
   padding:5px 0;
 }
@@ -211,7 +254,7 @@ table tr:hover{
   display:block;
   color:red;
 }
-form .form-item.required label:after{
+.form-item.required > label:after{
   content:"*";
   color:red;
 }

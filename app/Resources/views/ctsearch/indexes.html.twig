@@ -4,10 +4,14 @@
 {%block main_content%}
   {%if indexes is defined%}
   <h2>{%trans%}Indexes on the server{%endtrans%}</h2>
+  {% if is_granted('ROLE_INDEX_MANAGER') %}
   <ul class="actions">
+    {% if is_granted('ROLE_ADMIN') %}
     <li><a href="{{path('index-add')}}" class="index-add">{{'Add a new index'|trans}}</a></li>
+    {% endif %}
     <li><a href="{{path('synonyms-list')}}" class="synonyms-list">{{'See synonyms dictionaries'|trans}}</a></li>
   </ul>
+  {% endif %}
   {%if indexes|length > 0%}
     <table id="index-table">
       <thead>
@@ -39,9 +43,13 @@
             </td>
             <td class="actions">
               <ul>
+                {% if is_granted('ROLE_INDEX_MANAGER') %}
                 <li><a href="{{path('index-edit', {'index_name': index_name})}}" class="index-edit-settings">{{'Edit settings'|trans}}</a></li>
                 <li><a href="{{path('index-add-mapping', {'index_name': index_name})}}" class="index-add-mapping">{{'Add mapping'|trans}}</a></li>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN') %}
                 <li><a href="{{path('index-delete', {'index_name': index_name})}}" class="index-delete action-delete">{{'Delete index'|trans}}</a></li>
+                {% endif %}
               </ul>
             </td>
           </tr>

@@ -2,10 +2,12 @@
 
 
 {%block main_content%}
-  {%if matching_lists is defined%}
-  <ul class="actions">
-    <li><a href="{{path('matching-list-add')}}">{{'Add a new matching list'|trans}}</a></li>
-  </ul>
+  {%if matching_lists is defined %}
+    {% if is_granted('ROLE_MATCHING_LIST_CREATOR') %}
+    <ul class="actions">
+      <li><a href="{{path('matching-list-add')}}">{{'Add a new matching list'|trans}}</a></li>
+    </ul>
+    {% endif %}
   {%if matching_lists|length > 0%}
     <table>
       <thead>
@@ -25,7 +27,9 @@
             <td class="actions">
               <ul>
                 <li><a href="{{path('matching-list-edit', {'id': matchingList.id})}}">{{'Edit'|trans}}</a></li>
+                {% if is_granted('ROLE_MATCHING_LIST_CREATOR') %}
                 <li><a href="{{path('matching-list-delete', {'id': matchingList.id})}}" class="matching-list-delete">{{'Delete'|trans}}</a></li>
+                {% endif %}
               </ul>
             </td>
           </tr>

@@ -39,6 +39,11 @@ abstract class Datasource implements Exportable, Importable {
   private $hasBatchExecution;
 
   /**
+   * @var string
+   */
+  private $createdBy;
+
+  /**
    *
    * @var Symfony\Component\Console\Output\OutputInterface 
    */
@@ -76,6 +81,23 @@ abstract class Datasource implements Exportable, Importable {
   function setId($id) {
     $this->id = $id;
   }
+
+  /**
+   * @return string
+   */
+  public function getCreatedBy()
+  {
+    return $this->createdBy;
+  }
+
+  /**
+   * @param string $createdBy
+   */
+  public function setCreatedBy($createdBy)
+  {
+    $this->createdBy = $createdBy;
+  }
+
 
   /**
    * @return boolean

@@ -266,19 +266,7 @@ class IndexController extends Controller {
       if(!is_writable($location)){
         CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('Path <strong>@path</strong> is not writable', array('@path' => realpath($location))));
       }
-      else{
-        $files = scandir($location);
-        $dictionaries = array();
-        foreach($files as $file){
-          if(is_file($location . DIRECTORY_SEPARATOR . $file)){
-            $dictionaries[] = array(
-              'name' => $file,
-              'path' => realpath($location . DIRECTORY_SEPARATOR . $file)
-            );
-          }
-        }
-      }
-      $vars['dictionaries'] = $dictionaries;
+      $vars['dictionaries'] = IndexManager::getInstance()->getSynonymsDictionaries();
     }
 
     return $this->render('ctsearch/synonyms.html.twig', $vars);
