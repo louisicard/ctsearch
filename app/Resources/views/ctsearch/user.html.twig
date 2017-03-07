@@ -23,7 +23,9 @@
             <td class="actions">
               <ul>
                 <li><a href="{{ path('user-edit', {uid: user.uid}) }}">{{'Edit'|trans}}</a></li>
+                {% if app.user.username != user.uid %}
                 <li><a href="{{ path('user-delete', {uid: user.uid}) }}" class="user-delete action-delete">{{'Delete'|trans}}</a></li>
+                {% endif %}
               </ul>
             </td>
           </tr>

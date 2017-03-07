@@ -9,6 +9,8 @@
 namespace CtSearchBundle\Controller;
 
 
+use CtSearchBundle\Classes\IndexManager;
+use CtSearchBundle\Classes\User;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,6 +25,11 @@ class SecurityController extends Controller
    */
   public function loginAction(Request $request)
   {
+
+    if(count(IndexManager::getInstance()->getUsers()) == 0){
+      $this->createDefaultUser();
+    }
+
     /** @var AuthenticationUtils $authenticationUtils */
     $authenticationUtils = $this->get('security.authentication_utils');
 
@@ -39,6 +46,14 @@ class SecurityController extends Controller
       'last_username' => $lastUsername,
       'error'         => $error,
     ));
+  }
+
+  private function createDefaultUser(){
+    $user = new User('admin', array('ROLE_ADMIN'), 'admin@example.org', 'Administrator', array());
+    $encoder = $this->container->get('security.password_encoder');
+    $encoded = $encoder->encodePassword($user, 'admin');
+    $user->setPassword($encoded);
+    IndexManager::getInstance()->saveUser($user);
   }
 
   /**
