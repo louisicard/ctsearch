@@ -1,0 +1,14 @@
+{
+    "definition": {
+        "type": "keyword",
+        "store": true
+    },
+    "mapping": {
+        "type": "keyword",
+        "store": true
+    },
+    "name": {
+        "type": "keyword",
+        "store": true
+    }
+}

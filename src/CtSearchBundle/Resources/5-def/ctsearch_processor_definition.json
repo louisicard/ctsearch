@@ -1,0 +1,22 @@
+{
+    "datasource": {
+        "type": "keyword",
+        "store": true
+    },
+    "datasource_name": {
+        "type": "keyword",
+        "store": true
+    },
+    "datasource_siblings": {
+        "type": "keyword",
+        "store": true
+    },
+    "definition": {
+        "type": "keyword",
+        "store": true
+    },
+    "target": {
+        "type": "keyword",
+        "store": true
+    }
+}

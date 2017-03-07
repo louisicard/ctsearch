@@ -68,6 +68,11 @@ class IndexManager
     return $this->getClient()->info();
   }
 
+  function getServerMajorVersionNumber(){
+    $info = $this->getServerInfo();
+    return (int)explode('.', $info['version']['number'])[0];
+  }
+
   /**
    * @return User
    */
@@ -344,7 +349,7 @@ class IndexManager
    */
   function getFieldTypes()
   {
-    $types = array('string', 'integer', 'long', 'float', 'double', 'boolean', 'date', 'ip', 'geo_point');
+    $types = array('string', 'keyword', 'integer', 'long', 'float', 'double', 'boolean', 'date', 'ip', 'geo_point');
     asort($types);
     return $types;
   }
@@ -522,15 +527,15 @@ class IndexManager
   public function saveDatasource($datasource, $id = null)
   {
     if ($this->getIndex('.ctsearch') == null) {
-      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_index_settings.json');
+      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_index_settings.json');
       $this->createIndex(new Index('.ctsearch', $settingsDefinition));
     }
     if ($this->getMapping('.ctsearch', 'datasource') == null) {
-      $mappingDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_datasource_definition.json');
+      $mappingDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_datasource_definition.json');
       $this->updateMapping(new Mapping('.ctsearch', 'datasource', $mappingDefinition));
     }
     if ($this->getMapping('.ctsearch', 'logs') == null) {
-      $logsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_logs_definition.json');
+      $logsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_logs_definition.json');
       $this->updateMapping(new Mapping('.ctsearch', 'logs', $logsDefinition));
     }
     $params = array(
@@ -577,11 +582,11 @@ class IndexManager
   public function saveProcessor($processor, $id = null)
   {
     if ($this->getIndex('.ctsearch') == null) {
-      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_index_settings.json');
+      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_index_settings.json');
       $this->createIndex(new Index('.ctsearch', $settingsDefinition));
     }
     if ($this->getMapping('.ctsearch', 'processor') == null) {
-      $mappingDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_processor_definition.json');
+      $mappingDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_processor_definition.json');
       $this->updateMapping(new Mapping('.ctsearch', 'processor', $mappingDefinition));
     }
     $datasource = $this->getDatasource($processor->getDatasourceId(), null);
@@ -896,11 +901,11 @@ class IndexManager
   public function saveSearchPage($searchPage)
   {
     if ($this->getIndex('.ctsearch') == null) {
-      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_index_settings.json');
+      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_index_settings.json');
       $this->createIndex(new Index('.ctsearch', $settingsDefinition));
     }
     if ($this->getMapping('.ctsearch', 'search_page') == null) {
-      $mappingDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_search_page_definition.json');
+      $mappingDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_search_page_definition.json');
       $this->updateMapping(new Mapping('.ctsearch', 'search_page', $mappingDefinition));
     }
     $params = array(
@@ -1117,11 +1122,11 @@ class IndexManager
   public function saveMatchingList($matchingList)
   {
     if ($this->getIndex('.ctsearch') == null) {
-      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_index_settings.json');
+      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_index_settings.json');
       $this->createIndex(new Index('.ctsearch', $settingsDefinition));
     }
     if ($this->getMapping('.ctsearch', 'search_page') == null) {
-      $mappingDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_matching_list_definition.json');
+      $mappingDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_matching_list_definition.json');
       $this->updateMapping(new Mapping('.ctsearch', 'matching_list', $mappingDefinition));
     }
     $params = array(
@@ -1198,11 +1203,11 @@ class IndexManager
   public function saveSavedQuery($target, $definition, $id = null)
   {
     if ($this->getIndex('.ctsearch') == null) {
-      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_index_settings.json');
+      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_index_settings.json');
       $this->createIndex(new Index('.ctsearch', $settingsDefinition));
     }
     if ($this->getMapping('.ctsearch', 'saved_query') == null) {
-      $savedQueryDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_saved_query_definition.json');
+      $savedQueryDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_saved_query_definition.json');
       $this->updateMapping(new Mapping('.ctsearch', 'saved_query', $savedQueryDefinition));
     }
     $params = array(
@@ -1410,11 +1415,11 @@ class IndexManager
   public function saveRecoPath($path)
   {
     if ($this->getIndex('.ctsearch_reco') == null) {
-      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_reco_index_settings.json');
+      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_reco_index_settings.json');
       $this->createIndex(new Index('.ctsearch_reco', $settingsDefinition));
     }
     if ($this->getMapping('.ctsearch_reco', 'path') == null) {
-      $savedQueryDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_reco_path_definition.json');
+      $savedQueryDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_reco_path_definition.json');
       $this->updateMapping(new Mapping('.ctsearch_reco', 'path', $savedQueryDefinition));
     }
     $params = array(
@@ -1435,11 +1440,11 @@ class IndexManager
   public function saveStat($target, $facets = array(), $query = '', $analyzer = null, $apiUrl = '', $resultCount = 0, $responseTime = 0, $remoteAddress = '', $tag = '')
   {
     if ($this->getIndex('.ctsearch') == null) {
-      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_index_settings.json');
+      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_index_settings.json');
       $this->createIndex(new Index('.ctsearch_reco', $settingsDefinition));
     }
     if ($this->getMapping('.ctsearch', 'stat') == null) {
-      $statDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_stat_definition.json');
+      $statDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_stat_definition.json');
       $this->updateMapping(new Mapping('.ctsearch', 'stat', $statDefinition));
     }
     $indexName = explode('.', $target)[0];
@@ -1614,6 +1619,10 @@ class IndexManager
 
   private function initSystemMappingMapping($mappingName, $file)
   {
+    if ($this->getIndex('.ctsearch') == null) {
+      $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_index_settings.json');
+      $this->createIndex(new Index('.ctsearch', $settingsDefinition));
+    }
     if ($this->getMapping('.ctsearch', $mappingName) == null) {
       $defintion = file_get_contents(__DIR__ . '/../Resources/' . $file);
       $this->updateMapping(new Mapping('.ctsearch', $mappingName, $defintion));
@@ -1622,7 +1631,7 @@ class IndexManager
 
   public function saveUser(User $user)
   {
-    $this->initSystemMappingMapping('user', 'ctsearch_user_definition.json');
+    $this->initSystemMappingMapping('user', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_user_definition.json');
     $params = array(
       'index' => '.ctsearch',
       'type' => 'user',
@@ -1648,7 +1657,7 @@ class IndexManager
    */
   function getUser($uid)
   {
-    $this->initSystemMappingMapping('user', 'ctsearch_user_definition.json');
+    $this->initSystemMappingMapping('user', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_user_definition.json');
     try {
       $r = $this->getClient()->search(array(
         'index' => '.ctsearch',
@@ -1680,7 +1689,7 @@ class IndexManager
    */
   function getUsers()
   {
-    $this->initSystemMappingMapping('user', 'ctsearch_user_definition.json');
+    $this->initSystemMappingMapping('user', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_user_definition.json');
     $list = array();
     if ($this->getIndex('.ctsearch') != null) {
       try {
@@ -1709,7 +1718,7 @@ class IndexManager
    */
   function getGroups()
   {
-    $this->initSystemMappingMapping('group', 'ctsearch_group_definition.json');
+    $this->initSystemMappingMapping('group', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_group_definition.json');
     $list = array();
     if ($this->getIndex('.ctsearch') != null) {
       try {
@@ -1736,7 +1745,7 @@ class IndexManager
    */
   function getGroup($id)
   {
-    $this->initSystemMappingMapping('group', 'ctsearch_group_definition.json');
+    $this->initSystemMappingMapping('group', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_group_definition.json');
     if ($this->getIndex('.ctsearch') != null) {
       try {
         $r = $this->getClient()->search(array(
@@ -1764,7 +1773,7 @@ class IndexManager
 
   public function saveGroup(Group $group)
   {
-    $this->initSystemMappingMapping('user', 'ctsearch_group_definition.json');
+    $this->initSystemMappingMapping('user', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_group_definition.json');
     $params = array(
       'index' => '.ctsearch',
       'type' => 'group',

@@ -1,0 +1,26 @@
+{
+    "uid": {
+        "type": "keyword",
+        "store": true
+    },
+    "password": {
+        "type": "keyword",
+        "store": true
+    },
+    "roles": {
+        "type": "keyword",
+        "store": true
+    },
+    "email": {
+        "type": "keyword",
+        "store": true
+    },
+    "full_name": {
+        "type": "keyword",
+        "store": true
+    },
+    "groups": {
+        "type": "keyword",
+        "store": true
+    }
+}

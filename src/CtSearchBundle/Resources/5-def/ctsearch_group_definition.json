@@ -1,0 +1,22 @@
+{
+    "name": {
+        "type": "keyword",
+        "store": true
+    },
+    "indexes": {
+        "type": "keyword",
+        "store": true
+    },
+    "datasources": {
+        "type": "keyword",
+        "store": true
+    },
+    "matching_lists": {
+        "type": "keyword",
+        "store": true
+    },
+    "dictionaries": {
+        "type": "keyword",
+        "store": true
+    }
+}
