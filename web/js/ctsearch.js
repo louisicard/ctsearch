@@ -450,7 +450,7 @@
       var type = json[field].type;
       var store = typeof json[field].store !== 'undefined' && !json[field].store ? __ctsearch_js_translations.FieldNotStored : __ctsearch_js_translations.FieldStored;
       var format = typeof json[field].format !== 'undefined' ? json[field].format : '-';
-      var analyzed = typeof json[field].index !== 'undefined' && json[field].index == 'not_analyzed' ? __ctsearch_js_translations.FieldNotAnalyzed : __ctsearch_js_translations.FieldAnalyzed;
+      var analyzed = typeof json[field].analyzer !== 'undefined' ? __ctsearch_js_translations.FieldAnalyzed : __ctsearch_js_translations.FieldNotAnalyzed;
       var analyzer = typeof json[field].analyzer !== 'undefined' ? json[field].analyzer : null;
       var includeRaw = typeof json[field].fields !== 'undefined' && typeof json[field].fields.raw !== 'undefined';
       var includeTransliterated = typeof json[field].fields !== 'undefined' && typeof json[field].fields.transliterated !== 'undefined';
@@ -470,7 +470,6 @@
     }
     format_select += '</select>';
     var analysis_select = '<select id="mapping-definition-field-analysis" tabindex="4">';
-    analysis_select += '<option value="">' + __ctsearch_js_translations.FieldAnalyzed + '</option>';
     analysis_select += '<option value="not_analyzed">' + __ctsearch_js_translations.FieldNotAnalyzed + '</option>';
     for (var i = 0; i < __index_analyzers.length; i++) {
       analysis_select += '<option value="' + __index_analyzers[i] + '">' + __ctsearch_js_translations.FieldAnalyzed + ' (analyzer = ' + __index_analyzers[i] + ')</option>';
@@ -489,7 +488,7 @@
     table.find('tbody').append('<tr><td><input type="text" id="mapping-definition-field-name" placeholder="' + __ctsearch_js_translations.FieldName + '" tabindex="1" /><br /><a href="javascript:void(0)" id="mapping-add-field" tabindex="7">' + __ctsearch_js_translations.FieldAdd + '</a></td><td>' + type_select + '</td><td>' + format_select + '</td><td>' + analysis_select + '</td><td><input id="mapping-definition-field-include-raw" type="checkbox" disabled="disabled" /></td><td><input id="mapping-definition-field-include-transliterated" type="checkbox" disabled="disabled" /></td><td>' + store_select + '</td><td>' + boost_select + '</td><td></td></tr>');
     table.wrap('<div class="mapping-table-container"></div>');
     $('#mapping-definition-field-type, #mapping-definition-field-analysis').change(function(){
-      if($('#mapping-definition-field-type').val() != 'string' || $('#mapping-definition-field-analysis').val() == 'not_analyzed'){
+      if($('#mapping-definition-field-analysis').val() == 'not_analyzed'){
         $('#mapping-definition-field-include-raw').attr('disabled', 'disabled');
         $('#mapping-definition-field-include-raw').removeAttr('checked');
         $('#mapping-definition-field-include-transliterated').attr('disabled', 'disabled');
@@ -512,10 +511,7 @@
             json[field_name].format = $('#mapping-definition-field-format').val();
           }
           if ($('#mapping-definition-field-analysis').val() != '') {
-            if ($('#mapping-definition-field-analysis').val() == 'not_analyzed') {
-              json[field_name].index = 'not_analyzed';
-            }
-            else {
+            if ($('#mapping-definition-field-analysis').val() != 'not_analyzed') {
               json[field_name].analyzer = $('#mapping-definition-field-analysis').val();
             }
           }

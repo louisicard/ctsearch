@@ -349,7 +349,13 @@ class IndexManager
    */
   function getFieldTypes()
   {
-    $types = array('string', 'keyword', 'integer', 'long', 'float', 'double', 'boolean', 'date', 'ip', 'geo_point');
+    $types = array('integer', 'long', 'float', 'double', 'boolean', 'date', 'ip', 'geo_point');
+    if($this->getServerMajorVersionNumber() >= 5){
+      $types = array_merge($types, array('text', 'keyword'));
+    }
+    else{
+      $types = array_merge($types, array('string'));
+    }
     asort($types);
     return $types;
   }

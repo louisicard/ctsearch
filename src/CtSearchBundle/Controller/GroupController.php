@@ -61,7 +61,7 @@ class GroupController extends Controller {
 
   private function handleAddOrEditGroup($request, $id = null) {
     if ($id == null) { //Add
-      $group = new Group('', '', [], []);
+      $group = new Group('', '', [], [], [], []);
     } else { //Edit
       $group = IndexManager::getInstance()->getGroup($request->get('id'));
     }
