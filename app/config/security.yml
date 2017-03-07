@@ -62,6 +62,7 @@ security:
     - { path: ^/processors$, role: ROLE_PROCESSOR_MANAGER }
     - { path: ^/processors/edit, role: ROLE_PROCESSOR_MANAGER }
     - { path: ^/processors/export, role: ROLE_PROCESSOR_MANAGER }
+    - { path: ^/processors/get-settings-form, role: ROLE_PROCESSOR_MANAGER }
     - { path: ^/processor/delete, role: ROLE_PROCESSOR_CREATOR }
     - { path: ^/processors, role: ROLE_PROCESSOR_CREATOR }
     - { path: ^/matching-list$, role: ROLE_MATCHING_LIST_MANAGER }
