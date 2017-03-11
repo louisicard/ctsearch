@@ -34,21 +34,21 @@ class GroupController extends Controller {
   /**
    * @Route("/groups/add", name="group-add")
    */
-  public function addSearchPageAction(Request $request) {
+  public function addGroupAction(Request $request) {
     return $this->handleAddOrEditGroup($request);
   }
 
   /**
    * @Route("/groups/edit", name="group-edit")
    */
-  public function editSearchPageAction(Request $request) {
+  public function editGroupAction(Request $request) {
     return $this->handleAddOrEditGroup($request, $request->get('id'));
   }
 
   /**
    * @Route("/groups/delete", name="group-delete")
    */
-  public function deleteSearchPageAction(Request $request) {
+  public function deleteGroupAction(Request $request) {
     if ($request->get('id') != null) {
       IndexManager::getInstance()->deleteGroup($request->get('id'));
       CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Group has been deleted'));

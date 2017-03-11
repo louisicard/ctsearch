@@ -229,14 +229,7 @@ class IndexController extends Controller {
       'fields' => 0
     );
     if ($mapping != null) {
-      $query = array(
-        'filter' => array(
-          'type' => array(
-            'value' => $mapping_name,
-          )
-        )
-      );
-      $res = IndexManager::getInstance()->search($index_name, json_encode($query));
+      $res = IndexManager::getInstance()->search($index_name, '{"query":{"match_all":{"boost":1}}}', 0, 0, $mapping_name);
       if (isset($res['hits']['total']) && $res['hits']['total'] > 0) {
         $data['docs'] = $res['hits']['total'];
       }

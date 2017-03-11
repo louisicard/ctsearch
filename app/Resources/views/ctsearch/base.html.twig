@@ -38,9 +38,17 @@
           </ul>
         </li>
         {% endif %}
-        {% if is_granted("ROLE_SEARCH_PAGE_MANAGER") %}
-        <li{%if main_menu_item=='search-pages'%} class="active"{%endif%}><a href="{{path('search-pages')}}" title="{{'Search pages'|trans}}">{{'Search pages'|trans}}</a></li>
-        {% endif %}
+        <li class="expandable">
+          <a href="javascript:void(0)">Search</a>
+          <ul>
+            {% if is_granted("ROLE_SEARCH_PAGE_MANAGER") %}
+              <li{%if main_menu_item=='search-pages'%} class="active"{%endif%}><a href="{{path('search-pages')}}" title="{{'Search pages'|trans}}">{{'Search pages'|trans}}</a></li>
+            {% endif %}
+            {% if is_granted("ROLE_AUTOPROMOTE_USER") %}
+              <li{%if main_menu_item=='autopromotes'%} class="active"{%endif%}><a href="{{path('autopromotes')}}" title="{{'Auto-promote'|trans}}">{{'Auto-promote'|trans}}</a></li>
+            {% endif %}
+          </ul>
+        </li>
         {% if is_granted("ROLE_ANALYTICS_USER") or is_granted("ROLE_LOGS_VIEWER") or is_granted("ROLE_BACKUP_USER") or is_granted("ROLE_CONSOLE_USER") %}
         <li class="expandable">
           <a href="javascript:void(0)">Tools</a>
@@ -140,7 +148,8 @@
       Prev: "{{'Previous'|trans}}",
       Next: "{{'Next'|trans}}",
       GroupDeleteConfirm: "{{'You are about to delete a group.\\nDo you wish to proceed?'|trans}}",
-      UserDeleteConfirm: "{{'You are about to delete a user.\\nDo you wish to proceed?'|trans}}"
+      UserDeleteConfirm: "{{'You are about to delete a user.\\nDo you wish to proceed?'|trans}}",
+      AutopromoteDeleteConfirm: "{{'You are about to delete an autopromote.\\nDo you wish to proceed?'|trans}}"
     };
   </script>
   <script type="text/javascript" src="{{asset('js/jquery-1.11.3.min.js')}}"></script>

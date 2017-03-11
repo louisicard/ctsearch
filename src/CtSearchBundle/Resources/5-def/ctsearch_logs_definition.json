@@ -5,12 +5,14 @@
         "format": "date_optional_time"
     },
     "message": {
-        "type": "keyword",
-        "store": true
+        "type": "text",
+        "store": true,
+        "analyzer": "standard"
     },
     "object": {
-        "type": "keyword",
-        "store": true
+        "type": "text",
+        "store": true,
+        "analyzer": "standard"
     },
     "type": {
         "type": "keyword",

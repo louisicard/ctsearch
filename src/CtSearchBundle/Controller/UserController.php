@@ -24,7 +24,7 @@ class UserController extends Controller {
   /**
    * @Route("/users", name="users")
    */
-  public function listGroupsAction(Request $request) {
+  public function listUsersAction(Request $request) {
     $users = IndexManager::getInstance()->getUsers();
     return $this->render('ctsearch/user.html.twig', array(
         'title' => $this->get('translator')->trans('Users'),
@@ -36,21 +36,21 @@ class UserController extends Controller {
   /**
    * @Route("/users/add", name="user-add")
    */
-  public function addSearchPageAction(Request $request) {
+  public function addUserAction(Request $request) {
     return $this->handleAddOrEditUser($request);
   }
 
   /**
    * @Route("/users/edit", name="user-edit")
    */
-  public function editSearchPageAction(Request $request) {
+  public function editUserAction(Request $request) {
     return $this->handleAddOrEditUser($request, $request->get('uid'));
   }
 
   /**
    * @Route("/users/delete", name="user-delete")
    */
-  public function deleteSearchPageAction(Request $request) {
+  public function deleteUserAction(Request $request) {
     if ($request->get('uid') != null) {
       IndexManager::getInstance()->deleteUser($request->get('uid'));
       CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('User has been deleted'));

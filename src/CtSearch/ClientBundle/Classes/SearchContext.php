@@ -85,6 +85,8 @@ class SearchContext
    */
   private $didYouMean = null;
 
+  private $autopromote = array();
+
   private $serviceUrl;
   private $mapping;
   private $requestedFacets;
@@ -246,27 +248,26 @@ class SearchContext
 
     $url = $this->generateUrl($this->serviceUrl, $params);
     $this->currentRequestUrl = $url;
-    try {
 
-      $response = $this->getResponse($url);
-      if (isset($response['hits']['hits'])) {
-        $this->results = $response['hits']['hits'];
-      }
-      if (isset($response['hits']['total'])) {
-        $this->total = $response['hits']['total'];
-      }
-      if (isset($response['aggregations'])) {
-        $this->facets = $response['aggregations'];
-      }
+    $response = $this->getResponse($url);
+    if (isset($response['hits']['hits'])) {
+      $this->results = $response['hits']['hits'];
+    }
+    if (isset($response['hits']['total'])) {
+      $this->total = $response['hits']['total'];
+    }
+    if (isset($response['aggregations'])) {
+      $this->facets = $response['aggregations'];
+    }
+    if (isset($response['autopromote']) && isset($response['autopromote']['hits']['hits'])) {
+      $this->autopromote = $response['autopromote']['hits']['hits'];
+    }
 
-      if(isset($response['suggest_ctsearch']) && count($response['suggest_ctsearch']) > 0){
-        $this->setDidYouMean($response['suggest_ctsearch'][0]['text']);
-      }
-      $this->status = SearchContext::CTSEARCH_STATUS_EXECUTED;
+    if(isset($response['suggest_ctsearch']) && count($response['suggest_ctsearch']) > 0){
+      $this->setDidYouMean($response['suggest_ctsearch'][0]['text']);
     }
-    catch(\Exception $ex){
-      var_dump($ex);
-    }
+    $this->status = SearchContext::CTSEARCH_STATUS_EXECUTED;
+
   }
 
   private function getResponse($url){
@@ -598,6 +599,15 @@ class SearchContext
   {
     $this->highlights = $highlights;
   }
+
+  /**
+   * @return array
+   */
+  public function getAutopromote()
+  {
+    return $this->autopromote;
+  }
+
 
   private function generateUrl($url, $args){
     $url_parts = explode('?', $url);

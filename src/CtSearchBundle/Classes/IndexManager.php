@@ -158,13 +158,15 @@ class IndexManager
     return $dictionaries;
   }
 
-  function getElasticInfo()
+  function getElasticInfo($checkACL = true)
   {
     $info = array();
     $stats = $this->getClient()->indices()->stats();
-    $allowed_indexes = $this->getCurrentUserAllowedIndexes();
+    if($checkACL) {
+      $allowed_indexes = $this->getCurrentUserAllowedIndexes();
+    }
     foreach ($stats['indices'] as $index_name => $stat) {
-      if($this->isCurrentUserAdmin() || in_array($index_name, $allowed_indexes)) {
+      if(!$checkACL || $this->isCurrentUserAdmin() || in_array($index_name, $allowed_indexes)) {
         $info[$index_name] = array(
           'count' => $stat['total']['docs']['count'] - $stat['total']['docs']['deleted'],
           'size' => round($stat['total']['store']['size_in_bytes'] / 1024 / 1024, 2) . ' MB',
@@ -181,6 +183,16 @@ class IndexManager
     }
     unset($stats);
     return $info;
+  }
+
+  public function mappingExists($indexName, $mappingName){
+    $mappings = $this->getElasticInfo(false)[$indexName]['mappings'];
+    foreach($mappings as $mapping){
+      if($mapping['name'] == $mappingName){
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -964,6 +976,7 @@ class IndexManager
     try {
       return $this->getClient()->search($params);
     } catch (\Exception $ex) {
+      throw $ex;
       return array();
     }
   }
@@ -1573,20 +1586,19 @@ class IndexManager
     ));
   }
 
-  public function scroll($queryBody, $index, $mapping, $callback, $context = array())
+  public function scroll($queryBody, $index, $mapping, $callback, $context = array(), $size = 10)
   {
     $r = $this->getClient()->search(array(
       'index' => $index,
       'type' => $mapping,
       'body' => $queryBody,
-      'scroll' => '1ms'
+      'scroll' => '10ms',
+      'size' => $size
     ));
     if (isset($r['_scroll_id'])) {
       $scrollId = $r['_scroll_id'];
       while (count($r['hits']['hits']) > 0) {
-        foreach ($r['hits']['hits'] as $hit) {
-          $callback($hit, $context);
-        }
+        $callback($r['hits']['hits'], $context);
         $r = $this->client->scroll(array(
           'scroll_id' => $scrollId,
           'scroll' => '1m'
@@ -1843,6 +1855,97 @@ class IndexManager
       }
     }
     return $dictionaries;
+  }
+
+  /**
+   * @return Autopromote[]
+   */
+  public function getAutopromotes(){
+    $res = $this->search($this->isCurrentUserAdmin() ? '_all' : implode(',', $this->getCurrentUserAllowedIndexes()), '{"query":{"match_all":{"boost":1}}}', 0, 100, 'ctsearch_autopromote');
+    $r = [];
+    if(isset($res['hits']['hits'])){
+      foreach($res['hits']['hits'] as $hit) {
+        $r[] = new Autopromote(
+          $hit['_id'],
+          $hit['_source']['ctsap__title'],
+          $hit['_source']['ctsap__url'],
+          $hit['_source']['ctsap__image'],
+          $hit['_source']['ctsap__body'],
+          $hit['_source']['ctsap__keywords'],
+          $hit['_index'],
+          null
+        );
+      }
+    }
+    return $r;
+  }
+
+  /**
+   * @param string$id
+   * @return Autopromote
+   */
+  public function getAutopromote($id){
+    $res = $this->search('_all', '{"query":{"ids":{"values":["' . $id . '"]}}}', 0, 100, 'ctsearch_autopromote');
+    if(isset($res['hits']['hits'])){
+      $hit = $res['hits']['hits'][0];
+      return new Autopromote(
+        $hit['_id'],
+        $hit['_source']['ctsap__title'],
+        $hit['_source']['ctsap__url'],
+        $hit['_source']['ctsap__image'],
+        $hit['_source']['ctsap__body'],
+        $hit['_source']['ctsap__keywords'],
+        $hit['_index'],
+        null
+      );
+    }
+    return null;
+  }
+
+  public function saveAutopromote(Autopromote $autopromote){
+    if(!$this->mappingExists($autopromote->getIndex(), 'ctsearch_autopromote')){
+      $mapping = new Mapping($autopromote->getIndex(), 'ctsearch_autopromote');
+      if($this->getServerMajorVersionNumber() >= 5) {
+        $def = file_get_contents(__DIR__ . '/../Resources/ctsearch_autopromote_definition.json');
+      }
+      else{
+        $def = file_get_contents(__DIR__ . '/../Resources/5-def/ctsearch_autopromote_definition.json');
+      }
+      $def = json_decode($def, TRUE);
+      $def['ctsap__keywords']['analyzer'] = $autopromote->getAnalyzer();
+      $mapping->setMappingDefinition(json_encode($def));
+      $this->updateMapping($mapping);
+    }
+    $doc = array(
+      'ctsap__title' => $autopromote->getTitle(),
+      'ctsap__url' => $autopromote->getUrl(),
+      'ctsap__image' => $autopromote->getImage(),
+      'ctsap__body' => $autopromote->getBody(),
+      'ctsap__keywords' => $autopromote->getKeywords()
+    );
+    if($autopromote->getId() != null){
+      $doc['_id'] = $autopromote->getId();
+    }
+    $this->indexDocument($autopromote->getIndex(), 'ctsearch_autopromote', $doc);
+  }
+
+  public function getAutopromoteAnalyzer($indexName){
+    if($this->mappingExists($indexName, 'ctsearch_autopromote')){
+      $mapping = $this->getMapping($indexName, 'ctsearch_autopromote');
+      $def = json_decode($mapping->getMappingDefinition(), true);
+      return $def['ctsap__keywords']['analyzer'];
+    }
+    return NULL;
+  }
+
+  public function deleteAutopromote(Autopromote $autopromote){
+    $this->getClient()->delete(array(
+        'index' => $autopromote->getIndex(),
+        'type' => 'ctsearch_autopromote',
+        'id' => $autopromote->getId(),
+      )
+    );
+    $this->getClient()->indices()->flush();
   }
 
 }

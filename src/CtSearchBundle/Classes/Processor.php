@@ -142,7 +142,7 @@ class Processor implements Exportable, Importable
     $datasource = new $data['datasource']['class']($data['datasource']['name'], null);
     $datasource->initFromSettings($data['datasource']['settings']);
     $datasource->setId($data['datasource']['id']);
-    $datasource->setHasBatchExecution($data['datasource']['has_batch_execution']);
+    $datasource->setHasBatchExecution(isset($data['datasource']['has_batch_execution']) ? $data['datasource']['has_batch_execution'] : false);
     IndexManager::getInstance()->saveDatasource($datasource, $data['datasource']['id']);
 
     foreach ($data['matching_lists'] as $matchingList) {

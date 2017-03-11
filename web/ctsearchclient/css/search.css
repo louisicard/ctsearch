@@ -5,6 +5,7 @@ body{
   box-sizing: border-box;
 }
 main:after,
+.results-list .autopromote-list .autopromote-item:after,
 .results .results-list li:after,
 .results .results-list .more-like-this-item:after,
 .search-form > form:after{
@@ -163,6 +164,7 @@ a.ajax-link.ajax-loading{
 .results li .thumbnail img {
   width:100%;
   height:auto;
+  display:block;
 }
 .results li .excerp{
   font-size:0.9em;
@@ -224,4 +226,24 @@ a.ajax-link.ajax-loading{
 }
 #autocomplete-suggestions li.active{
   background:#ccc;
+}
+.results-list .autopromote-list .autopromote-item {
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+.results-list .autopromote-list {
+  margin:20px 0;
+}
+.results-list .autopromote-list .autopromote-item .image{
+  float:left;
+  margin:0 10px 5px 0;
+  max-width:120px;
+}
+.results-list .autopromote-list .autopromote-item .image img{
+  max-width:100%;
+  height:auto;
+  display:block;
+}
+.results-list .autopromote-list .autopromote-item {
+  margin:10px 0;
 }

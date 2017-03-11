@@ -43,6 +43,7 @@ class SearchAPIController extends Controller
         $definition = json_decode($mapping->getMappingDefinition(), true);
         $analyzed_fields = array();
         $nested_analyzed_fields = array();
+        $stickyFacets = $request->get('sticky_facets') != NULL ? array_map('trim', explode(',', $request->get('sticky_facets'))) : [];
         foreach ($definition as $field => $field_detail) {
           if ((!isset($field_detail['index']) || $field_detail['index'] == 'analyzed') && $field_detail['type'] == 'string') {
             $analyzed_fields[] = $field;
@@ -198,7 +199,7 @@ class SearchAPIController extends Controller
             }
             if(SEARCH_API_DEBUG)
               var_dump($filterQueries);
-            $query['filter'] = $this->computeFilter($filterQueries);
+            $query['query']['bool']['filter'] = $this->computeFilter($filterQueries);
           }
         }
         if ($request->get('ids') != null) {
@@ -318,16 +319,21 @@ class SearchAPIController extends Controller
             }
           }
 
-          if(isset($query['filter'])) {
-            $stickyFacets = $request->get('sticky_facets') != NULL ? array_map('trim', explode(',', $request->get('sticky_facets'))) : [];
+          if(isset($query['query']['bool']['filter'])) {
             foreach ($query['aggs'] as $agg_name => $agg) {
-              unset($query['aggs'][$agg_name]);
-              $query['aggs'][$agg_name] = array(
-                'filter' => $this->computeFilter($filterQueries, in_array($agg_name, $stickyFacets) ? $agg_name : NULL),//Put null in $skipField to disable sticky facets
-                'aggs' => array(
-                  $agg_name => $agg
-                )
-              );
+              if(in_array($agg_name, $stickyFacets)) {
+                $query['aggs']['sticky_' . $agg_name] = array(
+                  'global' => new \stdClass(),
+                  'aggs' => array(
+                    'sticky_' . $agg_name => array(
+                      'filter' => $this->computeFilter($filterQueries, $agg_name),//Put null in $skipField to disable sticky facets
+                      'aggs' => array(
+                        'sticky_' . $agg_name => $agg
+                      )
+                    )
+                  )
+                );
+              }
             }
           }
         }
@@ -373,7 +379,7 @@ class SearchAPIController extends Controller
           var_dump($query);
 
         try {
-          $res = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], json_encode($query), $request->get('from') != null ? $request->get('from') : 0, $request->get('size') != null ? $request->get('size') : 10);
+          $res = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], json_encode($query), $request->get('from') != null ? $request->get('from') : 0, $request->get('size') != null ? $request->get('size') : 10, explode('.', $request->get('mapping'))[1]);
           if($request->get('escapeQuery') == null || $request->get('escapeQuery') == 1) {
             IndexManager::getInstance()->saveStat($request->get('mapping'), $applied_facets, $request->get('query') != null ? $request->get('query') : '', $request->get('analyzer'), $request->getQueryString(), isset($res['hits']['total']) ? $res['hits']['total'] : 0, isset($res['took']) ? $res['took'] : 0, $request->get('clientIp') != null ? $request->get('clientIp') : $request->getClientIp(), $request->get('tag') != null ? $request->get('tag') : '');
           }
@@ -400,6 +406,21 @@ class SearchAPIController extends Controller
             });
             $res['suggest_ctsearch'] = $suggestions;
           }
+          if($query_string != '*' && !empty($query_string) && IndexManager::getInstance()->mappingExists(explode('.', $request->get('mapping'))[0], 'ctsearch_autopromote')){
+            $promote_query = json_encode(array(
+              'query' => array(
+                'query_string' => array(
+                  'query' => $query_string,
+                  'default_field' => 'ctsap__keywords',
+                  'analyzer' => IndexManager::getInstance()->getAutopromoteAnalyzer(explode('.', $request->get('mapping'))[0])
+                )
+              )
+            ));
+            $promote = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], $promote_query, 0, 5, 'ctsearch_autopromote');
+            if(isset($promote['hits']['hits']) && count($promote['hits']['hits']) > 0){
+              $res['autopromote'] = $promote;
+            }
+          }
         } catch (\Exception $ex) {
           return new Response(json_encode(array('error' => $ex->getMessage())), 500, array('Content-type' => 'application/json;charset=utf-8'));
         }
@@ -409,8 +430,13 @@ class SearchAPIController extends Controller
               if (isset($agg[$agg_name])) {
                 $res['aggregations'][$agg_name] = $agg[$agg_name];
               }
+              if(strpos($agg_name, 'sticky_') === 0){
+                $res['aggregations'][substr($agg_name, strlen('sticky_'))] = $res['aggregations'][$agg_name][$agg_name];
+                unset($res['aggregations'][$agg_name]);
+              }
             }
           }
+
           if (isset($res['hits']['hits'])) { //Remove the sort item on hits (pb with json_decode on the client side for too large integer value)
             foreach ($res['hits']['hits'] as $i => $hit) {
               if (isset($hit['sort'])) {
@@ -472,7 +498,7 @@ class SearchAPIController extends Controller
     }
     if(empty($query_filter)){
       $query_filter['bool']['must'][] = array(
-        'match_all' => array()
+        'match_all' => array('boost' => 1)
       );
     }
     return $query_filter;

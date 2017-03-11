@@ -76,7 +76,7 @@ class ConsoleController extends Controller {
       $mapping = strpos($data['mapping'], '.') !== 0 ? explode('.', $data['mapping'])[1] : explode('.', $data['mapping'])[2];
       try {
         if (!$data['deleteByQuery']) {
-          $res = IndexManager::getInstance()->search($index, $query, isset($query_r['from']) ? $query_r['from'] : 0, isset($query_r['size']) ? $query_r['size'] : 20);
+          $res = IndexManager::getInstance()->search($index, $query, isset($query_r['from']) ? $query_r['from'] : 0, isset($query_r['size']) ? $query_r['size'] : 20, $mapping);
           $params['results'] = $this->dumpVar($res);
           if(isset($res['aggregations']) && count($res['aggregations']) > 0){
             $params['facets'] = json_encode($res['aggregations'], JSON_PRETTY_PRINT);
