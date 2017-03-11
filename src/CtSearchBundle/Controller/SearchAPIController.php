@@ -377,7 +377,6 @@ class SearchAPIController extends Controller
 
         if(SEARCH_API_DEBUG)
           var_dump($query);
-
         try {
           $res = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], json_encode($query), $request->get('from') != null ? $request->get('from') : 0, $request->get('size') != null ? $request->get('size') : 10, explode('.', $request->get('mapping'))[1]);
           if($request->get('escapeQuery') == null || $request->get('escapeQuery') == 1) {
@@ -430,7 +429,9 @@ class SearchAPIController extends Controller
               if (isset($agg[$agg_name])) {
                 $res['aggregations'][$agg_name] = $agg[$agg_name];
               }
-              if(strpos($agg_name, 'sticky_') === 0){
+            }
+            foreach ($res['aggregations'] as $agg_name => $agg) {
+              if (strpos($agg_name, 'sticky_') === 0) {
                 $res['aggregations'][substr($agg_name, strlen('sticky_'))] = $res['aggregations'][$agg_name][$agg_name];
                 unset($res['aggregations'][$agg_name]);
               }

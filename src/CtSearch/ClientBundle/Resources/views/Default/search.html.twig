@@ -105,7 +105,7 @@
     {% endif %}
     <div class="results{% if (facets is not defined or facets is empty) and (sortingOptions is not defined or sortingOptions is empty) %} no-facets{% endif %}">
         <div class="search-stat"><strong>{{ context.total }}</strong> results</div>
-        <div class="results-list">{{ dump(context.currentRequestUrl) }}
+        <div class="results-list">
             {% if context.didYouMean is not null and context.total < 5 %}
                 <div class="did-you-mean">Did you mean <em><a
                                 href="{{ path('ct_search_client_homepage', {mapping: mapping, sp_id: searchPageId, query: context.didYouMean}) }}">{{ context.didYouMean }}</a></em>?
