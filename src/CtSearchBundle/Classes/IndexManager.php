@@ -1906,10 +1906,10 @@ class IndexManager
     if(!$this->mappingExists($autopromote->getIndex(), 'ctsearch_autopromote')){
       $mapping = new Mapping($autopromote->getIndex(), 'ctsearch_autopromote');
       if($this->getServerMajorVersionNumber() >= 5) {
-        $def = file_get_contents(__DIR__ . '/../Resources/ctsearch_autopromote_definition.json');
+        $def = file_get_contents(__DIR__ . '/../Resources/5-def/ctsearch_autopromote_definition.json');
       }
       else{
-        $def = file_get_contents(__DIR__ . '/../Resources/5-def/ctsearch_autopromote_definition.json');
+        $def = file_get_contents(__DIR__ . '/../Resources/ctsearch_autopromote_definition.json');
       }
       $def = json_decode($def, TRUE);
       $def['ctsap__keywords']['analyzer'] = $autopromote->getAnalyzer();
