@@ -556,16 +556,30 @@ class SearchAPIController extends Controller
     $group = $request->get('group');
     $text = $request->get('text');
     $text = $this->transliterate($text);
+    $words = explode(' ', $text);
+    if(count($words) > 1){
+      //$textQuery ;
+      foreach($words as $word){
+        $textQueries[] = array(
+          'wildcard' => array(
+            $field => '*' . strtolower($word) . '*'
+          )
+        );
+      }
+    }
+    else{
+      $textQueries[] = array(
+        'wildcard' => array(
+          $field => '*' . strtolower($text) . '*'
+        )
+      );
+    }
     if ($group != null && !empty($group)) {
       $body = array(
         'query' => array(
           'bool' => array(
             'must' => array(
-              array(
-                'wildcard' => array(
-                  $field => '*' . strtolower($text) . '*'
-                )
-              )
+              $textQueries
             )
           )
         ),
@@ -594,11 +608,7 @@ class SearchAPIController extends Controller
         'query' => array(
           'bool' => array(
             'must' => array(
-              array(
-                'wildcard' => array(
-                  $field => '*' . strtolower($text) . '*'
-                )
-              )
+              $textQueries
             )
           )
         ),
