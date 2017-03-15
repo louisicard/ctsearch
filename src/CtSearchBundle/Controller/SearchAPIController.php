@@ -557,9 +557,9 @@ class SearchAPIController extends Controller
     $text = $request->get('text');
     $text = $this->transliterate($text);
     $size = $request->get('size') != null ? (int)$request->get('size') : 20;
+    $sizePerGroup = $request->get('size_per_group') != null ? (int)$request->get('size_per_group') : 10;
     $words = explode(' ', $text);
     if(count($words) > 1){
-      //$textQuery ;
       foreach($words as $word){
         $textQueries[] = array(
           'wildcard' => array(
@@ -597,7 +597,7 @@ class SearchAPIController extends Controller
             'aggs' => array(
               'tops' => array(
                 'top_hits' => array(
-                  'size' => 5
+                  'size' => $sizePerGroup
                 )
               )
             )
