@@ -559,8 +559,14 @@ class SearchAPIController extends Controller
     if ($group != null && !empty($group)) {
       $body = array(
         'query' => array(
-          'wildcard' => array(
-            $field => '*' . strtolower($text) . '*'
+          'bool' => array(
+            'must' => array(
+              array(
+                'wildcard' => array(
+                  $field => '*' . strtolower($text) . '*'
+                )
+              )
+            )
           )
         ),
         'size' => 0,
@@ -586,11 +592,24 @@ class SearchAPIController extends Controller
     } else {
       $body = array(
         'query' => array(
-          'wildcard' => array(
-            $field => '*' . strtolower($text) . '*'
+          'bool' => array(
+            'must' => array(
+              array(
+                'wildcard' => array(
+                  $field => '*' . strtolower($text) . '*'
+                )
+              )
+            )
           )
         ),
         'size' => 10
+      );
+    }
+    if($request->get('filterQuerystring') != null){
+      $body['query']['bool']['must'][] = array(
+        'query_string' => array(
+          'query' => $request->get('filterQuerystring')
+        )
       );
     }
     $index = explode('.', $mapping)[0];
