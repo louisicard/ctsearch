@@ -556,6 +556,7 @@ class SearchAPIController extends Controller
     $group = $request->get('group');
     $text = $request->get('text');
     $text = $this->transliterate($text);
+    $size = $request->get('size') != null ? (int)$request->get('size') : 20;
     $words = explode(' ', $text);
     if(count($words) > 1){
       //$textQuery ;
@@ -612,7 +613,7 @@ class SearchAPIController extends Controller
             )
           )
         ),
-        'size' => 10
+        'size' => $size
       );
     }
     if($request->get('filterQuerystring') != null){
