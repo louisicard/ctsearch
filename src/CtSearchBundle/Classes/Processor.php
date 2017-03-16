@@ -119,21 +119,22 @@ class Processor implements Exportable, Importable
     if($serverVersion >= 5){
       $def = json_decode($mapping->getMappingDefinition(), TRUE);
       foreach($def as $field => $field_def){
-        if($field_def['type'] == 'string'){
-          if(isset($field_def['analyzer'])){
-            $field_def['type'] = 'text';
-          }
-          else{
-            $field_def['type'] = 'keyword';
-            if(isset($field_def['boost'])){
-              unset($field_def['boost']);
+        if(isset($field_def['type'])) {
+          if ($field_def['type'] == 'string') {
+            if (isset($field_def['analyzer'])) {
+              $field_def['type'] = 'text';
+            } else {
+              $field_def['type'] = 'keyword';
+              if (isset($field_def['boost'])) {
+                unset($field_def['boost']);
+              }
+              if (isset($field_def['index'])) {
+                unset($field_def['index']);
+              }
             }
-            if(isset($field_def['index'])){
-              unset($field_def['index']);
-            }
           }
+          $def[$field] = $field_def;
         }
-        $def[$field] = $field_def;
       }
       $mapping->setMappingDefinition(json_encode($def));
     }
