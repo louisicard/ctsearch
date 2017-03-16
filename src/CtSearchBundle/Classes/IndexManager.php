@@ -55,6 +55,9 @@ class IndexManager
       unset($this->client);
     }
     $clientBuilder = new ClientBuilder();
+    if(!defined('JSON_PRESERVE_ZERO_FRACTION')){
+      $clientBuilder->allowBadJSONSerialization();
+    }
     $clientBuilder->setHosts(array($this->esUrl));
     $this->client = $clientBuilder->build();
     unset($clientBuilder);
