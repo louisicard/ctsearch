@@ -98,6 +98,13 @@
         window.location = url;
       });
     });
+    $('a.boost-query-delete').click(function (e) {
+      e.preventDefault();
+      var url = $(this).attr('href');
+      return advConfirm(__ctsearch_js_translations.BoostQueryDeleteConfirm, function () {
+        window.location = url;
+      });
+    });
 
     $('.search-page .search-result-source-toggler a').click(function () {
       $(this).parents('.search-result').find('.search-result-source').slideToggle();
@@ -1046,6 +1053,7 @@
         var defaultSorting = $('<div class="form-item required"><label for="sp-def-default-sorting">Empty search sorting field:</label></div>');
         var defaultSortingSelect = fieldSelect.clone();
         defaultSortingSelect.find('option[value="_id"]').detach();
+        defaultSortingSelect.append($('<option value="_score">_score</option>'));
         defaultSortingSelect.attr('id', 'sp-def-default-sorting');
         defaultSortingSelect.attr('required', 'required');
         defaultSorting.append(defaultSortingSelect);

@@ -45,12 +45,12 @@ class SearchAPIController extends Controller
         $nested_analyzed_fields = array();
         $stickyFacets = $request->get('sticky_facets') != NULL ? array_map('trim', explode(',', $request->get('sticky_facets'))) : [];
         foreach ($definition as $field => $field_detail) {
-          if ((!isset($field_detail['index']) || $field_detail['index'] == 'analyzed') && $field_detail['type'] == 'string') {
+          if ((!isset($field_detail['index']) || $field_detail['index'] == 'analyzed') && ($field_detail['type'] == 'string' || IndexManager::getInstance()->getServerMajorVersionNumber() >= 5 && $field_detail['type'] == 'text')) {
             $analyzed_fields[] = $field;
           }
-          if ($field_detail['type'] == 'nested') {
+          elseif ($field_detail['type'] == 'nested') {
             foreach ($field_detail['properties'] as $sub_field => $sub_field_detail) {
-              if ((!isset($sub_field_detail['index']) || $sub_field_detail['index'] == 'analyzed') && $sub_field_detail['type'] == 'string') {
+              if ((!isset($sub_field_detail['index']) || $sub_field_detail['index'] == 'analyzed') && ($sub_field_detail['type'] == 'string' || IndexManager::getInstance()->getServerMajorVersionNumber() >= 5 && $sub_field_detail['type'] == 'text')) {
                 $nested_analyzed_fields[] = $field . '.' . $sub_field;
               }
             }
@@ -66,14 +66,14 @@ class SearchAPIController extends Controller
         }
 
         if (count($nested_analyzed_fields) > 0) {
-          $query['query']['bool']['should'][0]['query_string'] = array(
+          $query['query']['bool']['must'][0]['bool']['should'][]['query_string'] = array(
             'query' => $query_string,
             'default_operator' => 'AND',
             'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
             'fields' => $analyzed_fields
           );
           foreach ($nested_analyzed_fields as $field) {
-            $query['query']['bool']['should'][]['nested'] = array(
+            $query['query']['bool']['must'][0]['bool']['should'][]['nested'] = array(
               'path' => explode('.', $field)[0],
               'query' => array(
                 'query_string' => array(
@@ -86,7 +86,7 @@ class SearchAPIController extends Controller
             );
           }
         } else {
-          $query['query']['query_string'] = array(
+          $query['query']['bool']['must'][0]['query_string'] = array(
             'query' => $query_string,
             'default_operator' => 'AND',
             'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
@@ -375,8 +375,17 @@ class SearchAPIController extends Controller
         }
 
 
-        if(SEARCH_API_DEBUG)
+        if($request->get('no_boosting') == null || $request->get('no_boosting') == 0){
+          $boostQueries = IndexManager::getInstance()->getBoostQueries('bmg.notice');
+          foreach($boostQueries as $boostQuery){
+            $query['query']['bool']['should'][] = json_decode($boostQuery->getDefinition(), true);
+          }
+        }
+
+        if(SEARCH_API_DEBUG) {
           var_dump($query);
+          var_dump(json_encode($query));
+        }
         try {
           $res = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], json_encode($query), $request->get('from') != null ? $request->get('from') : 0, $request->get('size') != null ? $request->get('size') : 10, explode('.', $request->get('mapping'))[1]);
           if($request->get('escapeQuery') == null || $request->get('escapeQuery') == 1) {

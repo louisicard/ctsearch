@@ -258,6 +258,7 @@ table tr:hover{
   content:"*";
   color:red;
 }
+#form_boost_query #form_definition,
 #form_matching_list #form_list,
 #form_search_page #form_config,
 #form_search_page #form_definition,

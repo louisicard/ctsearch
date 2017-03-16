@@ -1951,4 +1951,107 @@ class IndexManager
     $this->getClient()->indices()->flush();
   }
 
+  /**
+   * @return BoostQuery[]
+   */
+  function getBoostQueries($mapping = null)
+  {
+    $this->initSystemMappingMapping('boost_query', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_boost_query_definition.json');
+    $list = array();
+    if ($this->getIndex('.ctsearch') != null) {
+      try {
+        $params = array(
+          'index' => '.ctsearch',
+          'type' => 'boost_query',
+          'size' => 9999
+        );
+        if($mapping != null){
+          $params['body'] = array(
+            'query' => array(
+              'term' => array(
+                'target' => $mapping
+              )
+            )
+          );
+        }
+        $r = $this->getClient()->search($params);
+        if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
+          foreach ($r['hits']['hits'] as $hit) {
+            $list[] = new BoostQuery($hit['_id'], $hit['_source']['target'], $hit['_source']['definition']);
+          }
+        }
+        unset($r);
+      } catch (\Exception $ex) {
+
+      }
+    }
+    return $list;
+  }
+
+  /**
+   * @return BoostQuery
+   */
+  function getBoostQuery($id)
+  {
+    $this->initSystemMappingMapping('boost_query', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_boost_query_definition.json');
+    if ($this->getIndex('.ctsearch') != null) {
+      try {
+        $r = $this->getClient()->search(array(
+          'index' => '.ctsearch',
+          'type' => 'boost_query',
+          'body' => array(
+            'query' => array(
+              'match' => array(
+                '_id' => $id,
+              )
+            )
+          )
+        ));
+        if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
+          $hit = $r['hits']['hits'][0];
+          $boostQuery = new BoostQuery($hit['_id'], $hit['_source']['target'], $hit['_source']['definition']);
+        }
+        unset($r);
+        return $boostQuery;
+      } catch (\Exception $ex) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  public function saveBoostQuery(BoostQuery $boostQuery, $id = null)
+  {
+    $this->initSystemMappingMapping('boost_query', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_boost_query_definition.json');
+    $params = array(
+      'index' => '.ctsearch',
+      'type' => 'boost_query',
+      'body' => array(
+        'target' => $boostQuery->getTarget(),
+        'definition' => $boostQuery->getDefinition(),
+      )
+    );
+    if ($id != null) {
+      $params['id'] = $id;
+    }
+    $r = $this->getClient()->index($params);
+    $this->getClient()->indices()->flush();
+    unset($params);
+    return $r;
+  }
+
+  /**
+   * @param string $id
+   */
+  public function deleteBoostQuery($id)
+  {
+    $this->initSystemMappingMapping('boost_query', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_boost_query_definition.json');
+    $this->getClient()->delete(array(
+        'index' => '.ctsearch',
+        'type' => 'boost_query',
+        'id' => $id,
+      )
+    );
+    $this->getClient()->indices()->flush();
+  }
 }
