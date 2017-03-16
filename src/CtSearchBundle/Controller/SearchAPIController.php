@@ -334,7 +334,7 @@ class SearchAPIController extends Controller
                   )
                 );
                 //Let's add the global query filter
-                $query['aggs']['sticky_' . $agg_name]['filter']['bool']['must'] = array_merge($query['aggs']['sticky_' . $agg_name]['filter']['bool']['must'], $query['query']['bool']['must']);
+                $query['aggs']['sticky_' . $agg_name]['global']['aggs']['sticky_' . $agg_name]['filter']['bool']['must'] = array_merge($query['aggs']['sticky_' . $agg_name]['global']['aggs']['sticky_' . $agg_name]['filter']['bool']['must'], $query['query']['bool']['must']);
               }
             }
           }
