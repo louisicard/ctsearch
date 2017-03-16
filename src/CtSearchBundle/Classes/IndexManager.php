@@ -81,7 +81,7 @@ class IndexManager
    */
   private function getCurrentUser(){
     global $kernel;
-    return $kernel->getContainer()->get('security.token_storage')->getToken()->getUser();
+    return $kernel->getContainer()->get('security.token_storage')->getToken() != null ? $kernel->getContainer()->get('security.token_storage')->getToken()->getUser() : null;
   }
 
   private function isCurrentUserAdmin(){
@@ -567,7 +567,7 @@ class IndexManager
         'definition' => serialize($datasource->getSettings()),
         'name' => $datasource->getName(),
         'has_batch_execution' => $datasource->isHasBatchExecution(),
-        'created_by' => $this->getCurrentUser()->getUsername()
+        'created_by' => $this->getCurrentUser() != null ? $this->getCurrentUser()->getUsername() : null
       )
     );
     if ($id != null) {
