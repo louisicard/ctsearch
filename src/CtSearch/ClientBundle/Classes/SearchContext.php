@@ -76,6 +76,11 @@ class SearchContext
   private $status = SearchContext::CTSEARCH_STATUS_IDLE;
 
   /**
+   * @var int
+   */
+  private $took = 0;
+
+  /**
    * @var string
    */
   private $currentRequestUrl = "";
@@ -250,6 +255,9 @@ class SearchContext
     $this->currentRequestUrl = $url;
 
     $response = $this->getResponse($url);
+    if(isset($response['took'])){
+      $this->took = $response['took'];
+    }
     if (isset($response['hits']['hits'])) {
       $this->results = $response['hits']['hits'];
     }
@@ -606,6 +614,22 @@ class SearchContext
   public function getAutopromote()
   {
     return $this->autopromote;
+  }
+
+  /**
+   * @return int
+   */
+  public function getTook()
+  {
+    return $this->took;
+  }
+
+  /**
+   * @param int $took
+   */
+  public function setTook($took)
+  {
+    $this->took = $took;
   }
 
 

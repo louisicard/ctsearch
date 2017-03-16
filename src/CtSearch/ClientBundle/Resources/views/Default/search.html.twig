@@ -104,7 +104,7 @@
     </div>
     {% endif %}
     <div class="results{% if (facets is not defined or facets is empty) and (sortingOptions is not defined or sortingOptions is empty) %} no-facets{% endif %}">
-        <div class="search-stat"><strong>{{ context.total }}</strong> results</div>
+        <div class="search-stat"><strong>{{ context.total }}</strong> results <em>(search took {{ context.took }}ms)</em></div>
         <div class="results-list">
             {% if context.didYouMean is not null and context.total < 5 %}
                 <div class="did-you-mean">Did you mean <em><a
