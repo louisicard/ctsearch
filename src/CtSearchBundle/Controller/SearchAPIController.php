@@ -376,7 +376,7 @@ class SearchAPIController extends Controller
 
 
         if($request->get('no_boosting') == null || $request->get('no_boosting') == 0){
-          $boostQueries = IndexManager::getInstance()->getBoostQueries('bmg.notice');
+          $boostQueries = IndexManager::getInstance()->getBoostQueries($request->get('mapping'));
           foreach($boostQueries as $boostQuery){
             $query['query']['bool']['should'][] = json_decode($boostQuery->getDefinition(), true);
           }
