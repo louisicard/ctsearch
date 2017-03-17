@@ -11,6 +11,7 @@ namespace CtSearchBundle\Controller;
 
 use CtSearchBundle\Classes\IndexManager;
 use CtSearchBundle\Classes\User;
+use Elasticsearch\Common\Exceptions\NoNodesAvailableException;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,29 +27,39 @@ class SecurityController extends Controller
   public function loginAction(Request $request)
   {
 
-    if(count(IndexManager::getInstance()->getUsers()) == 0){
-      $this->createDefaultUser();
+    try {
+      if (count(IndexManager::getInstance()->getUsers()) == 0) {
+        $this->createDefaultUser();
+      }
+
+      /** @var AuthenticationUtils $authenticationUtils */
+      $authenticationUtils = $this->get('security.authentication_utils');
+
+      // get the login error if there is one
+      $error = $authenticationUtils->getLastAuthenticationError();
+
+      // last username entered by the user
+      $lastUsername = $authenticationUtils->getLastUsername();
+
+      $noCluster = false;
+
+    } catch (NoNodesAvailableException $ex) {
+      $lastUsername = '';
+      $error = false;
+      $noCluster = true;
     }
-
-    /** @var AuthenticationUtils $authenticationUtils */
-    $authenticationUtils = $this->get('security.authentication_utils');
-
-    // get the login error if there is one
-    $error = $authenticationUtils->getLastAuthenticationError();
-
-    // last username entered by the user
-    $lastUsername = $authenticationUtils->getLastUsername();
-
     return $this->render('ctsearch/login.html.twig', array(
       'title' => $this->get('translator')->trans('Login'),
       'main_menu_item' => 'login',
       'no_menu' => true,
       'last_username' => $lastUsername,
-      'error'         => $error,
+      'error' => $error,
+      'no_cluster' => $noCluster
     ));
   }
 
-  private function createDefaultUser(){
+  private function createDefaultUser()
+  {
     $user = new User('admin', array('ROLE_ADMIN'), 'admin@example.org', 'Administrator', array());
     $encoder = $this->container->get('security.password_encoder');
     $encoded = $encoder->encodePassword($user, 'admin');

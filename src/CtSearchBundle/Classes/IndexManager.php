@@ -315,13 +315,9 @@ class IndexManager
   function updateMapping($mapping)
   {
     if ($mapping->getWipeData()) {
-      $this->getClient()->deleteByQuery(array(
-        'index' => $mapping->getIndexName(),
-        'type' => $mapping->getMappingName(),
-        'body' => array(
-          'query' => array(
-            'match_all' => array()
-          )
+      $this->deleteByQuery($mapping->getIndexName(), $mapping->getMappingName(), array(
+        'query' => array(
+          'match_all' => array('boost' => 1)
         )
       ));
     }
@@ -1215,11 +1211,19 @@ class IndexManager
 
   public function deleteByQuery($indexName, $mappingName, $query)
   {
-    $this->getClient()->deleteByQuery(array(
-      'index' => $indexName,
-      'type' => $mappingName,
-      'body' => $query
-    ));
+    if($this->getServerMajorVersionNumber() >= 5) {
+      $this->getClient()->deleteByQuery(array(
+        'index' => $indexName,
+        'type' => $mappingName,
+        'body' => $query
+      ));
+    }
+    else{
+      //Delete by query is not available on ES 2.x clusters so let's do it on our own
+      $this->scroll($query, $indexName, $mappingName, function($items, $context){
+        $this->bulkDelete($items);
+      }, array(), 500);
+    }
   }
 
   public function saveSavedQuery($target, $definition, $id = null)
@@ -1633,6 +1637,24 @@ class IndexManager
     if (count($items) > 0) {
       $params['index'] = $items[0]['indexName'];
       $params['type'] = $items[0]['mappingName'];
+      $params['body'] = $bulkString;
+      $this->getClient()->bulk($params);
+    }
+  }
+
+  /**
+   * @param $items
+   */
+  public function bulkDelete($items)
+  {
+    $bulkString = '';
+    foreach ($items as $item) {
+      $data = array('delete' => array('_index' => $item['_index'], '_type' => $item['_type'], '_id' => $item['_id']));
+      $bulkString .= json_encode($data) . "\n";
+    }
+    if (count($items) > 0) {
+      $params['index'] = $items[0]['_index'];
+      $params['type'] = $items[0]['_type'];
       $params['body'] = $bulkString;
       $this->getClient()->bulk($params);
     }
