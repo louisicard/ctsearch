@@ -23,6 +23,7 @@ class DatasourceController extends CtSearchController {
    * @Route("/datasources", name="datasources")
    */
   public function listDatasourcesAction(Request $request) {
+    $procs = Datasource::getRunningDatasources();
     $datasourceTypes = IndexManager::getInstance()->getDatasourceTypes($this->container);
     asort($datasourceTypes);
     $form = $this->createFormBuilder(null)
@@ -43,7 +44,8 @@ class DatasourceController extends CtSearchController {
       'title' => $this->get('translator')->trans('Data sources'),
       'main_menu_item' => 'datasources',
       'datasources' => IndexManager::getInstance()->getDatasources($this),
-      'form_add_datasource' => $form->createView()
+      'form_add_datasource' => $form->createView(),
+      'procs' => $procs
     ));
   }
 
@@ -127,21 +129,48 @@ class DatasourceController extends CtSearchController {
   }
 
   /**
+   * @Route("/datasources/kill", name="datasource-kill")
+   */
+  public function killDatasourceAction(Request $request) {
+    if ($request->get('id') != null) {
+      $instance = IndexManager::getInstance()->getDatasource($request->get('id'), $this);
+      $instance->kill();
+      CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Datasource has been killed'));
+    } else {
+      CtSearchBundle::addSessionMessage($this, 'error', $this->get('translator')->trans('No id provided'));
+    }
+    return $this->redirect($this->generateUrl('datasources'));
+  }
+
+  /**
    * @Route("/datasources/exec", name="datasource-exec")
    */
   public function executeDatasourceAction(Request $request) {
     if ($request->get('id') != null) {
       $instance = IndexManager::getInstance()->getDatasource($request->get('id'), $this);
-      $form = $instance->getExcutionForm()->getForm();
-      $form->handleRequest($request);
-      if ($form->isValid()) {
-        $instance->execute($form->getData());
+      $procs = Datasource::getRunningDatasources();
+      if(isset($procs[$instance->getId()])){
+        return $this->render('ctsearch/datasource.html.twig', array(
+          'title' => $this->get('translator')->trans('Monitor "@ds_name"', array('@ds_name' => $instance->getName())),
+          'main_menu_item' => 'datasources',
+          'proc' => $procs[$instance->getId()],
+          'datasource' => $instance
+        ));
       }
-      return $this->render('ctsearch/datasource.html.twig', array(
+      else {
+        $form = $instance->getExcutionForm()->getForm();
+        $form->handleRequest($request);
+        if ($form->isValid()) {
+          $instance->launchProcess($form->getData());
+          CtSearchBundle::addSessionMessage($this, 'status', $this->get('translator')->trans('Datasource has been launched'));
+          return $this->redirect($this->generateUrl('datasources'));
+        }
+        return $this->render('ctsearch/datasource.html.twig', array(
           'title' => $this->get('translator')->trans('Execute "@ds_name"', array('@ds_name' => $instance->getName())),
           'main_menu_item' => 'datasources',
           'form' => $form->createView()
-      ));
+        ));
+      }
     } else {
       CtSearchBundle::addSessionMessage($this, 'error', $this->get('translator')->trans('No id provided'));
       return $this->redirect($this->generateUrl('datasources'));
@@ -181,6 +210,15 @@ class DatasourceController extends CtSearchController {
         'main_menu_item' => 'datasources',
         'form' => $form->createView(),
     ));
+  }
+
+  /**
+   * @Route("/datasources/output", name="datasource-get-output")
+   */
+  public function getDatasourceOutputAction(Request $request) {
+    $datasource = IndexManager::getInstance()->getDatasource($request->get('id'), $this);
+    $output = $datasource->getOutputContent($request->get('from'));
+    return new Response($output, 200, array('Content-Type' => 'text/plain; charset=utf-8'));
   }
 
 }

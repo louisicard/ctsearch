@@ -454,6 +454,29 @@
       });
     });
 
+    if($('#datasource-output').size() > 0){
+      var id = $('#datasource-output').attr('data-datasource-id');
+      var running = false;
+      setInterval(function(){
+        if(!running && !$('#datasource-output').is(':focus')){
+          running = true;
+          try {
+            $.ajax({
+              url: __datasource_output_ajax_url + '?id=' + encodeURIComponent(id) + '&from=' + $('#datasource-output').val().length
+            }).success(function (data) {
+              $('#datasource-output').val($('#datasource-output').val() + data);
+              if (!$('#datasource-output').is(':focus')) {
+                document.getElementById('datasource-output').scrollTop = document.getElementById('datasource-output').scrollHeight;
+              }
+              running = false;
+            });
+          }catch(e){
+            running = false;
+          }
+        }
+      }, 500);
+    }
+
   });
 
   function reactResponsive() {

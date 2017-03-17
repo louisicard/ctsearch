@@ -9,6 +9,7 @@ use \CtSearchBundle\CtSearchBundle;
 use \CtSearchBundle\Classes\IndexManager;
 use CtSearchBundle\Processor\ProcessorFilter;
 use CtSearchBundle\Processor\SmartMapper;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
@@ -487,5 +488,76 @@ END;
     $datasource->setHasBatchExecution($data['has_batch_execution']);
     $datasource->setId($data['id']);
     IndexManager::getInstance()->saveDatasource($datasource, $datasource->getId());
+  }
+
+  public static function getRunningDatasources(){
+    $r = array();
+    $procs = '';
+    exec('ps aux | grep -i "ctsearch:exec" | grep -v "grep"', $procs);
+    exec('ps aux | grep -i "ctsearch:oai" | grep -v "grep"', $procs);
+    foreach($procs as $proc){
+      $raw = preg_split('/[ ]+/', $proc);
+      $info = array(
+        'pid' => $raw[1],
+        'owner' => $raw[0],
+        'cpu' => $raw[2],
+        'mem' => $raw[3],
+        'time' => $raw[9],
+      );
+      if(isset($raw[13])){
+        $info['id'] = $raw[13];
+        $r[$raw[13]] = $info;
+      }
+    }
+    return $r;
+  }
+
+  public function kill(){
+    $procs = static::getRunningDatasources();
+    if(isset($procs[$this->getId()])){
+      $pid = $procs[$this->getId()]['pid'];
+      exec('kill -9 ' . $pid);
+    }
+  }
+
+  public function launchProcess($params){
+    $paramsQsR = [];
+    foreach($params as $k => $v){
+      if($v != null){
+        $paramsQsR[] = $k . '=' . $v;
+      }
+    }
+    $paramsQs = implode('&', $paramsQsR);
+    $output = $this->getOutputFile();
+    popen($this->getCommand() . ' ' . $paramsQs . ' > ' . $output . ' 2>&1 &', 'w');
+  }
+
+  private function getOutputFile(){
+    $fs = new Filesystem();
+    if(!$fs->exists(__DIR__ . '/../../../var')){
+      $fs->mkdir(__DIR__ . '/../../../var');
+    }
+    if(!$fs->exists(__DIR__ . '/../../../var/outputs')){
+      $fs->mkdir(__DIR__ . '/../../../var/outputs');
+    }
+    return __DIR__ . '/../../../var/outputs/' . $this->getId();
+  }
+
+  private function getCommand(){
+    $bin = PHP_BINARY;
+    if(!is_executable($bin)){
+      $bin = PHP_BINDIR . '/php';
+    }
+    $console = __DIR__ . '/../../../bin/console';
+    $cmd = '"' . $bin . '" "' . $console . '" ctsearch:exec ' . $this->getId();
+    return $cmd;
+  }
+
+  public function getOutputContent($offset = 0){
+    if(file_exists($this->getOutputFile()))
+      $content = file_get_contents($this->getOutputFile(), null, null, $offset);
+    else
+      $content = '';
+    return $content;
   }
 }

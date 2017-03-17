@@ -20,7 +20,7 @@ header{
   background:#eee;
   padding:5px 10px;
   border-bottom:1px solid #ccc;
-  position:fixed;
+  position:static;
   top:0;
   left:0;
   z-index:999;
@@ -899,4 +899,11 @@ table.log-table tbody td.object{
 #search-page-configurator #suggest-container label,
 #search-page-configurator #mlt-container label{
   margin-bottom:0.25em;
+}
+#datasource-output {
+  border:1px solid #666;
+  font-family: 'Courier new', sans-serif;
+  font-size:12px;
+  min-height:300px;
+  width:100%;
 }
