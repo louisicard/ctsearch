@@ -44,6 +44,7 @@ class SearchAPIController extends Controller
         $analyzed_fields = array();
         $nested_analyzed_fields = array();
         $stickyFacets = $request->get('sticky_facets') != NULL ? array_map('trim', explode(',', $request->get('sticky_facets'))) : [];
+        $defaultOperator = $request->get('default_operator') != null ? $request->get('default_operator') : 'AND';
         foreach ($definition as $field => $field_detail) {
           if ((!isset($field_detail['index']) || $field_detail['index'] == 'analyzed') && ($field_detail['type'] == 'string' || IndexManager::getInstance()->getServerMajorVersionNumber() >= 5 && $field_detail['type'] == 'text')) {
             $analyzed_fields[] = $field;
@@ -68,7 +69,7 @@ class SearchAPIController extends Controller
         if (count($nested_analyzed_fields) > 0) {
           $query['query']['bool']['must'][0]['bool']['should'][]['query_string'] = array(
             'query' => $query_string,
-            'default_operator' => 'AND',
+            'default_operator' => $defaultOperator,
             'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
             'fields' => $analyzed_fields
           );
@@ -78,7 +79,7 @@ class SearchAPIController extends Controller
               'query' => array(
                 'query_string' => array(
                   'query' => $query_string,
-                  'default_operator' => 'AND',
+                  'default_operator' => $defaultOperator,
                   'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
                   'fields' => array($field)
                 )
@@ -88,7 +89,7 @@ class SearchAPIController extends Controller
         } else {
           $query['query']['bool']['must'][0]['query_string'] = array(
             'query' => $query_string,
-            'default_operator' => 'AND',
+            'default_operator' => $defaultOperator,
             'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
             'fields' => $analyzed_fields
           );
@@ -243,7 +244,7 @@ class SearchAPIController extends Controller
                 'query' => array(
                   'query_string' => array(
                     'query' => $qs_filter['field'] . ':"' . $qs_filter['value'] . '"',
-                    'default_operator' => 'AND',
+                    'default_operator' => $defaultOperator,
                     'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
                     'fields' => array($qs_filter['field'])
                   )
@@ -252,7 +253,7 @@ class SearchAPIController extends Controller
             } else {
               $query['query']['bool']['must'][]['query_string'] = array(
                 'query' => $qs_filter['field'] . ':"' . $qs_filter['value'] . '"',
-                'default_operator' => 'AND',
+                'default_operator' => $defaultOperator,
                 'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
                 'fields' => array($qs_filter['field'])
               );
