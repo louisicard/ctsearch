@@ -85,6 +85,10 @@ services:
     class: CtSearchBundle\Processor\PHPFilter
     tags:
       - { name: ctsearch.filter }
+  ctsearch.filter.simplexmlparserfilter:
+    class: CtSearchBundle\Processor\SimpleXMLParserFilter
+    tags:
+      - { name: ctsearch.filter }
   ctsearch.filter.xmlparserfilter:
     class: CtSearchBundle\Processor\XMLParserFilter
     tags:
