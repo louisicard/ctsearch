@@ -192,6 +192,7 @@ class IndexController extends Controller {
       'analyzers' => $analyzers,
       'fieldTypes' => $fieldTypes,
       'dateFormats' => $dateFormats,
+      'serverVersion' => IndexManager::getInstance()->getServerMajorVersionNumber()
     );
     return $this->render('ctsearch/indexes.html.twig', $vars);
   }

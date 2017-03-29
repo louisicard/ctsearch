@@ -575,6 +575,9 @@
               json[field_name].analyzer = $('#mapping-definition-field-analysis').val();
             }
           }
+          if($('#mapping-definition-field-analysis').val() == 'not_analyzed' && __elastic_server_version < 5){
+            json[field_name].index = "not_analyzed";
+          }
           if($('#mapping-definition-field-analysis').val() != 'not_analyzed'){
             if($('#mapping-definition-field-include-raw').is(':checked')) {
               if(typeof json[field_name].fields === 'undefined')

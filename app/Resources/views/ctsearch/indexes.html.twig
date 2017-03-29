@@ -70,10 +70,13 @@
     __index_analyzers.push('{{analyzer}}');
     {%endfor%}
   {%endif%}
-  {%if fieldTypes is defined%}
+    {%if fieldTypes is defined%}
     {%for fieldType in fieldTypes%}
     __field_types.push('{{fieldType}}');
     {%endfor%}
+  {%endif%}
+  {%if serverVersion is defined%}
+    __elastic_server_version = {{ serverVersion }};
   {%endif%}
   {%if dateFormats is defined%}
     {%for dateFormat in dateFormats%}
