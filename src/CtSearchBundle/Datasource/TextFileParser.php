@@ -30,7 +30,8 @@ class TextFileParser extends Datasource {
       if(isset($execParams['file']) && !empty($execParams['file'])){
         $file = $execParams['file'];
         /* @var $file \Symfony\Component\HttpFoundation\File\File */
-        $path = $file->getRealPath();
+        //$path = $file->getRealPath();
+        $path = $file;
       }
       elseif(isset($this->getSettings()['url']) && !empty($this->getSettings()['url'])){
         $path = $this->getSettings()['url'];

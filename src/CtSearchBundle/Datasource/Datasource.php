@@ -12,6 +12,7 @@ use CtSearchBundle\Processor\SmartMapper;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 abstract class Datasource implements Exportable, Importable {
 
@@ -524,7 +525,15 @@ END;
     $paramsQsR = [];
     foreach($params as $k => $v){
       if($v != null){
-        $paramsQsR[] = $k . '=' . $v;
+        if($v instanceof UploadedFile){
+          $temp_file = tempnam(sys_get_temp_dir(), 'adimeods');
+          $info = pathinfo($temp_file);
+          $v->move($info['dirname'], $info['filename']);
+          $paramsQsR[] = $k . '=' . 'file://' . $temp_file;
+        }
+        else {
+          $paramsQsR[] = $k . '=' . $v;
+        }
       }
     }
     $paramsQs = implode('&', $paramsQsR);
