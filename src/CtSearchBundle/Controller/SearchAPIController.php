@@ -693,7 +693,7 @@ class SearchAPIController extends Controller
   {
     ini_set('always_populate_raw_post_data', -1);
     try {
-      $res = IndexManager::getInstance()->search($request->get('index'), $request->getContent(), $request->get('from') != null ? $request->get('from') : 0, $request->get('size') ? $request->get('size') : 20, $request->get('type'));
+      $res = IndexManager::getInstance()->search($request->get('index'), $request->getContent(), $request->get('from') != null ? $request->get('from') : 0, $request->get('size') !== false ? $request->get('size') : 20, $request->get('type'));
       return new Response(json_encode($res), 200, array('Content-Type' => 'application/json; charset=utf-8'));
     }
     catch(Exception $ex){
