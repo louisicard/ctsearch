@@ -2,6 +2,7 @@
 
 namespace CtSearchBundle\Datasource;
 
+use CtSearchBundle\Classes\PDOPool;
 use \CtSearchBundle\CtSearchBundle;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
