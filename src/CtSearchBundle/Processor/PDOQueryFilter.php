@@ -6,6 +6,7 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use CtSearchBundle\Classes\PDOPool;
 
 class PDOQueryFilter extends ProcessorFilter
 {
@@ -79,7 +80,7 @@ class PDOQueryFilter extends ProcessorFilter
     while($tries == 0 || $retry) {
       try {
         $dsn = $settings['driver'] . ':host=' . $settings['host'] . ';port=' . $settings['port'] . ';dbname=' . $settings['dbName'] . ';charset=UTF8;';
-        $pdo = new \PDO($dsn, $settings['username'], $settings['password']);
+        $pdo = PDOPool::getInstance()->getHandler($dsn, $settings['username'], $settings['password']);
         $sql = $settings['sql'];
         foreach ($this->getArguments() as $k => $v) {
           $sql = str_replace('@' . $k, $this->getArgumentValue($k, $document), $sql);

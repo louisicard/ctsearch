@@ -49,7 +49,7 @@ class PDODatabase extends Datasource
         try {
           $count = 0;
           $dsn = $this->getDriver() . ':host=' . $this->getHost() . ';port=' . $this->getPort() . ';dbname=' . $this->getDbName() . ';charset=UTF8;';
-          $pdo = new \PDO($dsn, $this->getUsername(), $this->getPassword());
+          $pdo = PDOPool::getInstance()->getHandler($dsn, $this->getUsername(), $this->getPassword());
 
           $continue = true;
           $offset = 0;
