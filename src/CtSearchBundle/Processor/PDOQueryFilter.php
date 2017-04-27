@@ -93,14 +93,14 @@ class PDOQueryFilter extends ProcessorFilter
       }
       catch(\PDOException $ex){
         print get_class($this) . ' >> PDO Exception has been caught (' . $ex->getMessage() . ')' . PHP_EOL;
-        if($tries > 5){
+        if($tries > 20){
           $retry=  false;
           print get_class($this) . ' >> This is over, I choose to die.' . PHP_EOL;
           throw $ex;
         }
         else{
-          print get_class($this) . ' >> Retrying in 5 seconds...' . PHP_EOL;
-          sleep(5); //Sleep for 5 seconds
+          print get_class($this) . ' >> Retrying in 1 second...' . PHP_EOL;
+          sleep(1); //Sleep for 1 second
         }
       }
       finally{

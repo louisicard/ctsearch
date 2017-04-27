@@ -43,53 +43,69 @@ class PDODatabase extends Datasource
   public function execute($execParams = null)
   {
     try {
-      $count = 0;
-      $dsn = $this->getDriver() . ':host=' . $this->getHost() . ';port=' . $this->getPort() . ';dbname=' . $this->getDbName() . ';charset=UTF8;';
-      $pdo = new \PDO($dsn, $this->getUsername(), $this->getPassword());
+      $tries_dsn = 0;
+      $retry_dsn = true;
+      while ($tries_dsn == 0 || $retry_dsn) {
+        try {
+          $count = 0;
+          $dsn = $this->getDriver() . ':host=' . $this->getHost() . ';port=' . $this->getPort() . ';dbname=' . $this->getDbName() . ';charset=UTF8;';
+          $pdo = new \PDO($dsn, $this->getUsername(), $this->getPassword());
 
-      $continue = true;
-      $offset = 0;
-      while($continue) {
-        $sql = $this->getSql();
-        $sql = str_replace('@limit', $this->getBatchSize(), $sql);
-        $sql = str_replace('@offset', $offset, $sql);
-        if ($this->getOutput() != null) {
-          $this->getOutput()->writeln('Executing SQL: ' . $sql);
-        }
-        $tries = 0;
-        $retry = true;
-        while($tries == 0 || $retry) {
-          try {
-            $res = $pdo->query($sql);
-            $continue = false;
-            while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
-              $continue = $this->hasPagination();
-              $count++;
-              $this->index(array(
-                'row' => $row
-              ));
-              if ($this->getOutput() != null) {
-                //$this->getOutput()->writeln('Indexing document ' . $count);
+          $continue = true;
+          $offset = 0;
+          while ($continue) {
+            $sql = $this->getSql();
+            $sql = str_replace('@limit', $this->getBatchSize(), $sql);
+            $sql = str_replace('@offset', $offset, $sql);
+            if ($this->getOutput() != null) {
+              $this->getOutput()->writeln('Executing SQL: ' . $sql);
+            }
+            $tries = 0;
+            $retry = true;
+            while ($tries == 0 || $retry) {
+              try {
+                $res = $pdo->query($sql);
+                $continue = false;
+                while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
+                  $continue = $this->hasPagination();
+                  $count++;
+                  $this->index(array(
+                    'row' => $row
+                  ));
+                  if ($this->getOutput() != null) {
+                    //$this->getOutput()->writeln('Indexing document ' . $count);
+                  }
+                }
+                $offset += $this->getBatchSize();
+                $retry = false;
+              } catch (\PDOException $ex) {
+                print get_class($this) . ' >> PDO Exception has been caught (' . $ex->getMessage() . ')' . PHP_EOL;
+                if ($tries > 20) {
+                  $retry = false;
+                  print get_class($this) . ' >> This is over, I choose to die.' . PHP_EOL;
+                  return; //Kill the datasource
+                } else {
+                  print get_class($this) . ' >> Retrying in 1 second...' . PHP_EOL;
+                  sleep(1); //Sleep for 1 second
+                }
+              } finally {
+                $tries++;
               }
             }
-            $offset += $this->getBatchSize();
-            $retry = false;
           }
-          catch(\PDOException $ex){
-            print get_class($this) . ' >> PDO Exception has been caught (' . $ex->getMessage() . ')' . PHP_EOL;
-            if($tries > 5){
-              $retry=  false;
-              print get_class($this) . ' >> This is over, I choose to die.' . PHP_EOL;
-              throw $ex;
-            }
-            else{
-              print get_class($this) . ' >> Retrying in 5 seconds...' . PHP_EOL;
-              sleep(5); //Sleep for 5 seconds
-            }
+          $retry_dsn = false;
+        } catch (\PDOException $ex) {
+          print get_class($this) . ' >> PDO Exception has been caught (' . $ex->getMessage() . ')' . PHP_EOL;
+          if ($tries_dsn > 20) {
+            $retry_dsn = false;
+            print get_class($this) . ' >> This is over, I choose to die.' . PHP_EOL;
+            throw $ex;
+          } else {
+            print get_class($this) . ' >> Retrying in 1 second...' . PHP_EOL;
+            sleep(1); //Sleep for 1 second
           }
-          finally{
-            $tries++;
-          }
+        } finally {
+          $tries_dsn++;
         }
       }
     } catch (Exception $ex) {
@@ -102,7 +118,8 @@ class PDODatabase extends Datasource
     parent::execute($execParams);
   }
 
-  private function hasPagination(){
+  private function hasPagination()
+  {
     $sql = $this->getSql();
     return strpos($sql, '@limit') !== FALSE && strpos($sql, '@offset') !== FALSE;
   }
