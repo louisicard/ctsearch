@@ -56,19 +56,41 @@ class PDODatabase extends Datasource
         if ($this->getOutput() != null) {
           $this->getOutput()->writeln('Executing SQL: ' . $sql);
         }
-        $res = $pdo->query($sql);
-        $continue = false;
-        while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
-          $continue = $this->hasPagination();
-          $count++;
-          $this->index(array(
-            'row' => $row
-          ));
-          if ($this->getOutput() != null) {
-            //$this->getOutput()->writeln('Indexing document ' . $count);
+        $tries = 0;
+        $retry = true;
+        while($tries == 0 || $retry) {
+          try {
+            $res = $pdo->query($sql);
+            $continue = false;
+            while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
+              $continue = $this->hasPagination();
+              $count++;
+              $this->index(array(
+                'row' => $row
+              ));
+              if ($this->getOutput() != null) {
+                //$this->getOutput()->writeln('Indexing document ' . $count);
+              }
+            }
+            $offset += $this->getBatchSize();
+            $retry = false;
+          }
+          catch(\PDOException $ex){
+            print get_class($this) . ' >> PDO Exception has been caught (' . $ex->getMessage() . ')' . PHP_EOL;
+            if($tries > 5){
+              $retry=  false;
+              print get_class($this) . ' >> This is over, I choose to die.' . PHP_EOL;
+              throw $ex;
+            }
+            else{
+              print get_class($this) . ' >> Retrying in 5 seconds...' . PHP_EOL;
+              sleep(5); //Sleep for 5 seconds
+            }
+          }
+          finally{
+            $tries++;
           }
         }
-        $offset += $this->getBatchSize();
       }
     } catch (Exception $ex) {
       print $ex->getMessage();

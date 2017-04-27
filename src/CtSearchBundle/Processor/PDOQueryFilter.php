@@ -2,6 +2,7 @@
 
 namespace CtSearchBundle\Processor;
 
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -41,6 +42,10 @@ class PDOQueryFilter extends ProcessorFilter
         'label' => $controller->get('translator')->trans('Password'),
         'required' => true
       ))
+      ->add('setting_retry_on_pdo_exception', CheckboxType::class, array(
+        'required' => false,
+        'label' => $controller->get('translator')->trans('Retry on PDO Exception'),
+      ))
       ->add('setting_sql', TextareaType::class, array(
         'required' => true,
         'label' => $controller->get('translator')->trans('SQL query (use @varX for variable #X)'),
@@ -69,16 +74,38 @@ class PDOQueryFilter extends ProcessorFilter
   public function execute(&$document)
   {
     $settings = $this->getSettings();
-    $dsn = $settings['driver'] . ':host=' . $settings['host'] . ';port=' . $settings['port'] . ';dbname=' . $settings['dbName'] . ';charset=UTF8;';
-    $pdo = new \PDO($dsn, $settings['username'], $settings['password']);
-    $sql = $settings['sql'];
-    foreach ($this->getArguments() as $k => $v) {
-      $sql = str_replace('@' . $k, $this->getArgumentValue($k, $document), $sql);
-    }
-    $rows = array();
-    $rs = $pdo->query($sql);
-    while ($row = $rs->fetch(\PDO::FETCH_ASSOC)) {
-      $rows[] = $row;
+    $tries = 0;
+    $retry = isset($settings['retry_on_pdo_exception']) && $settings['retry_on_pdo_exception'];
+    while($tries == 0 || $retry) {
+      try {
+        $dsn = $settings['driver'] . ':host=' . $settings['host'] . ';port=' . $settings['port'] . ';dbname=' . $settings['dbName'] . ';charset=UTF8;';
+        $pdo = new \PDO($dsn, $settings['username'], $settings['password']);
+        $sql = $settings['sql'];
+        foreach ($this->getArguments() as $k => $v) {
+          $sql = str_replace('@' . $k, $this->getArgumentValue($k, $document), $sql);
+        }
+        $rows = array();
+        $rs = $pdo->query($sql);
+        while ($row = $rs->fetch(\PDO::FETCH_ASSOC)) {
+          $rows[] = $row;
+        }
+        $retry = false;
+      }
+      catch(\PDOException $ex){
+        print get_class($this) . ' >> PDO Exception has been caught (' . $ex->getMessage() . ')' . PHP_EOL;
+        if($tries > 5){
+          $retry=  false;
+          print get_class($this) . ' >> This is over, I choose to die.' . PHP_EOL;
+          throw $ex;
+        }
+        else{
+          print get_class($this) . ' >> Retrying in 5 seconds...' . PHP_EOL;
+          sleep(5); //Sleep for 5 seconds
+        }
+      }
+      finally{
+        $tries++;
+      }
     }
     return array('rows' => $rows);
 
