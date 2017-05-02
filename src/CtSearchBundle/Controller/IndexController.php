@@ -250,17 +250,21 @@ class IndexController extends Controller {
       'main_menu_item' => 'indexes'
     );
 
-    $location = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'web' . DIRECTORY_SEPARATOR . 'synonyms';
+    $location = $this->container->getParameter('ct_search.synonyms_path');
     /** @var Translator $translator */
     $translator = $this->get('translator');
-    if(!realpath($location)) {
-      CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('Path @path does not exist', array('@path' => $location)));
+    if($location == null){
+      CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('Parameter ctsearch_synonyms_path must be set'));
     }
-    else{
-      if(!is_writable($location)){
-        CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('Path <strong>@path</strong> is not writable', array('@path' => realpath($location))));
+    else {
+      if (!realpath($location)) {
+        CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('Path @path does not exist', array('@path' => $location)));
+      } else {
+        if (!is_writable($location)) {
+          CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('Path <strong>@path</strong> is not writable', array('@path' => realpath($location))));
+        }
+        $vars['dictionaries'] = IndexManager::getInstance()->getSynonymsDictionaries();
       }
-      $vars['dictionaries'] = IndexManager::getInstance()->getSynonymsDictionaries();
     }
 
     return $this->render('ctsearch/synonyms.html.twig', $vars);
@@ -279,7 +283,7 @@ class IndexController extends Controller {
       'main_menu_item' => 'indexes'
     );
 
-    $location = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'web' . DIRECTORY_SEPARATOR . 'synonyms';
+    $location = $this->container->getParameter('ct_search.synonyms_path');
 
     $data = array(
       'name' => $fileName != null ? $fileName : '',

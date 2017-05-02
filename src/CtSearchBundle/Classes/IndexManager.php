@@ -1866,7 +1866,9 @@ class IndexManager
   public function getSynonymsDictionaries(){
     $allowed_dictionaries = $this->getCurrentUserAllowedDictionaries();
     $dictionaries = [];
-    $location = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'web' . DIRECTORY_SEPARATOR . 'synonyms';
+
+    global $kernel;
+    $location = $kernel->getContainer()->getParameter('ct_search.synonyms_path');
     if(realpath($location) && is_writable($location)){
       $files = scandir($location);
       $dictionaries = array();
