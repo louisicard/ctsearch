@@ -71,7 +71,7 @@ class AvgResponseTimeStatCompiler extends StatCompiler
     }
     $query = json_encode($query, JSON_PRETTY_PRINT);
 
-    $res = IndexManager::getInstance()->search('.ctsearch', $query, 0, 9999);
+    $res = IndexManager::getInstance()->search(IndexManager::APP_INDEX_NAME, $query, 0, 9999);
 
     if(isset($res['aggregations']['date']['buckets'])){
       $data = array();

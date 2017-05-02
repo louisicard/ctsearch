@@ -276,7 +276,7 @@ class SearchPageController extends Controller {
         );
       }
 
-      $res = IndexManager::getInstance()->search('.ctsearch', json_encode($body), (int)$filters['from'], 100);
+      $res = IndexManager::getInstance()->search(IndexManager::APP_INDEX_NAME, json_encode($body), (int)$filters['from'], 100);
     }
 
     return $this->render('ctsearch/log-search.html.twig', array(

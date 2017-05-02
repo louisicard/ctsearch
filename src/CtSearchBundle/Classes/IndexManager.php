@@ -12,6 +12,9 @@ use Symfony\Component\DependencyInjection\Container;
 class IndexManager
 {
 
+  const APP_INDEX_NAME = '.ctsearch';
+  const APP_RECO_INDEX_NAME = '.ctsearch_reco';
+  
   /**
    * @var Client
    */
@@ -387,10 +390,10 @@ class IndexManager
   function getDatasources($controller)
   {
     $allowed_datasources = $this->getCurrentUserAllowedDatasources();
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'datasource',
           'size' => 9999,
           'sort' => 'name:asc'
@@ -429,10 +432,10 @@ class IndexManager
    */
   function getDatasourcesByAuthor($controller, $createdBy)
   {
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'datasource',
           'size' => 9999,
           'sort' => 'name:asc',
@@ -480,10 +483,10 @@ class IndexManager
    */
   function getDatasource($id, $controller)
   {
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'datasource',
           'body' => array(
             'query' => array(
@@ -543,20 +546,20 @@ class IndexManager
    */
   public function saveDatasource($datasource, $id = null)
   {
-    if ($this->getIndex('.ctsearch') == null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) == null) {
       $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_index_settings.json');
-      $this->createIndex(new Index('.ctsearch', $settingsDefinition));
+      $this->createIndex(new Index(IndexManager::APP_INDEX_NAME, $settingsDefinition));
     }
-    if ($this->getMapping('.ctsearch', 'datasource') == null) {
+    if ($this->getMapping(IndexManager::APP_INDEX_NAME, 'datasource') == null) {
       $mappingDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_datasource_definition.json');
-      $this->updateMapping(new Mapping('.ctsearch', 'datasource', $mappingDefinition));
+      $this->updateMapping(new Mapping(IndexManager::APP_INDEX_NAME, 'datasource', $mappingDefinition));
     }
-    if ($this->getMapping('.ctsearch', 'logs') == null) {
+    if ($this->getMapping(IndexManager::APP_INDEX_NAME, 'logs') == null) {
       $logsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_logs_definition.json');
-      $this->updateMapping(new Mapping('.ctsearch', 'logs', $logsDefinition));
+      $this->updateMapping(new Mapping(IndexManager::APP_INDEX_NAME, 'logs', $logsDefinition));
     }
     $params = array(
-      'index' => '.ctsearch',
+      'index' => IndexManager::APP_INDEX_NAME,
       'type' => 'datasource',
       'body' => array(
         'class' => get_class($datasource),
@@ -582,7 +585,7 @@ class IndexManager
   public function deleteDatasource($id)
   {
     $this->getClient()->delete(array(
-        'index' => '.ctsearch',
+        'index' => IndexManager::APP_INDEX_NAME,
         'type' => 'datasource',
         'id' => $id,
       )
@@ -598,17 +601,17 @@ class IndexManager
    */
   public function saveProcessor($processor, $id = null)
   {
-    if ($this->getIndex('.ctsearch') == null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) == null) {
       $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_index_settings.json');
-      $this->createIndex(new Index('.ctsearch', $settingsDefinition));
+      $this->createIndex(new Index(IndexManager::APP_INDEX_NAME, $settingsDefinition));
     }
-    if ($this->getMapping('.ctsearch', 'processor') == null) {
+    if ($this->getMapping(IndexManager::APP_INDEX_NAME, 'processor') == null) {
       $mappingDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_processor_definition.json');
-      $this->updateMapping(new Mapping('.ctsearch', 'processor', $mappingDefinition));
+      $this->updateMapping(new Mapping(IndexManager::APP_INDEX_NAME, 'processor', $mappingDefinition));
     }
     $datasource = $this->getDatasource($processor->getDatasourceId(), null);
     $params = array(
-      'index' => '.ctsearch',
+      'index' => IndexManager::APP_INDEX_NAME,
       'type' => 'processor',
       'body' => array(
         'datasource' => $processor->getDatasourceId(),
@@ -631,10 +634,10 @@ class IndexManager
   function getRawProcessors()
   {
     $allowed_datasources = $this->getCurrentUserAllowedDatasources();
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'processor',
           'size' => 9999,
           'sort' => 'datasource_name:asc,target:asc'
@@ -672,10 +675,10 @@ class IndexManager
 
   function getRawProcessorsByDatasource($datasourceId)
   {
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'processor',
           'size' => 9999,
           'sort' => 'datasource_name:asc,target:asc',
@@ -731,10 +734,10 @@ class IndexManager
    */
   function getProcessor($id)
   {
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'processor',
           'body' => array(
             'query' => array(
@@ -770,7 +773,7 @@ class IndexManager
   public function deleteProcessor($id)
   {
     $this->getClient()->delete(array(
-        'index' => '.ctsearch',
+        'index' => IndexManager::APP_INDEX_NAME,
         'type' => 'processor',
         'id' => $id,
       )
@@ -820,10 +823,10 @@ class IndexManager
   function getSearchPages()
   {
     $allowed_indexes = $this->getCurrentUserAllowedIndexes();
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'search_page',
           'size' => 9999,
           'sort' => 'name:asc'
@@ -853,10 +856,10 @@ class IndexManager
    */
   function getSearchAPIs()
   {
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'search_api',
           'size' => 9999,
           'sort' => 'index_name:asc'
@@ -884,10 +887,10 @@ class IndexManager
    */
   function getSearchPage($id)
   {
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'search_page',
           'body' => array(
             'query' => array(
@@ -917,16 +920,16 @@ class IndexManager
    */
   public function saveSearchPage($searchPage)
   {
-    if ($this->getIndex('.ctsearch') == null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) == null) {
       $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_index_settings.json');
-      $this->createIndex(new Index('.ctsearch', $settingsDefinition));
+      $this->createIndex(new Index(IndexManager::APP_INDEX_NAME, $settingsDefinition));
     }
-    if ($this->getMapping('.ctsearch', 'search_page') == null) {
+    if ($this->getMapping(IndexManager::APP_INDEX_NAME, 'search_page') == null) {
       $mappingDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_search_page_definition.json');
-      $this->updateMapping(new Mapping('.ctsearch', 'search_page', $mappingDefinition));
+      $this->updateMapping(new Mapping(IndexManager::APP_INDEX_NAME, 'search_page', $mappingDefinition));
     }
     $params = array(
-      'index' => '.ctsearch',
+      'index' => IndexManager::APP_INDEX_NAME,
       'type' => 'search_page',
       'body' => array(
         'name' => $searchPage->getName(),
@@ -951,7 +954,7 @@ class IndexManager
   public function deleteSearchPage($id)
   {
     $this->getClient()->delete(array(
-        'index' => '.ctsearch',
+        'index' => IndexManager::APP_INDEX_NAME,
         'type' => 'search_page',
         'id' => $id,
       )
@@ -1009,7 +1012,7 @@ class IndexManager
    */
   public function log($type, $message, $object, $datasource)
   {
-    $this->indexDocument('.ctsearch', 'logs', array(
+    $this->indexDocument(IndexManager::APP_INDEX_NAME, 'logs', array(
       'type' => $type,
       'message' => $message,
       'object' => json_encode($object),
@@ -1024,11 +1027,11 @@ class IndexManager
    */
   function getMatchingLists()
   {
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $allowed_matching_lists = $this->getCurrentUserAllowedMatchingLists();
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'matching_list',
           'size' => 9999,
           'sort' => 'name:asc'
@@ -1060,10 +1063,10 @@ class IndexManager
    */
   function getMatchingListsByAuthor($createdBy)
   {
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'matching_list',
           'size' => 9999,
           'sort' => 'name:asc',
@@ -1102,10 +1105,10 @@ class IndexManager
    */
   function getMatchingList($id)
   {
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'matching_list',
           'body' => array(
             'query' => array(
@@ -1139,16 +1142,16 @@ class IndexManager
    */
   public function saveMatchingList($matchingList)
   {
-    if ($this->getIndex('.ctsearch') == null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) == null) {
       $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_index_settings.json');
-      $this->createIndex(new Index('.ctsearch', $settingsDefinition));
+      $this->createIndex(new Index(IndexManager::APP_INDEX_NAME, $settingsDefinition));
     }
-    if ($this->getMapping('.ctsearch', 'search_page') == null) {
+    if ($this->getMapping(IndexManager::APP_INDEX_NAME, 'search_page') == null) {
       $mappingDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_matching_list_definition.json');
-      $this->updateMapping(new Mapping('.ctsearch', 'matching_list', $mappingDefinition));
+      $this->updateMapping(new Mapping(IndexManager::APP_INDEX_NAME, 'matching_list', $mappingDefinition));
     }
     $params = array(
-      'index' => '.ctsearch',
+      'index' => IndexManager::APP_INDEX_NAME,
       'type' => 'matching_list',
       'body' => array(
         'name' => $matchingList->getName(),
@@ -1173,7 +1176,7 @@ class IndexManager
   public function deleteMatchingList($id)
   {
     $this->getClient()->delete(array(
-        'index' => '.ctsearch',
+        'index' => IndexManager::APP_INDEX_NAME,
         'type' => 'matching_list',
         'id' => $id,
       )
@@ -1228,16 +1231,16 @@ class IndexManager
 
   public function saveSavedQuery($target, $definition, $id = null)
   {
-    if ($this->getIndex('.ctsearch') == null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) == null) {
       $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_index_settings.json');
-      $this->createIndex(new Index('.ctsearch', $settingsDefinition));
+      $this->createIndex(new Index(IndexManager::APP_INDEX_NAME, $settingsDefinition));
     }
-    if ($this->getMapping('.ctsearch', 'saved_query') == null) {
+    if ($this->getMapping(IndexManager::APP_INDEX_NAME, 'saved_query') == null) {
       $savedQueryDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_saved_query_definition.json');
-      $this->updateMapping(new Mapping('.ctsearch', 'saved_query', $savedQueryDefinition));
+      $this->updateMapping(new Mapping(IndexManager::APP_INDEX_NAME, 'saved_query', $savedQueryDefinition));
     }
     $params = array(
-      'index' => '.ctsearch',
+      'index' => IndexManager::APP_INDEX_NAME,
       'type' => 'saved_query',
       'body' => array(
         'definition' => $definition,
@@ -1255,10 +1258,10 @@ class IndexManager
 
   function getSavedQuery($id)
   {
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'saved_query',
           'body' => array(
             'query' => array(
@@ -1285,10 +1288,10 @@ class IndexManager
   {
     $list = array();
     $allowed_indexes = $this->getCurrentUserAllowedIndexes();
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'saved_query',
           'size' => 9999
         ));
@@ -1313,7 +1316,7 @@ class IndexManager
   public function deleteSavedQuery($id)
   {
     $this->getClient()->delete(array(
-        'index' => '.ctsearch',
+        'index' => IndexManager::APP_INDEX_NAME,
         'type' => 'saved_query',
         'id' => $id,
       )
@@ -1323,10 +1326,10 @@ class IndexManager
 
   public function getRecoPath($path_id, $host)
   {
-    if ($this->getIndex('.ctsearch_reco') != null) {
+    if ($this->getIndex(IndexManager::APP_RECO_INDEX_NAME) != null) {
       try {
         $query = array(
-          'index' => '.ctsearch_reco',
+          'index' => IndexManager::APP_RECO_INDEX_NAME,
           'type' => 'path',
           'body' => array(
             'query' => array(
@@ -1362,10 +1365,10 @@ class IndexManager
 
   public function getRecos($id, $host, $index, $mapping)
   {
-    if ($this->getIndex('.ctsearch_reco') != null) {
+    if ($this->getIndex(IndexManager::APP_RECO_INDEX_NAME) != null) {
       try {
         $query = array(
-          'index' => '.ctsearch_reco',
+          'index' => IndexManager::APP_RECO_INDEX_NAME,
           'type' => 'path',
           'body' => array(
             'size' => 0,
@@ -1440,16 +1443,16 @@ class IndexManager
 
   public function saveRecoPath($path)
   {
-    if ($this->getIndex('.ctsearch_reco') == null) {
+    if ($this->getIndex(IndexManager::APP_RECO_INDEX_NAME) == null) {
       $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_reco_index_settings.json');
-      $this->createIndex(new Index('.ctsearch_reco', $settingsDefinition));
+      $this->createIndex(new Index(IndexManager::APP_RECO_INDEX_NAME, $settingsDefinition));
     }
-    if ($this->getMapping('.ctsearch_reco', 'path') == null) {
+    if ($this->getMapping(IndexManager::APP_RECO_INDEX_NAME, 'path') == null) {
       $savedQueryDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_reco_path_definition.json');
-      $this->updateMapping(new Mapping('.ctsearch_reco', 'path', $savedQueryDefinition));
+      $this->updateMapping(new Mapping(IndexManager::APP_RECO_INDEX_NAME, 'path', $savedQueryDefinition));
     }
     $params = array(
-      'index' => '.ctsearch_reco',
+      'index' => IndexManager::APP_RECO_INDEX_NAME,
       'type' => 'path',
       'id' => $path['id'],
       'body' => array(
@@ -1465,13 +1468,13 @@ class IndexManager
 
   public function saveStat($target, $facets = array(), $query = '', $analyzer = null, $apiUrl = '', $resultCount = 0, $responseTime = 0, $remoteAddress = '', $tag = '')
   {
-    if ($this->getIndex('.ctsearch') == null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) == null) {
       $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_index_settings.json');
-      $this->createIndex(new Index('.ctsearch_reco', $settingsDefinition));
+      $this->createIndex(new Index(IndexManager::APP_RECO_INDEX_NAME, $settingsDefinition));
     }
-    if ($this->getMapping('.ctsearch', 'stat') == null) {
+    if ($this->getMapping(IndexManager::APP_INDEX_NAME, 'stat') == null) {
       $statDefinition = file_get_contents(__DIR__ . '/../Resources/' . ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_stat_definition.json');
-      $this->updateMapping(new Mapping('.ctsearch', 'stat', $statDefinition));
+      $this->updateMapping(new Mapping(IndexManager::APP_INDEX_NAME, 'stat', $statDefinition));
     }
     $indexName = explode('.', $target)[0];
     $tokens = $analyzer != null && !empty($analyzer) && strlen($query) > 2 ? $this->analyze($indexName, $analyzer, $query) : array();
@@ -1487,7 +1490,7 @@ class IndexManager
       $query_analyzed = '';
     }
     $params = array(
-      'index' => '.ctsearch',
+      'index' => IndexManager::APP_INDEX_NAME,
       'type' => 'stat',
       'body' => array(
         'stat_date' => date('Y-m-d\TH:i:s'),
@@ -1662,13 +1665,13 @@ class IndexManager
 
   private function initSystemMappingMapping($mappingName, $file)
   {
-    if ($this->getIndex('.ctsearch') == null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) == null) {
       $settingsDefinition = file_get_contents(__DIR__ . '/../Resources/ctsearch_index_settings.json');
-      $this->createIndex(new Index('.ctsearch', $settingsDefinition));
+      $this->createIndex(new Index(IndexManager::APP_INDEX_NAME, $settingsDefinition));
     }
-    if ($this->getMapping('.ctsearch', $mappingName) == null) {
+    if ($this->getMapping(IndexManager::APP_INDEX_NAME, $mappingName) == null) {
       $defintion = file_get_contents(__DIR__ . '/../Resources/' . $file);
-      $this->updateMapping(new Mapping('.ctsearch', $mappingName, $defintion));
+      $this->updateMapping(new Mapping(IndexManager::APP_INDEX_NAME, $mappingName, $defintion));
     }
   }
 
@@ -1676,7 +1679,7 @@ class IndexManager
   {
     $this->initSystemMappingMapping('user', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_user_definition.json');
     $params = array(
-      'index' => '.ctsearch',
+      'index' => IndexManager::APP_INDEX_NAME,
       'type' => 'user',
       'id' => $user->getUid(),
       'body' => array(
@@ -1703,7 +1706,7 @@ class IndexManager
     $this->initSystemMappingMapping('user', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_user_definition.json');
     try {
       $r = $this->getClient()->search(array(
-        'index' => '.ctsearch',
+        'index' => IndexManager::APP_INDEX_NAME,
         'type' => 'user',
         'body' => array(
           'query' => array(
@@ -1734,10 +1737,10 @@ class IndexManager
   {
     $this->initSystemMappingMapping('user', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_user_definition.json');
     $list = array();
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'user',
           'size' => 9999
         ));
@@ -1763,10 +1766,10 @@ class IndexManager
   {
     $this->initSystemMappingMapping('group', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_group_definition.json');
     $list = array();
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'group',
           'size' => 9999
         ));
@@ -1789,10 +1792,10 @@ class IndexManager
   function getGroup($id)
   {
     $this->initSystemMappingMapping('group', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_group_definition.json');
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'group',
           'body' => array(
             'query' => array(
@@ -1818,7 +1821,7 @@ class IndexManager
   {
     $this->initSystemMappingMapping('user', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_group_definition.json');
     $params = array(
-      'index' => '.ctsearch',
+      'index' => IndexManager::APP_INDEX_NAME,
       'type' => 'group',
       'id' => $group->getId(),
       'body' => array(
@@ -1841,7 +1844,7 @@ class IndexManager
   public function deleteGroup($id)
   {
     $this->getClient()->delete(array(
-        'index' => '.ctsearch',
+        'index' => IndexManager::APP_INDEX_NAME,
         'type' => 'group',
         'id' => $id,
       )
@@ -1855,7 +1858,7 @@ class IndexManager
   public function deleteUser($uid)
   {
     $this->getClient()->delete(array(
-        'index' => '.ctsearch',
+        'index' => IndexManager::APP_INDEX_NAME,
         'type' => 'user',
         'id' => $uid,
       )
@@ -1982,10 +1985,10 @@ class IndexManager
   {
     $this->initSystemMappingMapping('boost_query', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_boost_query_definition.json');
     $list = array();
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $params = array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'boost_query',
           'size' => 9999
         );
@@ -2018,10 +2021,10 @@ class IndexManager
   function getBoostQuery($id)
   {
     $this->initSystemMappingMapping('boost_query', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_boost_query_definition.json');
-    if ($this->getIndex('.ctsearch') != null) {
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
         $r = $this->getClient()->search(array(
-          'index' => '.ctsearch',
+          'index' => IndexManager::APP_INDEX_NAME,
           'type' => 'boost_query',
           'body' => array(
             'query' => array(
@@ -2048,7 +2051,7 @@ class IndexManager
   {
     $this->initSystemMappingMapping('boost_query', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_boost_query_definition.json');
     $params = array(
-      'index' => '.ctsearch',
+      'index' => IndexManager::APP_INDEX_NAME,
       'type' => 'boost_query',
       'body' => array(
         'target' => $boostQuery->getTarget(),
@@ -2071,7 +2074,7 @@ class IndexManager
   {
     $this->initSystemMappingMapping('boost_query', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_boost_query_definition.json');
     $this->getClient()->delete(array(
-        'index' => '.ctsearch',
+        'index' => IndexManager::APP_INDEX_NAME,
         'type' => 'boost_query',
         'id' => $id,
       )
