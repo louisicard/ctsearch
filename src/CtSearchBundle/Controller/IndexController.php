@@ -334,16 +334,18 @@ foo => foo bar, baz',
 
     $form->handleRequest($request);
 
+    $info = pathinfo($fileName);
+
     if($form->isValid()){
       $name = $form->getData()['name'];
       $name = str_replace('.txt', '', $name);
       $name = preg_replace('/\W/i', '_', strtolower($name));
       $file = $location . DIRECTORY_SEPARATOR . $name . '.txt';
       $translator = $this->get('translator');
-      if (!file_exists($file) || rtrim($fileName, '.txt') == $name) {
+      if (!file_exists($file) || $info['filename'] == $name) {
         file_put_contents($file, $form->getData()['content']);
         CtSearchBundle::addSessionMessage($this, 'status', $translator->trans('File <strong>@path</strong> has been updated', array('@path' => realpath($file))));
-        if($fileName !=null && rtrim($fileName, '.txt') != $name) {
+        if($fileName !=null && $info['filename'] != $name) {
           unlink($location . DIRECTORY_SEPARATOR . $fileName);
         }
         return $this->redirectToRoute('synonyms-list');

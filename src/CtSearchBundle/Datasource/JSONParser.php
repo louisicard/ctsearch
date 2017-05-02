@@ -29,8 +29,14 @@ class JSONParser extends Datasource
   {
     if ($execParams != null) {
       if (isset($execParams['json_file'])) {
-        if(is_string($execParams['json_file']) && file_exists($execParams['json_file'])){
-          $json = file_get_contents($execParams['json_file']);
+        if(is_string($execParams['json_file'])){
+          $arrContextOptions=array(
+            "ssl"=>array(
+              "verify_peer"=>false,
+              "verify_peer_name"=>false,
+            ),
+          );
+          $json = file_get_contents($execParams['json_file'], false, stream_context_create($arrContextOptions));
         }
         elseif ($execParams['json_file']->getMimeType() == 'application/json' || $execParams['json_file']->getMimeType() == 'text/plain') {
           $json = file_get_contents($execParams['json_file']->getRealPath());
