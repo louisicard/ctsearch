@@ -103,6 +103,9 @@ class Processor implements Exportable, Importable
     if($serverVersion >= 5 && isset($settings['legacy'])){
       unset($settings['legacy']);
     }
+    if(isset($settings['provided_name'])){
+      unset($settings['provided_name']);
+    }
     $settings = json_encode($settings);
     if ($indexExists && $override) {
       $index = new \CtSearchBundle\Classes\Index($data['index']['name'], $settings);

@@ -40,10 +40,14 @@ class DatasourceController extends CtSearchController {
       $data = $form->getData();
       return $this->redirect($this->generateUrl('datasource-add', array('datasourceType' => $data['dataSourceType'])));
     }
+    $datasources = IndexManager::getInstance()->getDatasources($this);
+    foreach($datasources as $datasource){
+      $datasource->class = get_class($datasource);//For the twig template
+    }
     return $this->render('ctsearch/datasource.html.twig', array(
       'title' => $this->get('translator')->trans('Data sources'),
       'main_menu_item' => 'datasources',
-      'datasources' => IndexManager::getInstance()->getDatasources($this),
+      'datasources' => $datasources,
       'form_add_datasource' => $form->createView(),
       'procs' => $procs
     ));
@@ -175,41 +179,6 @@ class DatasourceController extends CtSearchController {
       CtSearchBundle::addSessionMessage($this, 'error', $this->get('translator')->trans('No id provided'));
       return $this->redirect($this->generateUrl('datasources'));
     }
-  }
-  
-  /**
-   * @Route("/datasources/testcallback", name="datasources-testcallback")
-   */
-  public function testCallbackAction(Request $request) {
-    $form = $this->createFormBuilder(null)
-      ->add('datasourceId', TextType::class, array(
-        'required' => true,
-      ))
-      ->add('title', TextType::class, array(
-        'required' => true,
-      ))
-      ->add('url', TextType::class, array(
-        'required' => true,
-      ))
-      ->add('html', TextareaType::class, array(
-        'required' => true,
-      ))
-      ->add('ok', SubmitType::class, array(
-        'label' => $this->get('translator')->trans('Test')
-      ))
-      ->getForm();
-    $form->handleRequest($request);
-    if ($form->isValid()) {
-      $data = $form->getData();
-      $datasource = IndexManager::getInstance()->getDatasource($data['datasourceId'], $this);
-      unset($data['datasourceId']);
-      $datasource->handleDataFromCallback($data);
-    }
-    return $this->render('ctsearch/datasource.html.twig', array(
-        'title' => $this->get('translator')->trans('Data sources'),
-        'main_menu_item' => 'datasources',
-        'form' => $form->createView(),
-    ));
   }
 
   /**

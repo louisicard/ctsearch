@@ -35,6 +35,9 @@
                 {% if is_granted('ROLE_DATASOURCE_CREATOR') %}
                 <li><a href="{{path('datasource-delete', {'id': datasource.id})}}" class="datasource-delete">{{'Delete'|trans}}</a></li>
                 {% endif %}
+                {% if datasource.class == "CtSearchBundle\\Datasource\\WebCrawler" %}
+                <li><a href="{{ path('webcrawler-test', {id: datasource.id}) }}">Tester</a></li>
+                {% endif %}
               </ul>
             </td>
           </tr>
@@ -45,6 +48,12 @@
   {%endif%}
   {%if form is defined%}
     {{form(form)}}
+    {% if output is defined %}
+      <h3>Processor output</h3>
+    <div class="webcrawler-output">
+      {{ output|nl2br }}
+    </div>
+    {% endif %}
   {%endif%}
   {% if proc is defined %}
     <div class="infos">
