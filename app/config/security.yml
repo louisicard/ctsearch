@@ -58,6 +58,7 @@ security:
     - { path: ^/indexes, role: ROLE_ADMIN }
     - { path: ^/datasources$, role: ROLE_DATASOURCE_MANAGER }
     - { path: ^/datasources/edit, role: ROLE_DATASOURCE_MANAGER }
+    - { path: ^/webcrawler/test, role: ROLE_DATASOURCE_MANAGER }
     - { path: ^/datasources/ajaxlist, role: ROLE_DATASOURCE_MANAGER }
     - { path: ^/datasources, role: ROLE_DATASOURCE_CREATOR }
     - { path: ^/processors$, role: ROLE_PROCESSOR_MANAGER }
