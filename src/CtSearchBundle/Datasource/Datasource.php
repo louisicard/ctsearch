@@ -9,7 +9,6 @@ use \CtSearchBundle\CtSearchBundle;
 use \CtSearchBundle\Classes\IndexManager;
 use CtSearchBundle\Processor\ProcessorFilter;
 use CtSearchBundle\Processor\SmartMapper;
-use Elasticsearch\Common\Exceptions\NoNodesAvailableException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -372,24 +371,12 @@ abstract class Datasource implements Exportable, Importable {
   }
 
   private function emptyBatchStack(){
-    $try = 0;
-    try {
-      while($try < 5) {
-        IndexManager::getInstance()->bulkIndex($this->batchStack);
-        unset($this->batchStack);
-        if ($this->getOutput() != null) {
-          $this->getOutput()->writeln('Indexing documents in batch stack (stack size is ' . static::BATCH_STACK_SIZE . ')');
-        }
-        $this->batchStack = [];
-        break;
-      }
+    IndexManager::getInstance()->bulkIndex($this->batchStack);
+    unset($this->batchStack);
+    if ($this->getOutput() != null) {
+      $this->getOutput()->writeln('Indexing documents in batch stack (stack size is ' . static::BATCH_STACK_SIZE . ')');
     }
-    catch(NoNodesAvailableException $ex){
-      $this->getOutput()->writeln('!!!!!!!!!! Elasticsearch server seems to be unavailable. Retrying in 10 sec.');
-    }
-    finally{
-      $try++;
-    }
+    $this->batchStack = [];
   }
 
   private function truncateArray($array) {
