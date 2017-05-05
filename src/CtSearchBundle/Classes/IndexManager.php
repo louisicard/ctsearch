@@ -812,6 +812,7 @@ class IndexManager
         if ($flush) {
           $this->getClient()->indices()->flush();
         }
+        $retry = false;
       } catch (NoNodesAvailableException $ex) {
         print get_class($this) . ' >> NoNodesAvailableException has been caught (' . $ex->getMessage() . ')' . PHP_EOL;
         if ($tries > 20) {
@@ -1666,6 +1667,7 @@ class IndexManager
       while ($tries == 0 || $retry) {
         try {
           $this->getClient()->bulk($params);
+          $retry = false;
         } catch (NoNodesAvailableException $ex) {
           print get_class($this) . ' >> NoNodesAvailableException has been caught (' . $ex->getMessage() . ')' . PHP_EOL;
           if ($tries > 20) {
