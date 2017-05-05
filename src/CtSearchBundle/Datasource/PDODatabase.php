@@ -4,7 +4,6 @@ namespace CtSearchBundle\Datasource;
 
 use CtSearchBundle\Classes\PDOPool;
 use \CtSearchBundle\CtSearchBundle;
-use Elasticsearch\Common\Exceptions\NoNodesAvailableException;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -90,16 +89,6 @@ class PDODatabase extends Datasource
                   print get_class($this) . ' >> Retrying in 1 second...' . PHP_EOL;
                   sleep(1); //Sleep for 1 second
                 }
-              } catch (NoNodesAvailableException $ex2) {
-                print get_class($this) . ' >> NoNodesAvailableException has been caught (' . $ex2->getMessage() . ')' . PHP_EOL;
-                if ($tries > 20) {
-                  $retry = false;
-                  print get_class($this) . ' >> This is over, I choose to die.' . PHP_EOL;
-                  return; //Kill the datasource
-                } else {
-                  print get_class($this) . ' >> Retrying in 1 second...' . PHP_EOL;
-                  sleep(1); //Sleep for 1 second
-                }
               } finally {
                 $tries++;
               }
@@ -112,16 +101,6 @@ class PDODatabase extends Datasource
             $retry_dsn = false;
             print get_class($this) . ' >> This is over, I choose to die.' . PHP_EOL;
             throw $ex;
-          } else {
-            print get_class($this) . ' >> Retrying in 1 second...' . PHP_EOL;
-            sleep(1); //Sleep for 1 second
-          }
-        } catch (NoNodesAvailableException $ex2) {
-          print get_class($this) . ' >> NoNodesAvailableException has been caught (' . $ex2->getMessage() . ')' . PHP_EOL;
-          if ($tries > 20) {
-            $retry = false;
-            print get_class($this) . ' >> This is over, I choose to die.' . PHP_EOL;
-            return; //Kill the datasource
           } else {
             print get_class($this) . ' >> Retrying in 1 second...' . PHP_EOL;
             sleep(1); //Sleep for 1 second

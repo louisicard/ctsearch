@@ -6,6 +6,7 @@ use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
 use CtSearchBundle\Classes\Mapping;
 use CtSearchBundle\Datasource\Datasource;
+use Elasticsearch\Common\Exceptions\NoNodesAvailableException;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -803,9 +804,27 @@ class IndexManager
     if ($id != null) {
       $params['id'] = $id;
     }
-    $r = $this->getClient()->index($params);
-    if ($flush) {
-      $this->getClient()->indices()->flush();
+    $tries = 0;
+    $retry = true;
+    while ($tries == 0 || $retry) {
+      try {
+        $r = $this->getClient()->index($params);
+        if ($flush) {
+          $this->getClient()->indices()->flush();
+        }
+      } catch (NoNodesAvailableException $ex) {
+        print get_class($this) . ' >> NoNodesAvailableException has been caught (' . $ex->getMessage() . ')' . PHP_EOL;
+        if ($tries > 20) {
+          $retry = false;
+          print get_class($this) . ' >> This is over, I choose to die.' . PHP_EOL;
+          return; //Kill the datasource
+        } else {
+          print get_class($this) . ' >> Retrying in 1 second...' . PHP_EOL;
+          sleep(1); //Sleep for 1 second
+        }
+      } finally {
+        $tries++;
+      }
     }
     unset($params);
     return $r;
@@ -1641,7 +1660,26 @@ class IndexManager
       $params['index'] = $items[0]['indexName'];
       $params['type'] = $items[0]['mappingName'];
       $params['body'] = $bulkString;
-      $this->getClient()->bulk($params);
+
+      $tries = 0;
+      $retry = true;
+      while ($tries == 0 || $retry) {
+        try {
+          $this->getClient()->bulk($params);
+        } catch (NoNodesAvailableException $ex) {
+          print get_class($this) . ' >> NoNodesAvailableException has been caught (' . $ex->getMessage() . ')' . PHP_EOL;
+          if ($tries > 20) {
+            $retry = false;
+            print get_class($this) . ' >> This is over, I choose to die.' . PHP_EOL;
+            return; //Kill the datasource
+          } else {
+            print get_class($this) . ' >> Retrying in 1 second...' . PHP_EOL;
+            sleep(1); //Sleep for 1 second
+          }
+        } finally {
+          $tries++;
+        }
+      }
     }
   }
 
