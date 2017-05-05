@@ -61,6 +61,9 @@ class IndexManager
     if(!defined('JSON_PRESERVE_ZERO_FRACTION')){
       $clientBuilder->allowBadJSONSerialization();
     }
+
+    $clientBuilder->setHandler(ClientBuilder::singleHandler());
+
     $clientBuilder->setHosts(array($this->esUrl));
     $this->client = $clientBuilder->build();
     unset($clientBuilder);
