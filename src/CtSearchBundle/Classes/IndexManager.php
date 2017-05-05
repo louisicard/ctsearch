@@ -62,7 +62,6 @@ class IndexManager
       $clientBuilder->allowBadJSONSerialization();
     }
     $clientBuilder->setHosts(array($this->esUrl));
-    $clientBuilder->setRetries(100);
     $this->client = $clientBuilder->build();
     unset($clientBuilder);
     gc_enable();
