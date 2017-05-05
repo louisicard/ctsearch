@@ -29,11 +29,6 @@ class KeywordsStatCompiler extends StatCompiler
               }]
           }
       },
-      "filter": {
-          "type": {
-              "value": "stat"
-          }
-      },
       "aggs": {
           "keywords": {
               "nested":{
@@ -75,7 +70,7 @@ class KeywordsStatCompiler extends StatCompiler
     }
     $query = json_encode($query, JSON_PRETTY_PRINT);
 
-    $res = IndexManager::getInstance()->search(IndexManager::APP_INDEX_NAME, $query, 0, 9999);
+    $res = IndexManager::getInstance()->search(IndexManager::APP_INDEX_NAME, $query, 0, 9999, 'stat');
 
     if(isset($res['aggregations']['keywords']['analyzed']['buckets'])){
       $data = array();
@@ -111,10 +106,12 @@ class KeywordsStatCompiler extends StatCompiler
     $first = true;
     //Data
     foreach($this->getData() as $data){
-      if(!$first)
-        $js .= ',';
-      $first = false;
-      $js .= '["' . $data[0] . '", ' . $data[1] . ']';
+      if($data[0] != null && !empty($data[0]) && $data[1] != null && !empty($data[1])) {
+        if (!$first)
+          $js .= ',';
+        $first = false;
+        $js .= '["' . $data[0] . '", ' . $data[1] . ']';
+      }
     }
 
     $js .= ']);';
