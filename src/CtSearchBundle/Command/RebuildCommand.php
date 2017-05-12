@@ -34,7 +34,7 @@ class RebuildCommand extends ContainerAwareCommand
       $mappingSource = explode('.', $source)[1];
       IndexManager::getInstance()->scroll(array(
         'query' => array(
-          'match_all' => array(' boost' => '1.0')
+          'match_all' => array('boost' => '1.0')
         )
       ), $indexSource, $mappingSource, function($hits, &$context){
         $context['count'] += count($hits);
