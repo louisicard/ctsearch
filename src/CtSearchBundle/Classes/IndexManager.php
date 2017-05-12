@@ -1626,9 +1626,9 @@ class IndexManager
       'size' => $size
     ));
     if (isset($r['_scroll_id'])) {
-      $scrollId = $r['_scroll_id'];
       while (count($r['hits']['hits']) > 0) {
         $callback($r['hits']['hits'], $context);
+        $scrollId = $r['_scroll_id'];
         $r = $this->client->scroll(array(
           'scroll_id' => $scrollId,
           'scroll' => '1m'
