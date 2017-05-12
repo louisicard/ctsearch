@@ -418,15 +418,19 @@ class SearchAPIController extends Controller
             $res['suggest_ctsearch'] = $suggestions;
           }
           if($query_string != '*' && !empty($query_string) && IndexManager::getInstance()->mappingExists(explode('.', $request->get('mapping'))[0], 'ctsearch_autopromote')){
-            $promote_query = json_encode(array(
+            $autopromoteAnalyzer = IndexManager::getInstance()->getAutopromoteAnalyzer(explode('.', $request->get('mapping'))[0]);
+            $promote_query_r = array(
               'query' => array(
                 'query_string' => array(
                   'query' => $query_string,
-                  'default_field' => 'ctsap__keywords',
-                  'analyzer' => IndexManager::getInstance()->getAutopromoteAnalyzer(explode('.', $request->get('mapping'))[0])
+                  'default_field' => 'ctsap__keywords'
                 )
               )
-            ));
+            );
+            if($autopromoteAnalyzer != NULL) {
+              $promote_query_r['query']['query_string']['analyzer'] = $autopromoteAnalyzer;
+            }
+            $promote_query = json_encode($promote_query_r);
             $promote = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], $promote_query, 0, 5, 'ctsearch_autopromote');
             if(isset($promote['hits']['hits']) && count($promote['hits']['hits']) > 0){
               $res['autopromote'] = $promote;
