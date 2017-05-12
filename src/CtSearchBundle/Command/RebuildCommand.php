@@ -64,7 +64,7 @@ class RebuildCommand extends ContainerAwareCommand
   }
 
   private function iterate($index_name, $mapping, $from, $size, $callback){
-    $res = IndexManager::getInstance()->search($index_name, '{"query":{"match_all":{}}}', $from, $size, $mapping);
+    $res = IndexManager::getInstance()->search($index_name, '{"query":{"match_all":{"boost":"1.0"}}}', $from, $size, $mapping);
 
     if(isset($res['hits']['hits'])) {
       foreach ($res['hits']['hits'] as $index => $hit) {
