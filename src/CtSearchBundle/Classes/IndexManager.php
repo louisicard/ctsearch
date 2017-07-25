@@ -619,7 +619,7 @@ class IndexManager
         'datasource_name' => $datasource->getName(),
         'datasource_siblings' => $processor->getTargetSiblings(),
         'target' => $processor->getTarget(),
-        'definition' => serialize(json_decode($processor->getDefinition(), true))
+        'proc_definition' => serialize(json_decode($processor->getDefinition(), true))
       )
     );
     if ($id != null) {
@@ -652,7 +652,7 @@ class IndexManager
                 'datasource_id' => $hit['_source']['datasource'],
                 'datasource_name' => $hit['_source']['datasource_name'],
                 'target' => $hit['_source']['target'],
-                'definition' => json_encode(unserialize($hit['_source']['definition']), JSON_PRETTY_PRINT),
+                'definition' => json_encode(unserialize($hit['_source']['proc_definition']), JSON_PRETTY_PRINT),
               );
               if (isset($hit['_source']['datasource_siblings'])) {
                 $proc['datasource_siblings'] = $hit['_source']['datasource_siblings'];
@@ -710,7 +710,7 @@ class IndexManager
               'datasource_id' => $hit['_source']['datasource'],
               'datasource_name' => $hit['_source']['datasource_name'],
               'target' => $hit['_source']['target'],
-              'definition' => json_encode(unserialize($hit['_source']['definition']), JSON_PRETTY_PRINT),
+              'definition' => json_encode(unserialize($hit['_source']['proc_definition']), JSON_PRETTY_PRINT),
             );
             if (isset($hit['_source']['datasource_siblings'])) {
               $proc['datasource_siblings'] = $hit['_source']['datasource_siblings'];
@@ -750,7 +750,7 @@ class IndexManager
         ));
         if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
           $hit = $r['hits']['hits'][0];
-          $processor = new Processor($hit['_id'], $hit['_source']['datasource'], $hit['_source']['target'], json_encode(unserialize($hit['_source']['definition']), JSON_PRETTY_PRINT));
+          $processor = new Processor($hit['_id'], $hit['_source']['datasource'], $hit['_source']['target'], json_encode(unserialize($hit['_source']['proc_definition']), JSON_PRETTY_PRINT));
           if (isset($hit['_source']['datasource_siblings'])) {
             $processor->setTargetSiblings($hit['_source']['datasource_siblings']);
           }

@@ -11,9 +11,10 @@
         "type": "keyword",
         "store": true
     },
-    "definition": {
-        "type": "keyword",
-        "store": true
+    "proc_definition": {
+        "type": "text",
+        "store": true,
+        "analyzer": "standard"
     },
     "target": {
         "type": "keyword",
