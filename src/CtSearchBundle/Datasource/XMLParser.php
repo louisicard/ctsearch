@@ -7,6 +7,7 @@ use \CtSearchBundle\CtSearchBundle;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use \CtSearch\ClientBundle\Classes\CurlClient;
 
 class XMLParser extends Datasource {
 
@@ -43,7 +44,14 @@ class XMLParser extends Datasource {
           $xml = simplexml_load_string($this->getContentFromUrl($url));
         }
         else {
-          $xml = simplexml_load_file($url);
+          $curlClient = new CurlClient($url);
+          $response = $curlClient->getResponse();
+
+          if (!empty($response['data'])) {
+            $xml = simplexml_load_string($url);
+          } else {
+            $xml = false;
+          }
         }
       }
       if(isset($xml)){

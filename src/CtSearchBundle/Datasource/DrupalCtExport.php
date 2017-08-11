@@ -5,6 +5,7 @@ namespace CtSearchBundle\Datasource;
 use \CtSearchBundle\CtSearchBundle;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use \CtSearch\ClientBundle\Classes\CurlClient;
 
 class DrupalCtExport extends Datasource {
 
@@ -43,12 +44,30 @@ class DrupalCtExport extends Datasource {
         if ($this->getOutput() != null) {
           $this->getOutput()->writeln('Harvesting url ' . $url);
         }
-        $xml = simplexml_load_file($url);
+
+        $curlClient = new CurlClient($url);
+        $response = $curlClient->getResponse();
+
+        if (!empty($response['data'])) {
+          $xml = simplexml_load_string($response['data']);
+        } else {
+          $xml = false;
+        }
+
         $page = 1;
         while(count($xml->xpath('/entities/entity')) > 0){
           $this->processXML($xml, $count);
           $page++;
-          $xml = simplexml_load_file($url . $url_sep . 'page=' . $page);
+
+          $curlClient = new CurlClient($url . $url_sep . 'page=' . $page);
+          $response = $curlClient->getResponse();
+
+          if (!empty($response['data'])) {
+            $xml = simplexml_load_string($response['data']);
+          } else {
+            $xml = false;
+          }
+          
           if ($this->getOutput() != null) {
             $this->getOutput()->writeln('Harvesting url ' . $url . $url_sep . 'page=' . $page);
           }
