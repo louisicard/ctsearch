@@ -48,7 +48,7 @@ class XMLParser extends Datasource {
           $response = $curlClient->getResponse();
 
           if (!empty($response['data'])) {
-            $xml = simplexml_load_string($url);
+            $xml = simplexml_load_string($response['data']);
           } else {
             $xml = false;
           }
