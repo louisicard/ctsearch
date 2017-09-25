@@ -215,6 +215,8 @@ class IndexManager
       unset($settings['version']);
     if (isset($settings['uuid']))
       unset($settings['uuid']);
+    if (isset($settings['provided_name']))
+      unset($settings['provided_name']);
     $params = array(
       'index' => $index->getIndexName(),
     );

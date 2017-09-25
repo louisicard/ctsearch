@@ -582,11 +582,19 @@
             if($('#mapping-definition-field-include-raw').is(':checked')) {
               if(typeof json[field_name].fields === 'undefined')
                 json[field_name].fields = {};
-              json[field_name].fields.raw = {
-                type: "string",
-                index: "not_analyzed",
-                store: true
-              };
+              if(__elastic_server_version < 5) {
+                json[field_name].fields.raw = {
+                  type: "string",
+                  index: "not_analyzed",
+                  store: true
+                };
+              }
+              else{
+                json[field_name].fields.raw = {
+                  type: "text",
+                  store: true
+                };
+              }
             }
           }
           if($('#mapping-definition-field-analysis').val() != 'not_analyzed'){
