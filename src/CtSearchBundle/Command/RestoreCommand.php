@@ -42,8 +42,8 @@ class RestoreCommand extends ContainerAwareCommand
     $target = $input->getArgument('target');
     $params = array(
       'indices' => [$source],
-      'ignore_unavailable' => false,
-      'include_global_state' => false,
+      'ignore_unavailable' => true,
+      'include_global_state' => true,
       'rename_pattern' => '(.+)',
       'rename_replacement' => $target
     );
