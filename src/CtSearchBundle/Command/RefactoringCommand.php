@@ -11,11 +11,13 @@ namespace CtSearchBundle\Command;
 
 use CtSearchBundle\Classes\Index;
 use CtSearchBundle\Classes\IndexManager;
+use CtSearchBundle\Classes\Mapping;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 class RefactoringCommand extends ContainerAwareCommand
 {
@@ -23,11 +25,12 @@ class RefactoringCommand extends ContainerAwareCommand
     $this
       ->setName('ctsearch:refactoring')
       ->setDescription('Refactoring elements')
-      ->addOption('drop-analyzer', null, InputOption::VALUE_REQUIRED)
-      ->addOption('drop-filter', null, InputOption::VALUE_REQUIRED)
+      ->addOption('drop-analyzers', null, InputOption::VALUE_REQUIRED)
+      ->addOption('drop-filters', null, InputOption::VALUE_REQUIRED)
+      ->addOption('drop-fields', null, InputOption::VALUE_REQUIRED)
       ->addArgument('type', InputArgument::REQUIRED, 'Refactoring type : [Index, Mapping]')
       ->addArgument('source', InputArgument::REQUIRED, 'Source')
-      ->addArgument('target', InputArgument::REQUIRED, 'Target')
+      ->addArgument('target', InputArgument::OPTIONAL, 'Target')
     ;
   }
 
@@ -43,7 +46,20 @@ class RefactoringCommand extends ContainerAwareCommand
     $source = $input->getArgument('source');
     $target = $input->getArgument('target');
     if($type == 'index') {
-      $this->refactorIndex($source, $target, $input->getOption('drop-analyzer'), $input->getOption('drop-filter'));
+      if($target == null){
+        $output->writeln('Target index is required');
+        return;
+      }
+      $this->refactorIndex($source, $target, $input->getOption('drop-analyzers'), $input->getOption('drop-filters'));
+    }
+    if($type == 'mapping') {
+      $output->writeln('Refactoring a mapping will cause the destruction of all data in the index.');
+      $helper = $this->getHelper('question');
+      $question = new ConfirmationQuestion('Continue with refactoring? (y/N) ', false);
+      if (!$helper->ask($input, $output, $question)) {
+        return;
+      }
+      $this->refactorMapping($source, $target, $input->getOption('drop-fields'));
     }
   }
 
@@ -78,6 +94,60 @@ class RefactoringCommand extends ContainerAwareCommand
     }
     else{
       $this->output->writeln('Source index does not exist');
+    }
+  }
+  private function refactorMapping($source, $target, $dropField = NULL) {
+    if(strpos($source, ".") === 0) {
+      $indexName = '.' . explode(".", $source) [1];
+      if(count(explode(".", $source)) == 3) {
+        $mapping = explode(".", $source) [2];
+      }
+    }
+    else {
+      $indexName = explode(".", $source) [0];
+      if(count(explode(".", $source)) == 2) {
+        $mapping = explode(".", $source) [1];
+      }
+    }
+    if(isset($mapping)) {
+      $index = IndexManager::getInstance()->getIndex($indexName);
+      if($index != null){
+        $settings = json_decode($index->getSettings(), true);
+        $mappings = [];
+        $infos = IndexManager::getInstance()->getElasticInfo(false);
+        foreach($infos as $i => $data) {
+          if($i == $indexName){
+            foreach($data['mappings'] as $mappingInfo){
+              $mappings[] = IndexManager::getInstance()->getMapping($indexName, $mappingInfo['name']);
+            }
+          }
+        }
+        $this->output->write('Deleting index... ');
+        IndexManager::getInstance()->deleteIndex($index);
+        $this->output->writeln('Done!');
+        $this->output->write('Creating index... ');
+        IndexManager::getInstance()->createIndex($index);
+        $this->output->writeln('Done!');
+        foreach($mappings as $mapping) {
+          /** @var Mapping $mapping */
+          $this->output->write('Creating mapping ' . $mapping->getMappingName() . '... ');
+          if($dropField != NULL) {
+            $dropFields = array_map('trim', explode(',', $dropField));
+            $fields = json_decode($mapping->getMappingDefinition(), true);
+            foreach($dropFields as $field) {
+              if(isset($fields[$field])) {
+                unset($fields[$field]);
+              }
+            }
+            $mapping->setMappingDefinition(json_encode($fields));
+          }
+          IndexManager::getInstance()->updateMapping($mapping);
+          $this->output->writeln('Done!');
+        }
+      }
+      else{
+        $this->output->writeln('Source index does not exist');
+      }
     }
   }
 
