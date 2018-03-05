@@ -10,7 +10,7 @@ use CtSearchBundle\Classes\IndexManager;
 use \CtSearchBundle\Classes\Processor;
 use \Symfony\Component\HttpFoundation\Response;
 
-define('SEARCH_API_DEBUG', true);
+define('SEARCH_API_DEBUG', false);
 
 class SearchAPIController extends Controller
 {
