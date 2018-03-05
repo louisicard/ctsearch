@@ -648,7 +648,7 @@ class IndexManager
         $processors = array();
         if (isset($r['hits']['hits'])) {
           foreach ($r['hits']['hits'] as $hit) {
-            if($this->isCurrentUserAdmin() || in_array($hit['_source']['datasource'], $allowed_datasources)) {
+            if(($this->isCurrentUserAdmin() || in_array($hit['_source']['datasource'], $allowed_datasources)) && isset($hit['_source']['proc_definition'])) {
               $proc = array(
                 'id' => $hit['_id'],
                 'datasource_id' => $hit['_source']['datasource'],

@@ -10,7 +10,7 @@ use CtSearchBundle\Classes\IndexManager;
 use \CtSearchBundle\Classes\Processor;
 use \Symfony\Component\HttpFoundation\Response;
 
-define('SEARCH_API_DEBUG', false);
+define('SEARCH_API_DEBUG', true);
 
 class SearchAPIController extends Controller
 {
@@ -497,7 +497,7 @@ class SearchAPIController extends Controller
         $field_parts = explode('.', $field);
         foreach($queries as $compoundPart){
           if (count($field_parts) == 2 && $field_parts[1] != 'raw' || count($field_parts) == 3) {
-            $compoundQuery['bool']['should'][] = array(
+            $compoundQuery['bool']['must'][] = array(
               'nested' => array(
                 'path' => $field_parts[0],
                 'query' => $compoundPart
@@ -505,7 +505,7 @@ class SearchAPIController extends Controller
             );
           }
           else {
-            $compoundQuery['bool']['should'][] = $compoundPart;
+            $compoundQuery['bool']['must'][] = $compoundPart;
           }
         }
         if(SEARCH_API_DEBUG)
