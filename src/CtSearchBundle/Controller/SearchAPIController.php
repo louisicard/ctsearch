@@ -200,7 +200,7 @@ class SearchAPIController extends Controller
             }
             if(SEARCH_API_DEBUG)
               var_dump($filterQueries);
-            $query['query']['bool']['filter'] = $this->computeFilter($filterQueries);
+            $query['query']['bool']['filter'] = $this->computeFilter($filterQueries, NULL, $stickyFacets);
           }
         }
         if ($request->get('ids') != null) {
@@ -327,7 +327,7 @@ class SearchAPIController extends Controller
                   'global' => new \stdClass(),
                   'aggs' => array(
                     'sticky_' . $agg_name => array(
-                      'filter' => $this->computeFilter($filterQueries, $agg_name),//Put null in $skipField to disable sticky facets
+                      'filter' => $this->computeFilter($filterQueries, $agg_name, $stickyFacets),//Put null in $skipField to disable sticky facets
                       'aggs' => array(
                         'sticky_' . $agg_name => $agg
                       )
@@ -473,7 +473,7 @@ class SearchAPIController extends Controller
     }
   }
 
-  private function computeFilter($filterQueries, $skipField = NULL){
+  private function computeFilter($filterQueries, $skipField = NULL, $stickyFacets = []){
     $query_filter = array();
     foreach($filterQueries as $field => $queries){
       if($field == $skipField){
@@ -497,7 +497,7 @@ class SearchAPIController extends Controller
         $field_parts = explode('.', $field);
         foreach($queries as $compoundPart){
           if (count($field_parts) == 2 && $field_parts[1] != 'raw' || count($field_parts) == 3) {
-            $compoundQuery['bool']['must'][] = array(
+            $compoundQuery['bool'][in_array($field, $stickyFacets) ? 'should' : 'must'][] = array(
               'nested' => array(
                 'path' => $field_parts[0],
                 'query' => $compoundPart
@@ -505,7 +505,7 @@ class SearchAPIController extends Controller
             );
           }
           else {
-            $compoundQuery['bool']['must'][] = $compoundPart;
+            $compoundQuery['bool'][in_array($field, $stickyFacets) ? 'should' : 'must'][] = $compoundPart;
           }
         }
         if(SEARCH_API_DEBUG)
