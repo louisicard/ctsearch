@@ -9,20 +9,14 @@ use \CtSearch\ClientBundle\Classes\CurlClient;
 
 class DrupalCtExport extends Datasource {
 
-  private $drupalHost;
-  private $contentType;
+  protected $drupalHost;
+  protected $contentType;
 
   public function getSettings() {
     return array(
       'drupalHost' => $this->getDrupalHost() != null ? $this->getDrupalHost() : '',
       'contentType' => $this->getContentType() != null ? $this->getContentType() : '',
     );
-  }
-
-  public function initFromSettings($settings) {
-    foreach ($settings as $k => $v) {
-      $this->{$k} = $v;
-    }
   }
 
   public function execute($execParams = null) {

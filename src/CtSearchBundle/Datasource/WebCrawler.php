@@ -17,12 +17,6 @@ class WebCrawler extends Datasource {
     return array();
   }
 
-  public function initFromSettings($settings) {
-    foreach ($settings as $k => $v) {
-      $this->{$k} = $v;
-    }
-  }
-
   public function execute($execParams = null) {
 
     parent::execute($execParams);

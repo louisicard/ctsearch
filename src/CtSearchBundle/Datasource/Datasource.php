@@ -4,6 +4,7 @@ namespace CtSearchBundle\Datasource;
 
 use CtSearchBundle\Classes\Exportable;
 use CtSearchBundle\Classes\Importable;
+use CtSearchBundle\Classes\Parameter;
 use CtSearchBundle\Controller\CtSearchController;
 use \CtSearchBundle\CtSearchBundle;
 use \CtSearchBundle\Classes\IndexManager;
@@ -125,7 +126,12 @@ abstract class Datasource implements Exportable, Importable {
   /**
    * @param object $settings
    */
-  abstract function initFromSettings($settings);
+  public function initFromSettings($settings, $noParamInjection = FALSE)
+  {
+    foreach ($settings as $k => $v) {
+      $this->{$k} = $noParamInjection ? $v : Parameter::injectParameters($v);
+    }
+  }
 
   /**
    * @return string
@@ -197,7 +203,7 @@ abstract class Datasource implements Exportable, Importable {
           $procFilter->setOutput($this->getOutput());
           $filterData = array();
           foreach ($filter['settings'] as $k => $v) {
-            $filterData['setting_' . $k] = $v;
+            $filterData['setting_' . $k] = Parameter::injectParameters($v);
           }
           foreach ($filter['arguments'] as $arg) {
             $filterData['arg_' . $arg['key']] = $arg['value'];
@@ -441,6 +447,9 @@ abstract class Datasource implements Exportable, Importable {
     }
   }
 
+  /**
+   * @return Symfony\Component\Console\Output\OutputInterface
+   */
   function getOutput() {
     return $this->output;
   }

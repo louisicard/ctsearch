@@ -11,9 +11,9 @@ use \CtSearch\ClientBundle\Classes\CurlClient;
 
 class XMLParser extends Datasource {
 
-  private $url;
-  private $xpath;
-  private $xpathNamespaces;
+  protected $url;
+  protected $xpath;
+  protected $xpathNamespaces;
 
   public function getSettings() {
     return array(
@@ -21,12 +21,6 @@ class XMLParser extends Datasource {
       'xpath' => $this->getXpath() != null ? $this->getXpath() : '',
       'xpathNamespaces' => $this->getXpathNamespaces() != null ? $this->getXpathNamespaces() : '',
     );
-  }
-
-  public function initFromSettings($settings) {
-    foreach ($settings as $k => $v) {
-      $this->{$k} = $v;
-    }
   }
 
   public function execute($execParams = null) {

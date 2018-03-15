@@ -28,7 +28,11 @@ class SimpleXMLParserFilter extends ProcessorFilter {
   
   public function execute(&$document) {
     try{
-      $xmlDoc = simplexml_load_string(str_replace('xmlns=', 'ns=', $this->getArgumentValue('xml', $document)));
+      $xml = $this->getArgumentValue('xml', $document);
+      if(file_exists($xml)){
+        $xml = file_get_contents($xml);
+      }
+      $xmlDoc = simplexml_load_string(str_replace('xmlns=', 'ns=', $xml));
       if($xmlDoc) {
         foreach ($xmlDoc->getDocNamespaces() as $strPrefix => $strNamespace) {
           //if(strlen($strPrefix) == 0) {

@@ -484,7 +484,7 @@ class IndexManager
    * @param \Symfony\Bundle\FrameworkBundle\Controller\Controller $controller
    * @return Datasource
    */
-  function getDatasource($id, $controller)
+  function getDatasource($id, $controller, $noParamInjection = FALSE)
   {
     if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
       try {
@@ -503,7 +503,7 @@ class IndexManager
           $hit = $r['hits']['hits'][0];
           /** @var Datasource $datasource */
           $datasource = new $hit['_source']['class']($hit['_source']['name'], $controller);
-          $datasource->initFromSettings(unserialize($hit['_source']['definition']));
+          $datasource->initFromSettings(unserialize($hit['_source']['definition']), $noParamInjection);
           $datasource->setId($id);
           $datasource->setHasBatchExecution(isset($hit['_source']['has_batch_execution']) && $hit['_source']['has_batch_execution']);
           if(isset($hit['_source']['created_by'])){
@@ -2119,6 +2119,109 @@ class IndexManager
         'index' => IndexManager::APP_INDEX_NAME,
         'type' => 'boost_query',
         'id' => $id,
+      )
+    );
+    $this->getClient()->indices()->flush();
+  }
+
+  /**
+   * @return Parameter[]
+   */
+  function getParameters()
+  {
+    $this->initSystemMappingMapping('parameter', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_parameter_definition.json');
+    $list = array();
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
+      try {
+        $params = array(
+          'index' => IndexManager::APP_INDEX_NAME,
+          'type' => 'parameter',
+          'size' => 9999
+        );
+        $params['body'] = array(
+          'query' => array(
+            'match_all' => array(
+              'boost' => 1
+            )
+          )
+        );
+        $r = $this->getClient()->search($params);
+        if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
+          foreach ($r['hits']['hits'] as $hit) {
+            $list[] = new Parameter($hit['_id'], $hit['_source']['value']);
+          }
+        }
+        unset($r);
+      } catch (\Exception $ex) {
+
+      }
+    }
+    return $list;
+  }
+
+  /**
+   * @return Parameter
+   */
+  function getParameter($name)
+  {
+    $this->initSystemMappingMapping('parameter', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_parameter_definition.json');
+    if ($this->getIndex(IndexManager::APP_INDEX_NAME) != null) {
+      try {
+        $r = $this->getClient()->search(array(
+          'index' => IndexManager::APP_INDEX_NAME,
+          'type' => 'parameter',
+          'body' => array(
+            'query' => array(
+              'match' => array(
+                '_id' => $name,
+              )
+            )
+          )
+        ));
+        if (isset($r['hits']['hits']) && count($r['hits']['hits']) > 0) {
+          $hit = $r['hits']['hits'][0];
+          $parameter = new Parameter($hit['_id'], $hit['_source']['value']);
+        }
+        else {
+          return null;
+        }
+        unset($r);
+        return $parameter;
+      } catch (\Exception $ex) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  public function saveParameter(Parameter $parameter)
+  {
+    $this->initSystemMappingMapping('parameter', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_parameter_definition.json');
+    $params = array(
+      'index' => IndexManager::APP_INDEX_NAME,
+      'type' => 'parameter',
+      'body' => array(
+        'value' => $parameter->getValue(),
+      )
+    );
+    $params['id'] = $parameter->getName();
+    $r = $this->getClient()->index($params);
+    $this->getClient()->indices()->flush();
+    unset($params);
+    return $r;
+  }
+
+
+  /**
+   * @param string $name
+   */
+  public function deleteParameter($name)
+  {
+    $this->initSystemMappingMapping('parameter', ($this->getServerMajorVersionNumber() >= 5 ? '5-def/' : '') . 'ctsearch_parameter_definition.json');
+    $this->getClient()->delete(array(
+        'index' => IndexManager::APP_INDEX_NAME,
+        'type' => 'parameter',
+        'id' => $name,
       )
     );
     $this->getClient()->indices()->flush();

@@ -37,6 +37,10 @@ services:
     class: CtSearchBundle\Datasource\PDODatabase
     tags:
       - { name: ctsearch.datasource }
+  ctsearch.datasource.directoryscanner:
+    class: CtSearchBundle\Datasource\DirectoryScanner
+    tags:
+      - { name: ctsearch.datasource }
   ctsearch.filter.arrayimplodefilter:
     class: CtSearchBundle\Processor\ArrayImplodeFilter
     tags:

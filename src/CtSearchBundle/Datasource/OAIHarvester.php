@@ -10,10 +10,10 @@ use \CtSearchBundle\CtSearchBundle;
 
 class OAIHarvester extends Datasource {
 
-  private $oaiServerUrl;
-  private $sets;
-  private $metaDataPrefix;
-  private $cookies = '';
+  protected $oaiServerUrl;
+  protected $sets;
+  protected $metaDataPrefix;
+  protected $cookies = '';
 
   public function getSettings() {
     return array(
@@ -21,12 +21,6 @@ class OAIHarvester extends Datasource {
       'sets' => $this->getSets() != null ? $this->getSets() : '',
       'metaDataPrefix' => $this->getMetaDataPrefix() != null ? $this->getMetaDataPrefix() : '',
     );
-  }
-
-  public function initFromSettings($settings) {
-    foreach ($settings as $k => $v) {
-      $this->{$k} = $v;
-    }
   }
 
   public function execute($execParams = null) {

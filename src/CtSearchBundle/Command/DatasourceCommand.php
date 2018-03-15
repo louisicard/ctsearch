@@ -3,6 +3,7 @@
 namespace CtSearchBundle\Command;
 
 use CtSearchBundle\Classes\IndexManager;
+use CtSearchBundle\Classes\Parameter;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -28,7 +29,7 @@ class DatasourceCommand extends ContainerAwareCommand {
       foreach ($args_r as $args_rr) {
         $args_rr_r = explode('=', $args_rr);
         if (count($args_rr_r) == 2) {
-          $execParams[$args_rr_r[0]] = $args_rr_r[1];
+          $execParams[$args_rr_r[0]] = Parameter::injectParameters($args_rr_r[1]);
         }
       }
     }

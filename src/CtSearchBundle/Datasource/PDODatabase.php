@@ -11,14 +11,14 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 class PDODatabase extends Datasource
 {
 
-  private $driver;
-  private $host;
-  private $port;
-  private $dbName;
-  private $username;
-  private $password;
-  private $batchSize;
-  private $sql;
+  protected $driver;
+  protected $host;
+  protected $port;
+  protected $dbName;
+  protected $username;
+  protected $password;
+  protected $batchSize;
+  protected $sql;
 
   public function getSettings()
   {
@@ -32,13 +32,6 @@ class PDODatabase extends Datasource
       'batchSize' => $this->getBatchSize() != null ? $this->getBatchSize() : '',
       'sql' => $this->getSql() != null ? $this->getSql() : '',
     );
-  }
-
-  public function initFromSettings($settings)
-  {
-    foreach ($settings as $k => $v) {
-      $this->{$k} = $v;
-    }
   }
 
   public function execute($execParams = null)

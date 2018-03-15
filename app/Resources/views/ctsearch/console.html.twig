@@ -52,7 +52,7 @@
               {%if hit._source[col] is defined%}
                 <td>
                   {%if hit._source[col] is not iterable %}
-                    {{hit._source[col]|raw}}
+                    {{hit._source[col]}}
                   {%else%}
                     Array
                   {%endif%}

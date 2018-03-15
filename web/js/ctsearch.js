@@ -105,6 +105,13 @@
         window.location = url;
       });
     });
+    $('a.parameter-delete').click(function (e) {
+      e.preventDefault();
+      var url = $(this).attr('href');
+      return advConfirm(__ctsearch_js_translations.ParameterDeleteConfirm, function () {
+        window.location = url;
+      });
+    });
 
     $('.search-page .search-result-source-toggler a').click(function () {
       $(this).parents('.search-result').find('.search-result-source').slideToggle();

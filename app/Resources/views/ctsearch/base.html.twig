@@ -33,7 +33,10 @@
             <li{%if main_menu_item=='matching-lists'%} class="active"{%endif%}><a href="{{path('matching-lists')}}" title="{{'Matching lists'|trans}}">{{'Matching lists'|trans}}</a></li>
             {% endif %}
             {% if is_granted("ROLE_PROCESSOR_MANAGER") %}
-            <li{%if main_menu_item=='processors'%} class="active"{%endif%}><a href="{{path('processors')}}" title="{{'Processors'|trans}}">{{'Processors'|trans}}</a></li>
+              <li{%if main_menu_item=='processors'%} class="active"{%endif%}><a href="{{path('processors')}}" title="{{'Processors'|trans}}">{{'Processors'|trans}}</a></li>
+            {% endif %}
+            {% if is_granted("ROLE_PARAMETER_MANAGER") %}
+              <li{%if main_menu_item=='parameters'%} class="active"{%endif%}><a href="{{path('parameters')}}" title="{{'Parameters'|trans}}">{{'Parameters'|trans}}</a></li>
             {% endif %}
           </ul>
         </li>
@@ -153,7 +156,8 @@
       GroupDeleteConfirm: "{{'You are about to delete a group.\\nDo you wish to proceed?'|trans}}",
       UserDeleteConfirm: "{{'You are about to delete a user.\\nDo you wish to proceed?'|trans}}",
       AutopromoteDeleteConfirm: "{{'You are about to delete an autopromote.\\nDo you wish to proceed?'|trans}}",
-      BoostQueryDeleteConfirm: "{{'You are about to delete a boost query.\\nDo you wish to proceed?'|trans}}"
+      BoostQueryDeleteConfirm: "{{'You are about to delete a boost query.\\nDo you wish to proceed?'|trans}}",
+      ParameterDeleteConfirm: "{{'You are about to delete a parameter.\\nDo you wish to proceed?'|trans}}"
     };
   </script>
   <script type="text/javascript" src="{{asset('js/jquery-1.11.3.min.js')}}"></script>

@@ -28,8 +28,12 @@ class XMLParserFilter extends ProcessorFilter {
   
   public function execute(&$document) {
     try{
+      $xml = $this->getArgumentValue('xml', $document);
+      if(file_exists($xml)){
+        $xml = file_get_contents($xml);
+      }
       $doc = new \DOMDocument();
-      $doc->loadXML($this->getArgumentValue('xml', $document));
+      $doc->loadXML($xml);
       
       $xpath = new \DOMXPath($doc);
       $result = $xpath->query("//namespace::*");

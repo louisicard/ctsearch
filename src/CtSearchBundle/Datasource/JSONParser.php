@@ -9,20 +9,13 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 class JSONParser extends Datasource
 {
 
-  private $jsonFields;
+  protected $jsonFields;
 
   public function getSettings()
   {
     return array(
       'jsonFields' => $this->getJsonFields() != null ? $this->getJsonFields() : '',
     );
-  }
-
-  public function initFromSettings($settings)
-  {
-    foreach ($settings as $k => $v) {
-      $this->{$k} = $v;
-    }
   }
 
   public function execute($execParams = null)

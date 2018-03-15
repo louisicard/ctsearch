@@ -9,20 +9,14 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class TextFileParser extends Datasource {
 
-  private $url;
-  private $linesToSkip;
+  protected $url;
+  protected $linesToSkip;
 
   public function getSettings() {
     return array(
       'url' => $this->getUrl() != null ? $this->getUrl() : '',
       'linesToSkip' => $this->getLinesToSkip() != null ? $this->getLinesToSkip() : '',
     );
-  }
-
-  public function initFromSettings($settings) {
-    foreach ($settings as $k => $v) {
-      $this->{$k} = $v;
-    }
   }
 
   public function execute($execParams = null) {

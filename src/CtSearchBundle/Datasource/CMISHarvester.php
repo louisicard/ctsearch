@@ -10,14 +10,14 @@ use \CtSearchBundle\Classes\CmisService;
 
 class CMISHarvester extends Datasource {
 
-  private $cmisEndpointUrl;
-  private $username;
-  private $password;
-  private $tikaPath;
-  private $folderPath;
-  private $numberOfDocsPerCall;
-  private $maxFileSizeToIndex;
-  private $extensionsToIndex;
+  protected $cmisEndpointUrl;
+  protected $username;
+  protected $password;
+  protected $tikaPath;
+  protected $folderPath;
+  protected $numberOfDocsPerCall;
+  protected $maxFileSizeToIndex;
+  protected $extensionsToIndex;
 
   public function getSettings() {
     return array(
@@ -30,12 +30,6 @@ class CMISHarvester extends Datasource {
       'maxFileSizeToIndex' => $this->getMaxFileSizeToIndex() != null ? $this->getMaxFileSizeToIndex() : '',
       'extensionsToIndex' => $this->getExtensionsToIndex() != null ? $this->getExtensionsToIndex() : '',
     );
-  }
-
-  public function initFromSettings($settings) {
-    foreach ($settings as $k => $v) {
-      $this->{$k} = $v;
-    }
   }
 
   public function execute($execParams = null) {

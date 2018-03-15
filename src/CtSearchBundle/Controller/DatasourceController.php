@@ -100,7 +100,7 @@ class DatasourceController extends CtSearchController {
    */
   public function editDatasourceAction(Request $request) {
     if ($request->get('id') != null) {
-      $instance = IndexManager::getInstance()->getDatasource($request->get('id'), $this);
+      $instance = IndexManager::getInstance()->getDatasource($request->get('id'), $this, TRUE);
       $form = $instance->getSettingsForm()->getForm();
       $form->handleRequest($request);
       if ($form->isValid()) {

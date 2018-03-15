@@ -13,6 +13,7 @@
         <tr>
           <th>{{'Datasource name'|trans}}</th>
           <th>{{'Type'|trans}}</th>
+          <th>{{'ID'|trans}}</th>
           <th>&nbsp;</th>
         </tr>
       </thead>
@@ -23,6 +24,7 @@
           <tr class="{{class}}">
             <td>{{datasource.name}}</td>
             <td>{{datasource.datasourceDisplayName}}</td>
+            <td>{{datasource.id}}</td>
             <td class="actions">
               <ul>
                 {% if is_granted('ROLE_DATASOURCE_CREATOR') and procs[datasource.id] is not defined %}
