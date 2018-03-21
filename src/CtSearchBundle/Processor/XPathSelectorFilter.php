@@ -3,6 +3,7 @@
 
 namespace CtSearchBundle\Processor;
 
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
@@ -15,10 +16,14 @@ class XPathSelectorFilter extends ProcessorFilter {
 
   public function getSettingsForm($controller) {
     $formBuilder = parent::getSettingsForm($controller)
-        ->add('setting_selector', TextType::class, array(
-          'required' => true,
-          'label' => $controller->get('translator')->trans('CSS selector'),
-        ))
+      ->add('setting_selector', TextType::class, array(
+        'required' => true,
+        'label' => $controller->get('translator')->trans('CSS selector'),
+      ))
+      ->add('setting_notidy', CheckboxType::class, array(
+        'required' => false,
+        'label' => $controller->get('translator')->trans('No Tidy'),
+      ))
       ->add('ok', SubmitType::class, array('label' => $controller->get('translator')->trans('OK')));
     return $formBuilder;
   }
@@ -57,7 +62,8 @@ class XPathSelectorFilter extends ProcessorFilter {
       );
       $dom = new \DOMDocument();
       try{
-        $dom->loadHTML(mb_convert_encoding(tidy_repair_string($html, $options, 'utf8'), 'HTML-ENTITIES', 'UTF-8'));
+        $cleanHtml = !isset($settings['notidy']) || !$settings['notidy'] ? tidy_repair_string($html, $options, 'utf8') : $html;
+        $dom->loadHTML(mb_convert_encoding($cleanHtml, 'HTML-ENTITIES', 'UTF-8'));
       }catch(\Exception $ex){}
       $this->xpath = new \DOMXPath($dom);
       return array('xml_parts' => $this->selectToXML($selector)); 
