@@ -41,6 +41,10 @@ services:
     class: CtSearchBundle\Datasource\DirectoryScanner
     tags:
       - { name: ctsearch.datasource }
+  ctsearch.datasource.queryexecutor:
+    class: CtSearchBundle\Datasource\QueryExecutor
+    tags:
+      - { name: ctsearch.datasource }
   ctsearch.filter.arrayimplodefilter:
     class: CtSearchBundle\Processor\ArrayImplodeFilter
     tags:
@@ -123,6 +127,10 @@ services:
       - { name: ctsearch.filter }
   ctsearch.filter.pdoqueryfilter:
     class: CtSearchBundle\Processor\PDOQueryFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.mondecaannotationfilter:
+    class: CtSearchBundle\Processor\MondecaAnnotationFilter
     tags:
       - { name: ctsearch.filter }
   ctsearch.analytics.rawkeywordsstatcompiler:

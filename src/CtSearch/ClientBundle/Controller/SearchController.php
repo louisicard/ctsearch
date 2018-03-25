@@ -13,6 +13,7 @@ class SearchController extends Controller
   public function searchAction(Request $request)
   {
     $serviceUrl = $request->get('serviceUrl');
+    $baseUrl = $request->get('baseUrl');
     if ($request->get('mapping') == NULL) {
       return new Response('Missing mapping parameter', 400);
     }
@@ -21,6 +22,9 @@ class SearchController extends Controller
     }
     if ($serviceUrl == NULL) {
       $serviceUrl = $request->getSchemeAndHttpHost() . $request->getBaseUrl() . '/search-api/v2';
+    }
+    if ($baseUrl == NULL) {
+      $baseUrl = $request->getSchemeAndHttpHost() . $request->getBaseUrl();
     }
 
     $searchParams = $this->getSearchPageDefinition($request, $request->get('sp_id'));
@@ -37,8 +41,10 @@ class SearchController extends Controller
 
     $facet_list = [];
     $sticky_facets = [];
+    $facetDefs = [];
     foreach($searchParams['facets'] as $facet){
       $facet_name = array_keys($facet)[0];
+      $facetDefs[$facet_name] = $facet[$facet_name];
       $facet_list[] = $facet_name;
       if(isset($facet[$facet_name]['sticky']) && $facet[$facet_name]['sticky']){
         $sticky_facets[] = array_keys($facet)[0];
@@ -48,22 +54,60 @@ class SearchController extends Controller
     $context = new SearchContext($request, $serviceUrl, $request->get('mapping'), implode(',', $facet_list), $searchParams['analyzer'], isset($searchParams['suggest']) ? implode(',', $searchParams['suggest']) : '', $highlight, implode(',', $sticky_facets));
     $context->setSize($searchParams['size']);
 
+    foreach($searchParams['facets'] as $facet) {
+      if(isset($facet[array_keys($facet)[0]]['isDate']) && $facet[array_keys($facet)[0]]['isDate']) {
+        $context->addFacetOption(array_keys($facet)[0], 'custom_def', '{"range":{
+                "field": "' . array_keys($facet)[0] . '",
+                "format": "yyyy-MM-dd",
+            "keyed": true,
+                "ranges": [
+                    { "key":"1", "from": "now-1M", "to":"now" },
+                    { "key":"2", "from": "now-3M/M", "to":"now" },
+                    { "key":"3", "from": "now-6M/M", "to":"now" },
+                    { "key":"4", "from": "now-12M/M", "to":"now" }, 
+                    { "key":"5", "to": "now-12M/M" } 
+                ]
+            }}');
+      }
+    }
+
     if($request->get('sort') == null && isset($searchParams['sorting']['default']['field']) && isset($searchParams['sorting']['default']['order']) && $context->getQuery() == ''){
       $context->setSort($searchParams['sorting']['default']['field'] . ',' . $searchParams['sorting']['default']['order']);
     }
 
     $context->execute();
+    //dump($context);
 
     $facets = array();
     foreach($context->getFacets() as $facet_name => $facet){
       if(isset($facet[$facet_name]))
         $facet = $facet[$facet_name];
       foreach($facet['buckets'] as $i => $bucket){
-        $facet['buckets'][$i]['applied'] = $context->isFilterApplied($facet_name, $bucket['key']);
-        $facet['buckets'][$i]['facet_link'] = $context->isFilterApplied($facet_name, $bucket['key']) ? $context->buildFilterRemovalUrl($facet_name, $bucket['key']) : $context->buildFilterUrl($facet_name, $bucket['key']);
+        if(isset($facetDefs[$facet_name]['isDate']) && $facetDefs[$facet_name]['isDate']) {
+          if(isset($bucket['from_as_string']) && isset($bucket['to_as_string'])) {
+            $value = $bucket['from_as_string'] . ',' . $bucket['to_as_string'];
+            $operator = '<=>';
+          }
+          elseif(isset($bucket['from_as_string'])) {
+            $value = $bucket['from_as_string'];
+            $operator = '>=';
+          }
+          elseif(isset($bucket['to_as_string'])) {
+            $value = $bucket['to_as_string'];
+            $operator = '<=';
+          }
+          $facet['buckets'][$i]['facet_link'] = $context->isFilterApplied($facet_name, $value, $operator) ? $context->buildFilterRemovalUrl($facet_name, $value, $operator) : $context->buildFilterUrl($facet_name, $value, $operator);
+          $facet['buckets'][$i]['applied'] = $context->isFilterApplied($facet_name, $value, $operator);
+        }
+        else {
+          $facet['buckets'][$i]['applied'] = $context->isFilterApplied($facet_name, $bucket['key']);
+          $facet['buckets'][$i]['facet_link'] = $context->isFilterApplied($facet_name, $bucket['key']) ? $context->buildFilterRemovalUrl($facet_name, $bucket['key']) : $context->buildFilterUrl($facet_name, $bucket['key']);
+        }
       }
-      if($facet['sum_other_doc_count'] > 0){
-        $facet['see_more_link'] = $context->getFacetRaiseSizeUrl($facet_name);
+      if(!isset($facetDefs[$facet_name]['isDate']) || !$facetDefs[$facet_name]['isDate']) {
+        if ($facet['sum_other_doc_count'] > 0) {
+          $facet['see_more_link'] = $context->getFacetRaiseSizeUrl($facet_name);
+        }
       }
       $facets[$facet_name] = $facet;
     }
@@ -104,6 +148,7 @@ class SearchController extends Controller
       'searchPageId' => $request->get('sp_id'),
       'pager' => $this->getPager($context),
       'serviceUrl' => $serviceUrl,
+      'baseUrl' => $baseUrl,
     ));
   }
 
@@ -183,4 +228,5 @@ class SearchController extends Controller
     }
     return new Response($html, 200, array('Content-type' => 'text/html; charset=utf-8'));
   }
+
 }

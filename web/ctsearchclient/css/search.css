@@ -28,6 +28,7 @@ main{
   background:#6699cc;
   font-family: 'Open Sans', sans-serif;
   font-weight:300;
+  z-index:99;
 }
 .search-form > form > div{
   float:left;
@@ -150,7 +151,7 @@ a.ajax-link.ajax-loading{
   font-weight: bold;
 }
 .results li {
-  margin:1em 0;
+  margin:0.5em 0;
 }
 .results li .thumbnail {
   float:left;
@@ -246,4 +247,106 @@ a.ajax-link.ajax-loading{
 }
 .results-list .autopromote-list .autopromote-item {
   margin:10px 0;
+}
+.results .results-list li {
+  position:relative;
+  border:3px dashed #fff;
+  padding:5px;
+}
+.results .results-list li .edit-link {
+  position:absolute;
+  right:5px;
+  top:5px;
+  display:none;
+}
+.results .results-list li:hover {
+  border:3px dashed #ccc;
+  padding:5px;
+}
+.results .results-list li:hover .edit-link {
+  display:block;
+  border:2px solid #ccc;
+  padding:5px;
+  border-radius:20px;
+}
+.results .results-list li:hover .edit-link:hover {
+  background:#cccccc;
+}
+.results .results-list li .edit-link a {
+  display:block;
+  width:16px;
+  height:16px;
+  overflow: hidden;
+  text-indent: 999px;
+  background: url(../images/pencil-edit-button.png) no-repeat;
+}
+.ui-dialog,
+.ui-dialog *{
+  border-radius:0!important;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif!important;
+}
+.ui-widget-header{
+  border:0;
+  background:#252323;
+  color:#fff;
+  font-weight:normal;
+}
+.ui-dialog .ui-dialog-titlebar {
+  padding:.4em .6em;
+}
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default{
+  border:0;
+  background:#fff;
+}
+.ui-state-default .ui-icon{
+  background:url("../images/close.png") no-repeat;
+}
+.ui-dialog .ui-dialog-titlebar-close {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  width: 31px;
+  margin: -14px 0 0 0;
+  padding: 1px;
+  height: 29px;
+}
+.ui-button-icon-only .ui-icon {
+  left: 50%;
+  margin-left: -7px;
+}
+.ui-button-icon-only .ui-icon {
+  position: absolute;
+  top: 50%;
+  margin-top: -7px;
+}
+.ui-dialog .ui-dialog-content{
+  padding:15px 5px;
+  font-size:14px;
+}
+.ui-widget-content,
+.ui-dialog .ui-dialog-content{
+  background: #fff;
+}
+.ui-dialog .actions{
+  text-align:center;
+  margin-top:25px;
+}
+.edit-record-form .field-item {
+  margin:8px 0;
+  padding:8px;
+  border:1px solid #ccc;
+  border-radius:5px!important;
+}
+.edit-record-form .field-item label {
+  font-weight:bold;
+  font-size:14px;
+  margin:0 0 3px 0;
+  display:block;
+}
+.edit-record-form .field-item input,
+.edit-record-form .field-item textarea {
+  width:100%;
+}
+.edit-record-form .field-item .field-value {
+  margin:2px 0;
 }

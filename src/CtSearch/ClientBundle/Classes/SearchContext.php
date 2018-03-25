@@ -294,27 +294,27 @@ class SearchContext
     }
   }
 
-  public function buildFilterUrl($field, $value){
+  public function buildFilterUrl($field, $value, $operator = '='){
     $params = $this->request->query->all();
     unset($params['facetOptions']);
-    $params['filter'][] = $field . '="' . $value . '"';
+    $params['filter'][] = $field . $operator . '"' . $value . '"';
     return $this->generateUrl($this->request->getSchemeAndHttpHost() . $this->request->getRequestUri() . $this->request->getBaseUrl(), $params);
   }
 
-  public function buildFilterRemovalUrl($field, $value){
+  public function buildFilterRemovalUrl($field, $value, $operator = '='){
     $params = $this->request->query->all();
     unset($params['filter']);
     unset($params['facetOptions']);
     foreach($this->filters as $filter) {
-      if($filter != $field . '="' . $value . '"') {
+      if($filter != $field . $operator . '"' . $value . '"') {
         $params['filter'][] = $filter;
       }
     }
     return $this->generateUrl($this->request->getSchemeAndHttpHost() . $this->request->getRequestUri() . $this->request->getBaseUrl(), $params);
   }
 
-  public function isFilterApplied($field, $value){
-    return in_array($field . '="' . $value . '"', $this->filters);
+  public function isFilterApplied($field, $value, $operator = '='){
+    return in_array($field . $operator . '"' . $value . '"', $this->filters);
   }
 
   public function getFacetRaiseSizeUrl($facet_id){
@@ -343,6 +343,10 @@ class SearchContext
       $params['sort'] = $sort;
     }
     return $this->generateUrl($this->request->getSchemeAndHttpHost() . $this->request->getRequestUri() . $this->request->getBaseUrl(), $params);
+  }
+
+  public function addFacetOption($facet, $option, $value) {
+    $this->facetOptions[$facet][$option] = $value;
   }
 
   /**

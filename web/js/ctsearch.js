@@ -1069,12 +1069,20 @@
             $('<label for="facet-label-' + rnd + '">Facet label</label>').insertBefore(label);
 
             var stickyLbl = $('<label for="facet-sticky-' + rnd + '">Sticky</label>');
-            var stickyChb = $('<input type="checkbox" id="facet-sticky-' + rnd + '" />');
+            var stickyChb = $('<input type="checkbox" id="facet-sticky-' + rnd + '" class="sticky-facet" />');
             if(typeof def.facets[i][facet_name].sticky !== 'undefined' && def.facets[i][facet_name].sticky){
               stickyChb.attr('checked', 'checked');
             }
             facet_option_container.append(stickyLbl);
             facet_option_container.append(stickyChb);
+
+            var isDateLbl = $('<label for="facet-isdate-' + rnd + '">Is date?</label>');
+            var isDateChb = $('<input type="checkbox" id="facet-isdate-' + rnd + '" class="isdate-facet" />');
+            if(typeof def.facets[i][facet_name].isDate !== 'undefined' && def.facets[i][facet_name].isDate){
+              isDateChb.attr('checked', 'checked');
+            }
+            facet_option_container.append(isDateLbl);
+            facet_option_container.append(isDateChb);
 
             var up = $('<a href="#" class="up">Move up</a>');
             var down = $('<a href="#" class="down">Move down</a>');
@@ -1346,7 +1354,8 @@
         var obj = {};
         obj[$(this).find('select').val()] = {
           label: $(this).find('input[type="text"]').val(),
-          sticky: $(this).find('input[type="checkbox"]').is(':checked')
+          sticky: $(this).find('input[type="checkbox"].sticky-facet').is(':checked'),
+          isDate: $(this).find('input[type="checkbox"].sticky-facet').is(':checked')
         };
         config.facets.push(obj);
       }
