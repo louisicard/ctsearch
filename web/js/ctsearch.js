@@ -598,7 +598,7 @@
               }
               else{
                 json[field_name].fields.raw = {
-                  type: "text",
+                  type: "keyword",
                   store: true
                 };
               }
