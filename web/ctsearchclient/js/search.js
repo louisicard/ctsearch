@@ -309,14 +309,10 @@
     parent.attr('data-field-type', type);
     parent.attr('data-field-index', index);
     var field = null;
-    if(type == 'text') {
+    if(type == 'text' || type == 'string') {
       field = $('<textarea></textarea>');
     }
     else if(type == 'keyword') {
-      field = $('<input />');
-      field.attr('type', 'text');
-    }
-    else if(type == 'string') {
       field = $('<input />');
       field.attr('type', 'text');
     }
