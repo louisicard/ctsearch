@@ -23,10 +23,14 @@ class SearchAPIController extends Controller
     if ($request->get('mapping') != null) {
       if (count(explode('.', $request->get('mapping'))) >= 2) {
 
+        $indexName = strpos($request->get('mapping'), '.') === 0 ? ('.' . explode('.', $request->get('mapping'))[1]) : explode('.', $request->get('mapping'))[0];
+        $mappingName = strpos($request->get('mapping'), '.') === 0 ? explode('.', $request->get('mapping'))[2] : explode('.', $request->get('mapping'))[1];
+
         if ($request->get('doc_id') != null) {
+
           $res = IndexManager::getInstance()->getClient()->search(array(
-            'index' => strpos($request->get('mapping'), '.') === 0 ? ('.' . explode('.', $request->get('mapping'))[1]) : explode('.', $request->get('mapping'))[0],
-            'type' => strpos($request->get('mapping'), '.') === 0 ? explode('.', $request->get('mapping'))[2] : explode('.', $request->get('mapping'))[1],
+            'index' => $indexName,
+            'type' => $mappingName,
             'body' => array(
               'query' => array(
                 'ids' => array(
@@ -39,7 +43,7 @@ class SearchAPIController extends Controller
         }
 
 
-        $mapping = IndexManager::getInstance()->getMapping(explode('.', $request->get('mapping'))[0], explode('.', $request->get('mapping'))[1]);
+        $mapping = IndexManager::getInstance()->getMapping($indexName, $mappingName);
         $definition = json_decode($mapping->getMappingDefinition(), true);
         $analyzed_fields = array();
         $nested_analyzed_fields = array();
@@ -390,7 +394,7 @@ class SearchAPIController extends Controller
           var_dump(json_encode($query));
         }
         try {
-          $res = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], json_encode($query), $request->get('from') != null ? $request->get('from') : 0, $request->get('size') != null ? $request->get('size') : 10, explode('.', $request->get('mapping'))[1]);
+          $res = IndexManager::getInstance()->search($indexName, json_encode($query), $request->get('from') != null ? $request->get('from') : 0, $request->get('size') != null ? $request->get('size') : 10, $mappingName);
           if($request->get('escapeQuery') == null || $request->get('escapeQuery') == 1) {
             IndexManager::getInstance()->saveStat($request->get('mapping'), $applied_facets, $request->get('query') != null ? $request->get('query') : '', $request->get('analyzer'), $request->getQueryString(), isset($res['hits']['total']) ? $res['hits']['total'] : 0, isset($res['took']) ? $res['took'] : 0, $request->get('clientIp') != null ? $request->get('clientIp') : $request->getClientIp(), $request->get('tag') != null ? $request->get('tag') : '');
           }
@@ -417,8 +421,8 @@ class SearchAPIController extends Controller
             });
             $res['suggest_ctsearch'] = $suggestions;
           }
-          if($query_string != '*' && !empty($query_string) && IndexManager::getInstance()->mappingExists(explode('.', $request->get('mapping'))[0], 'ctsearch_autopromote')){
-            $autopromoteAnalyzer = IndexManager::getInstance()->getAutopromoteAnalyzer(explode('.', $request->get('mapping'))[0]);
+          if($query_string != '*' && !empty($query_string) && IndexManager::getInstance()->mappingExists($indexName, 'ctsearch_autopromote')){
+            $autopromoteAnalyzer = IndexManager::getInstance()->getAutopromoteAnalyzer($indexName);
             $promote_query_r = array(
               'query' => array(
                 'query_string' => array(
@@ -431,7 +435,7 @@ class SearchAPIController extends Controller
               $promote_query_r['query']['query_string']['analyzer'] = $autopromoteAnalyzer;
             }
             $promote_query = json_encode($promote_query_r);
-            $promote = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], $promote_query, 0, 5, 'ctsearch_autopromote');
+            $promote = IndexManager::getInstance()->search($indexName, $promote_query, 0, 5, 'ctsearch_autopromote');
             if(isset($promote['hits']['hits']) && count($promote['hits']['hits']) > 0){
               $res['autopromote'] = $promote;
             }
