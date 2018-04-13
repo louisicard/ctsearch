@@ -21,12 +21,12 @@ class SearchAPIController extends Controller
   public function searchAPIV2Action(Request $request)
   {
     if ($request->get('mapping') != null) {
-      if (count(explode('.', $request->get('mapping'))) == 2) {
+      if (count(explode('.', $request->get('mapping'))) >= 2) {
 
         if ($request->get('doc_id') != null) {
           $res = IndexManager::getInstance()->getClient()->search(array(
-            'index' => explode('.', $request->get('mapping'))[0],
-            'type' => explode('.', $request->get('mapping'))[1],
+            'index' => strpos($request->get('mapping'), '.') === 0 ? ('.' . explode('.', $request->get('mapping'))[1]) : explode('.', $request->get('mapping'))[0],
+            'type' => strpos($request->get('mapping'), '.') === 0 ? explode('.', $request->get('mapping'))[2] : explode('.', $request->get('mapping'))[1],
             'body' => array(
               'query' => array(
                 'ids' => array(
