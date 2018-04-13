@@ -316,6 +316,10 @@
       field = $('<input />');
       field.attr('type', 'text');
     }
+    else if(type == 'string') {
+      field = $('<input />');
+      field.attr('type', 'text');
+    }
     else if(type == 'date') {
       field = $('<input />');
       field.attr('type', 'text');
