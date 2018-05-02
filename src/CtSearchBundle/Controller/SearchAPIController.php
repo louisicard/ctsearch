@@ -51,6 +51,9 @@ class SearchAPIController extends Controller
         $defaultOperator = $request->get('default_operator') != null ? $request->get('default_operator') : 'AND';
         foreach ($definition as $field => $field_detail) {
           if ((!isset($field_detail['index']) || $field_detail['index'] == 'analyzed') && ($field_detail['type'] == 'string' || IndexManager::getInstance()->getServerMajorVersionNumber() >= 5 && $field_detail['type'] == 'text')) {
+            if(isset($field_detail['boost'])) {
+              $field .= '^' . $field_detail['boost'];
+            }
             $analyzed_fields[] = $field;
           }
           elseif ($field_detail['type'] == 'nested') {

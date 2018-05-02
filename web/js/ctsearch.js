@@ -1285,6 +1285,11 @@
       var stickyChb = $('<input type="checkbox" id="sortable-sticky-' + rnd + '" />');
       container.append(stickyLbl);
       container.append(stickyChb);
+
+      var isDateLbl = $('<label for="facet-isdate-' + rnd + '">Is date?</label>');
+      var isDateChb = $('<input type="checkbox" id="facet-isdate-' + rnd + '" class="isdate-facet" />');
+      container.append(isDateLbl);
+      container.append(isDateChb);
     }
 
     var up = $('<a href="#" class="up">Move up</a>');
@@ -1355,7 +1360,7 @@
         obj[$(this).find('select').val()] = {
           label: $(this).find('input[type="text"]').val(),
           sticky: $(this).find('input[type="checkbox"].sticky-facet').is(':checked'),
-          isDate: $(this).find('input[type="checkbox"].sticky-facet').is(':checked')
+          isDate: $(this).find('input[type="checkbox"].isdate-facet').is(':checked')
         };
         config.facets.push(obj);
       }

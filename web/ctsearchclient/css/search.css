@@ -41,6 +41,8 @@ main{
   font-size:1.5em;
   padding:0.5em 1em;
   font-weight:300;
+}
+.search-form input[type="text"] {
   background:#eee;
 }
 .search-form input[type="text"]:focus,
