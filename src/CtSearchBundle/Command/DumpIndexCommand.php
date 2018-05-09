@@ -41,7 +41,7 @@ class DumpIndexCommand extends ContainerAwareCommand
 
   private function dump($index, $from = 0)
   {
-    $dumpSize = 100;
+    $dumpSize = 1000;
     $res = IndexManager::getInstance()->search($index, json_encode(array(
         'query' => array(
           'match_all' => array(

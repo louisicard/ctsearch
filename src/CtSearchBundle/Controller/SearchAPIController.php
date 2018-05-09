@@ -468,15 +468,15 @@ class SearchAPIController extends Controller
               }
             }
           }
-          return new Response(json_encode($res, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json;charset=utf-8'));
+          return new Response(json_encode($res, JSON_PRETTY_PRINT), 200, array('Content-Type' => 'application/json; charset=utf-8', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Headers' => 'Content-Type'));
         } else {
-          return new Response('{"error": "Search failed"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
+          return new Response('{"error": "Search failed"}', 400, array('Content-Type' => 'application/json; charset=utf-8', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Headers' => 'Content-Type'));
         }
       } else {
-        return new Response('{"error": "Mapping does not exists"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
+        return new Response('{"error": "Mapping does not exists"}', 400, array('Content-Type' => 'application/json; charset=utf-8', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Headers' => 'Content-Type'));
       }
     } else {
-      return new Response('{"error": "Missing mapping parameter"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
+      return new Response('{"error": "Missing mapping parameter"}', 400, array('Content-Type' => 'application/json; charset=utf-8', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Headers' => 'Content-Type'));
     }
   }
 
@@ -705,7 +705,7 @@ class SearchAPIController extends Controller
     ini_set('always_populate_raw_post_data', -1);
     try {
       $res = IndexManager::getInstance()->search($request->get('index'), $request->getContent(), $request->get('from') != null ? $request->get('from') : 0, $request->get('size') !== false ? $request->get('size') : 20, $request->get('type'));
-      return new Response(json_encode($res), 200, array('Content-Type' => 'application/json; charset=utf-8'));
+      return new Response(json_encode($res), 200, array('Content-Type' => 'application/json; charset=utf-8', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Headers' => 'Content-Type, Pragma, If-Modified-Since, Cache-Control'));
     }
     catch(Exception $ex){
       return new Response(json_encode(array('error' => $ex->getMessage())), 200, array('Content-Type' => 'application/json; charset=utf-8'));
