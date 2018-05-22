@@ -253,7 +253,6 @@ class SearchContext
 
     $url = $this->generateUrl($this->serviceUrl, $params);
     $this->currentRequestUrl = $url;
-    dump($url);
 
     $response = $this->getResponse($url);
     if(isset($response['took'])){

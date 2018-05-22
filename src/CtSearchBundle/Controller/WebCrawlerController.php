@@ -62,6 +62,9 @@ class WebCrawlerController extends CtSearchController {
           curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
           curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
           curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+          curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'User-Agent: AdimeoDataSuite/1.0.0'
+          ));
           CurlUtils::handleCurlProxy($ch);
           $r = curl_exec($ch);
           $doc = new \DOMDocument();
