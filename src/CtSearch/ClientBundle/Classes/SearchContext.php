@@ -286,6 +286,7 @@ class SearchContext
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     $r = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
     if($code == 200) {
       return json_decode($r, true);
     }

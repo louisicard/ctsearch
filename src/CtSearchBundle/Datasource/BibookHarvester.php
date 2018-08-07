@@ -61,6 +61,7 @@ class BibookHarvester extends Datasource {
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     CurlUtils::handleCurlProxy($ch);
     $r = curl_exec($ch);
+    curl_close($ch);
     return $r;
   }
 

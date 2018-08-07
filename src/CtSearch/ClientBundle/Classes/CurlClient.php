@@ -67,6 +67,7 @@ class CurlClient
     }
     $body = substr($r, $header_size);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
     return array(
       'code' => $code,
