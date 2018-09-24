@@ -27,7 +27,7 @@ class DumpIndexCommand extends ContainerAwareCommand
     $this
       ->setName('ctsearch:dump')
       ->setDescription('Dump index tool')
-      ->addArgument('index', InputArgument::REQUIRED, 'The nam of the index to dump')
+      ->addArgument('index', InputArgument::REQUIRED, 'The name of the index to dump')
     ;
   }
 
