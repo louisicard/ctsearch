@@ -36,15 +36,11 @@ class DatasourceCommand extends ContainerAwareCommand {
       }
     }
     if($input->getOption('no-proxy')){
-      $proxy = getenv("http_proxy");
       putenv("http_proxy=");
     }
     $datasource = IndexManager::getInstance()->getDatasource($id, null);
     $datasource->setOutput($output);
     $output->writeln('Executing Datasource "' . $datasource->getName() . '"');
-    if($input->getOption('no-proxy')){
-      putenv("http_proxy=" . $proxy);
-    }
     $datasource->execute($execParams);
   }
 
