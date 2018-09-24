@@ -7,6 +7,7 @@ use CtSearchBundle\Classes\Parameter;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class DatasourceCommand extends ContainerAwareCommand {
@@ -17,6 +18,7 @@ class DatasourceCommand extends ContainerAwareCommand {
         ->setDescription('Execute a datasouce')
         ->addArgument('id', InputArgument::REQUIRED, 'Datasource id')
         ->addArgument('args', InputArgument::OPTIONAL, 'Datasource args in querystring format')
+        ->addOption('no-proxy', null, InputOption::VALUE_NONE, 'Bypass proxy to connect to ES server')
     ;
   }
 
@@ -33,9 +35,16 @@ class DatasourceCommand extends ContainerAwareCommand {
         }
       }
     }
+    if($input->getOption('no-proxy')){
+      $proxy = getenv("http_proxy");
+      putenv("http_proxy=");
+    }
     $datasource = IndexManager::getInstance()->getDatasource($id, null);
     $datasource->setOutput($output);
     $output->writeln('Executing Datasource "' . $datasource->getName() . '"');
+    if($input->getOption('no-proxy')){
+      putenv("http_proxy=" . $proxy);
+    }
     $datasource->execute($execParams);
   }
 
