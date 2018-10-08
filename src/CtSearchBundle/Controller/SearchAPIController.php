@@ -300,7 +300,7 @@ class SearchAPIController extends Controller
             foreach ($request->get('facetOptions') as $option) {
               $option_parts = explode(',', $option);
               $option_def = substr($option, strpos($option, ',', strpos($option, ',') + 1) + 1);
-              if (count($option_parts == 3)) {
+              if (count($option_parts) == 3) {
                 switch ($option_parts[1]) {
                   case 'size':
                     if (isset($query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms'])) {
