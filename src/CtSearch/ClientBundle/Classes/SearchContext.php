@@ -76,6 +76,11 @@ class SearchContext
   private $status = SearchContext::CTSEARCH_STATUS_IDLE;
 
   /**
+   * @var int
+   */
+  private $took = 0;
+
+  /**
    * @var string
    */
   private $currentRequestUrl = "";
@@ -84,6 +89,8 @@ class SearchContext
    * @var string
    */
   private $didYouMean = null;
+
+  private $autopromote = array();
 
   private $serviceUrl;
   private $mapping;
@@ -246,27 +253,29 @@ class SearchContext
 
     $url = $this->generateUrl($this->serviceUrl, $params);
     $this->currentRequestUrl = $url;
-    try {
 
-      $response = $this->getResponse($url);
-      if (isset($response['hits']['hits'])) {
-        $this->results = $response['hits']['hits'];
-      }
-      if (isset($response['hits']['total'])) {
-        $this->total = $response['hits']['total'];
-      }
-      if (isset($response['aggregations'])) {
-        $this->facets = $response['aggregations'];
-      }
+    $response = $this->getResponse($url);
+    if(isset($response['took'])){
+      $this->took = $response['took'];
+    }
+    if (isset($response['hits']['hits'])) {
+      $this->results = $response['hits']['hits'];
+    }
+    if (isset($response['hits']['total'])) {
+      $this->total = $response['hits']['total'];
+    }
+    if (isset($response['aggregations'])) {
+      $this->facets = $response['aggregations'];
+    }
+    if (isset($response['autopromote']) && isset($response['autopromote']['hits']['hits'])) {
+      $this->autopromote = $response['autopromote']['hits']['hits'];
+    }
 
-      if(isset($response['suggest_ctsearch']) && count($response['suggest_ctsearch']) > 0){
-        $this->setDidYouMean($response['suggest_ctsearch'][0]['text']);
-      }
-      $this->status = SearchContext::CTSEARCH_STATUS_EXECUTED;
+    if(isset($response['suggest_ctsearch']) && count($response['suggest_ctsearch']) > 0){
+      $this->setDidYouMean($response['suggest_ctsearch'][0]['text']);
     }
-    catch(\Exception $ex){
-      var_dump($ex);
-    }
+    $this->status = SearchContext::CTSEARCH_STATUS_EXECUTED;
+
   }
 
   private function getResponse($url){
@@ -277,6 +286,7 @@ class SearchContext
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     $r = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
     if($code == 200) {
       return json_decode($r, true);
     }
@@ -285,27 +295,27 @@ class SearchContext
     }
   }
 
-  public function buildFilterUrl($field, $value){
+  public function buildFilterUrl($field, $value, $operator = '='){
     $params = $this->request->query->all();
     unset($params['facetOptions']);
-    $params['filter'][] = $field . '="' . $value . '"';
+    $params['filter'][] = $field . $operator . '"' . $value . '"';
     return $this->generateUrl($this->request->getSchemeAndHttpHost() . $this->request->getRequestUri() . $this->request->getBaseUrl(), $params);
   }
 
-  public function buildFilterRemovalUrl($field, $value){
+  public function buildFilterRemovalUrl($field, $value, $operator = '='){
     $params = $this->request->query->all();
     unset($params['filter']);
     unset($params['facetOptions']);
     foreach($this->filters as $filter) {
-      if($filter != $field . '="' . $value . '"') {
+      if($filter != $field . $operator . '"' . $value . '"') {
         $params['filter'][] = $filter;
       }
     }
     return $this->generateUrl($this->request->getSchemeAndHttpHost() . $this->request->getRequestUri() . $this->request->getBaseUrl(), $params);
   }
 
-  public function isFilterApplied($field, $value){
-    return in_array($field . '="' . $value . '"', $this->filters);
+  public function isFilterApplied($field, $value, $operator = '='){
+    return in_array($field . $operator . '"' . $value . '"', $this->filters);
   }
 
   public function getFacetRaiseSizeUrl($facet_id){
@@ -334,6 +344,10 @@ class SearchContext
       $params['sort'] = $sort;
     }
     return $this->generateUrl($this->request->getSchemeAndHttpHost() . $this->request->getRequestUri() . $this->request->getBaseUrl(), $params);
+  }
+
+  public function addFacetOption($facet, $option, $value) {
+    $this->facetOptions[$facet][$option] = $value;
   }
 
   /**
@@ -598,6 +612,31 @@ class SearchContext
   {
     $this->highlights = $highlights;
   }
+
+  /**
+   * @return array
+   */
+  public function getAutopromote()
+  {
+    return $this->autopromote;
+  }
+
+  /**
+   * @return int
+   */
+  public function getTook()
+  {
+    return $this->took;
+  }
+
+  /**
+   * @param int $took
+   */
+  public function setTook($took)
+  {
+    $this->took = $took;
+  }
+
 
   private function generateUrl($url, $args){
     $url_parts = explode('?', $url);

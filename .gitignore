@@ -7,11 +7,14 @@
 /var/sessions/*
 !var/sessions/.gitkeep
 /app/phpunit.xml
-/bin/
 /composer.phar
 /vendor/
 /web/bundles/
 /web/assetic/
+/web/synonyms/
 /composer.phar
 /nbproject/
 /.idea
+.DS_Store
+composer.lock
+/var/SymfonyRequirements.php

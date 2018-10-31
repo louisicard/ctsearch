@@ -1,0 +1,62 @@
+{
+    "stat_api_url": {
+        "type": "keyword",
+        "store": true
+    },
+    "stat_date": {
+        "type": "date",
+        "store": true,
+        "format": "date_optional_time"
+    },
+    "stat_facets": {
+        "type": "keyword",
+        "store": true
+    },
+    "stat_index": {
+        "type": "keyword",
+        "store": true
+    },
+    "stat_log": {
+        "type": "keyword",
+        "store": true
+    },
+    "stat_mapping": {
+        "type": "keyword",
+        "store": true
+    },
+    "stat_query": {
+        "type": "nested",
+        "properties": {
+            "analyzed": {
+                "type": "string",
+                "analyzer": "standard",
+                "fields": {
+                    "raw": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "raw": {
+                "type": "string",
+                "analyzer": "standard",
+                "fields": {
+                    "raw": {
+                        "type": "keyword"
+                    }
+                }
+            }
+        }
+    },
+    "stat_remote_addr": {
+        "type": "keyword",
+        "store": true
+    },
+    "stat_response_time": {
+        "type": "integer",
+        "store": true
+    },
+    "stat_result_count": {
+        "type": "integer",
+        "store": true
+    }
+}

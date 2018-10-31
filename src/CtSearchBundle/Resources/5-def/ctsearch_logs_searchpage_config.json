@@ -1,0 +1,27 @@
+{
+    "fields": {
+        "title": "message",
+        "url": "",
+        "excerp_fields": [
+            {
+                "field": "date",
+                "label": "Date",
+                "date_format": "Y-m-d H:i:s"
+            },
+            {
+                "field": "type",
+                "label": "Type"
+            },
+            {
+                "field": "object",
+                "label": "Object"
+            }
+        ]
+    },
+    "aggregations": [
+        {
+            "name": "types",
+            "label": "Filter by type"
+        }
+    ]
+}

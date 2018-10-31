@@ -34,20 +34,28 @@ class RebuildCommand extends ContainerAwareCommand
       $mappingSource = explode('.', $source)[1];
       IndexManager::getInstance()->scroll(array(
         'query' => array(
-          'match_all' => array()
+          'match_all' => array('boost' => '1.0')
         )
-      ), $indexSource, $mappingSource, function($hit, &$context){
-        $context['count']++;
+      ), $indexSource, $mappingSource, function($hits, &$context){
+        $context['count'] += count($hits);
         $indexTarget = explode('.', $context['target'])[0];
         $mappingTarget = explode('.', $context['target'])[1];
-        $doc = $hit['_source'];
-        $doc['_id'] = $hit['_id'];
-        IndexManager::getInstance()->indexDocument($indexTarget, $mappingTarget, $doc, false);
-        print 'Indexing doc #' . $context['count'] . ' ID ' . $hit['_id'] . PHP_EOL;
+        $items = [];
+        foreach($hits as $hit){
+          $doc = $hit['_source'];
+          $doc['_id'] = $hit['_id'];
+          $items[] = array(
+            'indexName' => $indexTarget,
+            'mappingName' => $mappingTarget,
+            'body' => $doc
+          );
+        }
+        IndexManager::getInstance()->bulkIndex($items);
+        print 'Total indexed = ' . $context['count'] . PHP_EOL;
       }, array(
         'count' => 0,
         'target' => $target,
-      ));
+      ), 500);
       IndexManager::getInstance()->flush();
     }
     else{
@@ -56,7 +64,7 @@ class RebuildCommand extends ContainerAwareCommand
   }
 
   private function iterate($index_name, $mapping, $from, $size, $callback){
-    $res = IndexManager::getInstance()->search($index_name, '{"query":{"match_all":{}}}', $from, $size, $mapping);
+    $res = IndexManager::getInstance()->search($index_name, '{"query":{"match_all":{"boost":"1.0"}}}', $from, $size, $mapping);
 
     if(isset($res['hits']['hits'])) {
       foreach ($res['hits']['hits'] as $index => $hit) {

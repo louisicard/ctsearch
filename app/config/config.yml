@@ -51,9 +51,4 @@ ct_search:
   use_proxy:    "%ctsearch_use_proxy%"
   proxy_host:   "%ctsearch_proxy_host%"
   proxy_type:   "%ctsearch_proxy_type%"
-
-assetic:
-    debug:          '%kernel.debug%'
-    use_controller: '%kernel.debug%'
-    filters:
-      cssrewrite: ~
+  synonyms_path:   "%ctsearch_synonyms_path%"

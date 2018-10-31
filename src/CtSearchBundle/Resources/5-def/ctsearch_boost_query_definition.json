@@ -1,0 +1,10 @@
+{
+    "target": {
+        "type": "keyword",
+        "store": true
+    },
+    "definition": {
+        "type": "keyword",
+        "store": true
+    }
+}

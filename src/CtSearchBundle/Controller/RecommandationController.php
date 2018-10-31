@@ -51,8 +51,10 @@ class RecommandationController extends Controller {
 
   if(typeof(regReco_id) !== "undefined"){
 
-    var url = "//' . $_SERVER['HTTP_HOST'] . ($env != 'prod' ? '/app_' . $env . '.php' : '') . '/reco/report";
-    var url_get = "//' . $_SERVER['HTTP_HOST'] . ($env != 'prod' ? '/app_' . $env . '.php' : '') . '/reco/get";
+    var host = typeof regReco_host !== "undefined" ? regReco_host : "' . $_SERVER['HTTP_HOST'] . '";
+
+    var url = "//" + host + "' . ($env != 'prod' ? '/app_' . $env . '.php' : '') . '/reco/report";
+    var url_get = "//" + host + "' . ($env != 'prod' ? '/app_' . $env . '.php' : '') . '/reco/get";
     var reco_sig = "' . $reco_sig . '";
 
     var xhr = getXMLHTTPRequest();

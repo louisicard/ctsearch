@@ -43,14 +43,14 @@ class XPathGetterFilter extends ProcessorFilter {
         $r = array();
       }
       
-      if(count($r) == 1 && strlen(trim((string)$r[0])) > 0){
-        return array('value' => trim((string)$r[0]));
+      if(count($r) == 1 && strlen(trim($this->xmlToString($r[0]))) > 0){
+        return array('value' => trim($this->xmlToString($r[0])));
       }
       elseif(count($r) > 1){
         $vals = array();
         foreach($r as $val){
-          if(strlen(trim((string)$val)) > 0 && !in_array(trim((string)$val), $vals)){
-            $vals[] = trim((string)$val);
+          if(strlen(trim($this->xmlToString($val))) > 0 && !in_array(trim($this->xmlToString($val)), $vals)){
+            $vals[] = trim($this->xmlToString($val));
           }
         }
         return array('value' => $vals);
@@ -60,6 +60,20 @@ class XPathGetterFilter extends ProcessorFilter {
       }
     }catch(\Exception $ex){
       return array('value' => null);
+    }
+  }
+
+  private function xmlToString(\SimpleXMLElement $elem) {
+    $string = $elem->asXML();
+    $openTag = '<' . $elem->getName() . '>';
+    $closeTag = '</' . $elem->getName() . '>';
+    if(strpos($string, $openTag) !== FALSE) {
+      $string = substr($string, strlen($openTag), strlen($string) - strlen($closeTag) - strlen($openTag));
+      if(!$string) $string = "";
+      return trim($string);
+    }
+    else {
+      return (string)$elem;
     }
   }
   

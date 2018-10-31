@@ -3,9 +3,11 @@
 
 {%block main_content%}
   {%if searchPages is defined%}
+    {%  if is_granted('ROLE_SEARCH_PAGE_CREATOR') %}
     <ul class="actions">
       <li id="add-search-page"><a href="{{path('search-page-add')}}">Add search page</a></li>
     </ul>
+    {% endif %}
     {%if searchPages|length > 0%}
     <table>
       <thead>
@@ -26,7 +28,9 @@
               <ul>
                 <li><a href="{{path('search-page-display', {'id': searchPage.id})}}" target="_blank">{{'Open'|trans}}</a></li>
                 <li><a href="{{path('search-page-edit', {'id': searchPage.id})}}">{{'Edit'|trans}}</a></li>
+                {%  if is_granted('ROLE_SEARCH_PAGE_CREATOR') %}
                 <li><a href="{{path('search-page-delete', {'id': searchPage.id})}}" class="search-page-delete">{{'Delete'|trans}}</a></li>
+                {% endif %}
               </ul>
             </td>
           </tr>

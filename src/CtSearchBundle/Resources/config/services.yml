@@ -1,4 +1,6 @@
 services:
+  ctsearch_user_provider:
+    class: CtSearchBundle\Classes\UserProvider
   ctsearch.datasource.bibookharvester:
     class: CtSearchBundle\Datasource\BibookHarvester
     tags:
@@ -33,6 +35,14 @@ services:
       - { name: ctsearch.datasource }
   ctsearch.datasource.pdodatabase:
     class: CtSearchBundle\Datasource\PDODatabase
+    tags:
+      - { name: ctsearch.datasource }
+  ctsearch.datasource.directoryscanner:
+    class: CtSearchBundle\Datasource\DirectoryScanner
+    tags:
+      - { name: ctsearch.datasource }
+  ctsearch.datasource.queryexecutor:
+    class: CtSearchBundle\Datasource\QueryExecutor
     tags:
       - { name: ctsearch.datasource }
   ctsearch.filter.arrayimplodefilter:
@@ -83,6 +93,10 @@ services:
     class: CtSearchBundle\Processor\PHPFilter
     tags:
       - { name: ctsearch.filter }
+  ctsearch.filter.simplexmlparserfilter:
+    class: CtSearchBundle\Processor\SimpleXMLParserFilter
+    tags:
+      - { name: ctsearch.filter }
   ctsearch.filter.xmlparserfilter:
     class: CtSearchBundle\Processor\XMLParserFilter
     tags:
@@ -113,6 +127,10 @@ services:
       - { name: ctsearch.filter }
   ctsearch.filter.pdoqueryfilter:
     class: CtSearchBundle\Processor\PDOQueryFilter
+    tags:
+      - { name: ctsearch.filter }
+  ctsearch.filter.mondecaannotationfilter:
+    class: CtSearchBundle\Processor\MondecaAnnotationFilter
     tags:
       - { name: ctsearch.filter }
   ctsearch.analytics.rawkeywordsstatcompiler:

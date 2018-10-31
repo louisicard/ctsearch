@@ -1,0 +1,22 @@
+{
+    "class": {
+        "type": "keyword",
+        "store": true
+    },
+    "definition": {
+        "type": "keyword",
+        "store": true
+    },
+    "name": {
+        "type": "keyword",
+        "store": true
+    },
+    "has_batch_execution": {
+        "type": "boolean",
+        "store": true
+    },
+    "created_by": {
+        "type": "keyword",
+        "store": true
+    }
+}

@@ -1,0 +1,23 @@
+{
+    "datasource": {
+        "type": "keyword",
+        "store": true
+    },
+    "datasource_name": {
+        "type": "keyword",
+        "store": true
+    },
+    "datasource_siblings": {
+        "type": "keyword",
+        "store": true
+    },
+    "proc_definition": {
+        "type": "text",
+        "store": true,
+        "analyzer": "standard"
+    },
+    "target": {
+        "type": "keyword",
+        "store": true
+    }
+}

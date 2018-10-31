@@ -97,25 +97,56 @@ class Processor implements Exportable, Importable
 
   public static function import($data, $override = false)
   {
+    $serverVersion = IndexManager::getInstance()->getServerMajorVersionNumber();
     $indexExists = IndexManager::getInstance()->getIndex($data['index']['name']) != null;
+    $settings = $data['index']['settings'];
+    if($serverVersion >= 5 && isset($settings['legacy'])){
+      unset($settings['legacy']);
+    }
+    if(isset($settings['provided_name'])){
+      unset($settings['provided_name']);
+    }
+    $settings = json_encode($settings);
     if ($indexExists && $override) {
-      $index = new \CtSearchBundle\Classes\Index($data['index']['name'], json_encode($data['index']['settings']));
+      $index = new \CtSearchBundle\Classes\Index($data['index']['name'], $settings);
       IndexManager::getInstance()->deleteIndex($index);
       IndexManager::getInstance()->createIndex($index);
     } elseif(!$indexExists) {
-      IndexManager::getInstance()->createIndex(new \CtSearchBundle\Classes\Index($data['index']['name'], json_encode($data['index']['settings'])));
+      IndexManager::getInstance()->createIndex(new \CtSearchBundle\Classes\Index($data['index']['name'], $settings));
     }
 
     $mapping = new \CtSearchBundle\Classes\Mapping($data['index']['name'], $data['mapping']['name'], json_encode($data['mapping']['definition']));
     if (isset($data['mapping']['dynamic_templates'])) {
       $mapping->setDynamicTemplates(json_encode($data['mapping']['dynamic_templates']));
     }
+    if($serverVersion >= 5){
+      $def = json_decode($mapping->getMappingDefinition(), TRUE);
+      foreach($def as $field => $field_def){
+        if(isset($field_def['type'])) {
+          if ($field_def['type'] == 'string') {
+            if (isset($field_def['analyzer'])) {
+              $field_def['type'] = 'text';
+            } else {
+              $field_def['type'] = 'keyword';
+              if (isset($field_def['boost'])) {
+                unset($field_def['boost']);
+              }
+              if (isset($field_def['index'])) {
+                unset($field_def['index']);
+              }
+            }
+          }
+          $def[$field] = $field_def;
+        }
+      }
+      $mapping->setMappingDefinition(json_encode($def));
+    }
     IndexManager::getInstance()->updateMapping($mapping);
 
     $datasource = new $data['datasource']['class']($data['datasource']['name'], null);
     $datasource->initFromSettings($data['datasource']['settings']);
     $datasource->setId($data['datasource']['id']);
-    $datasource->setHasBatchExecution($data['datasource']['has_batch_execution']);
+    $datasource->setHasBatchExecution(isset($data['datasource']['has_batch_execution']) ? $data['datasource']['has_batch_execution'] : false);
     IndexManager::getInstance()->saveDatasource($datasource, $data['datasource']['id']);
 
     foreach ($data['matching_lists'] as $matchingList) {

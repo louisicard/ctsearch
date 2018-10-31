@@ -7,12 +7,13 @@ use \CtSearchBundle\CtSearchBundle;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use \CtSearch\ClientBundle\Classes\CurlClient;
 
 class XMLParser extends Datasource {
 
-  private $url;
-  private $xpath;
-  private $xpathNamespaces;
+  protected $url;
+  protected $xpath;
+  protected $xpathNamespaces;
 
   public function getSettings() {
     return array(
@@ -20,12 +21,6 @@ class XMLParser extends Datasource {
       'xpath' => $this->getXpath() != null ? $this->getXpath() : '',
       'xpathNamespaces' => $this->getXpathNamespaces() != null ? $this->getXpathNamespaces() : '',
     );
-  }
-
-  public function initFromSettings($settings) {
-    foreach ($settings as $k => $v) {
-      $this->{$k} = $v;
-    }
   }
 
   public function execute($execParams = null) {
@@ -43,7 +38,14 @@ class XMLParser extends Datasource {
           $xml = simplexml_load_string($this->getContentFromUrl($url));
         }
         else {
-          $xml = simplexml_load_file($url);
+          $curlClient = new CurlClient($url);
+          $response = $curlClient->getResponse();
+
+          if (!empty($response['data'])) {
+            $xml = simplexml_load_string($url);
+          } else {
+            $xml = false;
+          }
         }
       }
       if(isset($xml)){
@@ -95,6 +97,7 @@ class XMLParser extends Datasource {
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     CurlUtils::handleCurlProxy($ch);
     $r = curl_exec($ch);
+    curl_close($ch);
     return $r;
   }
 

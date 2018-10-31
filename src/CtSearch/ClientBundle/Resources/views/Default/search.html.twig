@@ -4,37 +4,35 @@
 <head>
     <title>CtSearch search</title>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
-    {% stylesheets '@CtSearchClientBundle/Resources/public/css/*' filter='cssrewrite' %}
-    <link rel="stylesheet" type="text/css" href="{{ asset_url }}"/>
-    {% endstylesheets %}
+    <link href="{{asset('ctsearchclient/css/normalize.css')}}" rel="stylesheet" />
+    <link rel="stylesheet" href="{{asset('js/jquery-ui/jquery-ui.min.css')}}" />
     <script type="text/javascript">
         var __searchclient_base_url = '{{path('ct_search_client_homepage')}}';
+        var __base_url = '{{baseUrl}}';
         var __searchclient_service_url = '{{ serviceUrl|raw }}';
         var __searchclient_mapping = '{{ mapping }}';
         var __searchclient_params = {{ searchParams|json_encode()|trim()|raw }};
     </script>
-    {% javascripts '@CtSearchClientBundle/Resources/public/js/*' %}
-    <script src="{{ asset_url }}"></script>
-    {% endjavascripts %}
+    <script type="text/javascript" src="{{asset('js/jquery-1.11.3.min.js')}}"></script>
+    <script type="text/javascript" src="{{asset('js/jquery-ui/jquery-ui.min.js')}}"></script>
+    <script type="text/javascript" src="{{asset('js/prettyprint.js')}}"></script>
+    <script type="text/javascript" src="{{asset('ctsearchclient/js/jquery.mark.min.js')}}"></script>
+    <script type="text/javascript" src="{{asset('ctsearchclient/js/search.js')}}"></script>
     <style type="text/css">
         a.ajax-link {
-        {% image '@CtSearchClientBundle/Resources/public/images/loading_small.gif' %} background: url('{{ asset_url }}') no-repeat -2em -2em;
-        {% endimage %}
+            background: url({{ asset('ctsearchclient/images/loading_small.gif') }}) no-repeat -2em -2em;
         }
 
         .search-form input[type="submit"] {
-        {% image '@CtSearchClientBundle/Resources/public/images/search.png' %} background-image: url('{{ asset_url }}');
-        {% endimage %}
+            background-image: url({{ asset('ctsearchclient/images/search.png') }});
         }
 
         .facet-block h2:after {
-        {% image '@CtSearchClientBundle/Resources/public/images/arrow.png' %} background-image: url('{{ asset_url }}');
-        {% endimage %}
+            background-image: url({{ asset('ctsearchclient/images/arrow.png') }});
         }
     </style>
-    {% image '@CtSearchClientBundle/Resources/public/images/logo.png' %}
-    <link rel="icon" type="image/png" href="{{ asset_url }}"/>
-    {% endimage %}
+  <link href="{{asset('ctsearchclient/css/search.css')}}" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="{{ asset('images/logo48.png') }}"/>
 </head>
 <body>
 <main>
@@ -74,30 +72,56 @@
                         {% if facet.buckets|length > 0 %}
                             {% set active = false %}
                             {% for value in facet.buckets %}
-                                {% if value.applied %}
+                                {% if value.applied is defined and value.applied %}
                                     {% set active = true %}
                                 {% endif %}
                             {% endfor %}
                             <div id="facet-block-{{ facet_name|replace('.', '_') }}" class="facet-block{% if active %} active{% endif %}">
                                 <h2>{{ facet_label }}</h2>
                                 <div class="facet-content">
-                                    <ul class="facet-list">
-                                        {% for value in facet.buckets %}
+                                    {% if facet_def[facet_def|keys.0].isDate is defined and facet_def[facet_def|keys.0].isDate %}
+                                      <div>
+                                        {% set values = {
+                                        "1" : "Moins d'un mois",
+                                        "2" : "Moins de 3 mois",
+                                        "3" : "Moins de 6 mois",
+                                        "4" : "Moins d'un an",
+                                        "5" : "Plus d'un an"
+                                        } %}
+                                        <ul class="facet-list">
+                                          {% for index, label in values %}
+                                            {% set value = facet.buckets[index] %}
                                             {% if value.applied %}
-                                                <li>{{ value.key }} ({{ value.doc_count }}) <a href="{{ value.facet_link }}"
-                                                                                               class="remove-filter ajax-link">Remove</a>
-                                                </li>
+                                              <li>{{ label }} ({{ value.doc_count }}) <a href="{{ value.facet_link }}"
+                                                                                             class="remove-filter ajax-link">Remove</a>
+                                              </li>
                                             {% else %}
-                                                <li><a href="{{ value.facet_link }}" class="ajax-link">{{ value.key }}</a>
-                                                    ({{ value.doc_count }})
-                                                </li>
+                                              <li><a href="{{ value.facet_link }}" class="ajax-link">{{ label }} </a>
+                                                ({{ value.doc_count }})
+                                              </li>
                                             {% endif %}
-                                        {% endfor %}
-                                    </ul>
-                                    {% if facet.see_more_link is defined %}
-                                        <div class="see-more">
-                                            <a href="{{ facet.see_more_link }}" class="ajax-link">See more</a>
-                                        </div>
+                                          {% endfor %}
+                                        </ul>
+                                      </div>
+                                    {% else %}
+                                        <ul class="facet-list">
+                                            {% for value in facet.buckets %}
+                                                {% if value.applied %}
+                                                    <li>{{ value.key }} ({{ value.doc_count }}) <a href="{{ value.facet_link }}"
+                                                                                                   class="remove-filter ajax-link">Remove</a>
+                                                    </li>
+                                                {% else %}
+                                                    <li><a href="{{ value.facet_link }}" class="ajax-link">{{ value.key }}</a>
+                                                        ({{ value.doc_count }})
+                                                    </li>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                        {% if facet.see_more_link is defined %}
+                                            <div class="see-more">
+                                                <a href="{{ facet.see_more_link }}" class="ajax-link">See more</a>
+                                            </div>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </div>
@@ -109,16 +133,35 @@
     </div>
     {% endif %}
     <div class="results{% if (facets is not defined or facets is empty) and (sortingOptions is not defined or sortingOptions is empty) %} no-facets{% endif %}">
-        <div class="search-stat"><strong>{{ context.total }}</strong> results</div>
+        <div class="search-stat"><strong>{{ context.total }}</strong> results <em>(search took {{ context.took }}ms)</em></div>
         <div class="results-list">
             {% if context.didYouMean is not null and context.total < 5 %}
                 <div class="did-you-mean">Did you mean <em><a
                                 href="{{ path('ct_search_client_homepage', {mapping: mapping, sp_id: searchPageId, query: context.didYouMean}) }}">{{ context.didYouMean }}</a></em>?
                 </div>
             {% endif %}
+            {% if context.autopromote is defined and context.autopromote|length > 0 %}
+            <div class="autopromote-list">
+                {% for autopromote in context.autopromote %}
+                <div class="autopromote-item">
+                    {% if autopromote._source.ctsap__image is not null and autopromote._source.ctsap__image is not empty %}
+                        <div class="image">
+                            <img src="{{ autopromote._source.ctsap__image }}" />
+                        </div>
+                    {% endif %}
+                    <div class="info">
+                        <h3><a href="{{ autopromote._source.ctsap__url }}" target="_blank">{{ autopromote._source.ctsap__title }}</a></h3>
+                        <div class="description">
+                            {{ autopromote._source.ctsap__body|raw }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
             <ul>
                 {% for result in context.results %}
-                    <li>
+                    <li data-mapping-name="{{ mapping }}" data-record-id="{{ result._id }}">
                         {% include "CtSearchClientBundle:Default:result-item.html.twig" %}
                         <div class="source">
                             {{ result|json_encode() }}

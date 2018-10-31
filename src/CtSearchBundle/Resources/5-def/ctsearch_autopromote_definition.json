@@ -1,0 +1,23 @@
+{
+    "ctsap__title": {
+        "type": "keyword",
+        "store": true
+    },
+    "ctsap__url": {
+        "type": "keyword",
+        "store": true
+    },
+    "ctsap__image": {
+        "type": "keyword",
+        "store": true
+    },
+    "ctsap__body": {
+        "type": "keyword",
+        "store": true
+    },
+    "ctsap__keywords": {
+        "type": "text",
+        "store": true,
+        "analyzer": "standard"
+    }
+}

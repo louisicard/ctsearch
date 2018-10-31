@@ -21,12 +21,16 @@ class SearchAPIController extends Controller
   public function searchAPIV2Action(Request $request)
   {
     if ($request->get('mapping') != null) {
-      if (count(explode('.', $request->get('mapping'))) == 2) {
+      if (count(explode('.', $request->get('mapping'))) >= 2) {
+
+        $indexName = strpos($request->get('mapping'), '.') === 0 ? ('.' . explode('.', $request->get('mapping'))[1]) : explode('.', $request->get('mapping'))[0];
+        $mappingName = strpos($request->get('mapping'), '.') === 0 ? explode('.', $request->get('mapping'))[2] : explode('.', $request->get('mapping'))[1];
 
         if ($request->get('doc_id') != null) {
+
           $res = IndexManager::getInstance()->getClient()->search(array(
-            'index' => explode('.', $request->get('mapping'))[0],
-            'type' => explode('.', $request->get('mapping'))[1],
+            'index' => $indexName,
+            'type' => $mappingName,
             'body' => array(
               'query' => array(
                 'ids' => array(
@@ -39,17 +43,23 @@ class SearchAPIController extends Controller
         }
 
 
-        $mapping = IndexManager::getInstance()->getMapping(explode('.', $request->get('mapping'))[0], explode('.', $request->get('mapping'))[1]);
+        $mapping = IndexManager::getInstance()->getMapping($indexName, $mappingName);
         $definition = json_decode($mapping->getMappingDefinition(), true);
         $analyzed_fields = array();
         $nested_analyzed_fields = array();
+        $stickyFacets = $request->get('sticky_facets') != NULL ? array_map('trim', explode(',', $request->get('sticky_facets'))) : [];
+        $defaultOperator = $request->get('default_operator') != null ? $request->get('default_operator') : 'AND';
+        $versionNumber = IndexManager::getInstance()->getServerMajorVersionNumber();
         foreach ($definition as $field => $field_detail) {
-          if ((!isset($field_detail['index']) || $field_detail['index'] == 'analyzed') && $field_detail['type'] == 'string') {
+          if ((!isset($field_detail['index']) || $field_detail['index'] == 'analyzed') && ($field_detail['type'] == 'string' || $versionNumber >= 5 && $field_detail['type'] == 'text')) {
+            if(isset($field_detail['boost'])) {
+              $field .= '^' . $field_detail['boost'];
+            }
             $analyzed_fields[] = $field;
           }
-          if ($field_detail['type'] == 'nested') {
+          elseif ($field_detail['type'] == 'nested') {
             foreach ($field_detail['properties'] as $sub_field => $sub_field_detail) {
-              if ((!isset($sub_field_detail['index']) || $sub_field_detail['index'] == 'analyzed') && $sub_field_detail['type'] == 'string') {
+              if ((!isset($sub_field_detail['index']) || $sub_field_detail['index'] == 'analyzed') && ($sub_field_detail['type'] == 'string' || $versionNumber >= 5 && $sub_field_detail['type'] == 'text')) {
                 $nested_analyzed_fields[] = $field . '.' . $sub_field;
               }
             }
@@ -65,19 +75,19 @@ class SearchAPIController extends Controller
         }
 
         if (count($nested_analyzed_fields) > 0) {
-          $query['query']['bool']['should'][0]['query_string'] = array(
+          $query['query']['bool']['must'][0]['bool']['should'][]['query_string'] = array(
             'query' => $query_string,
-            'default_operator' => 'AND',
+            'default_operator' => $defaultOperator,
             'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
             'fields' => $analyzed_fields
           );
           foreach ($nested_analyzed_fields as $field) {
-            $query['query']['bool']['should'][]['nested'] = array(
+            $query['query']['bool']['must'][0]['bool']['should'][]['nested'] = array(
               'path' => explode('.', $field)[0],
               'query' => array(
                 'query_string' => array(
                   'query' => $query_string,
-                  'default_operator' => 'AND',
+                  'default_operator' => $defaultOperator,
                   'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
                   'fields' => array($field)
                 )
@@ -85,9 +95,9 @@ class SearchAPIController extends Controller
             );
           }
         } else {
-          $query['query']['query_string'] = array(
+          $query['query']['bool']['must'][0]['query_string'] = array(
             'query' => $query_string,
-            'default_operator' => 'AND',
+            'default_operator' => $defaultOperator,
             'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
             'fields' => $analyzed_fields
           );
@@ -198,7 +208,7 @@ class SearchAPIController extends Controller
             }
             if(SEARCH_API_DEBUG)
               var_dump($filterQueries);
-            $query['filter'] = $this->computeFilter($filterQueries);
+            $query['query']['bool']['filter'] = $this->computeFilter($filterQueries, NULL, $stickyFacets);
           }
         }
         if ($request->get('ids') != null) {
@@ -242,7 +252,7 @@ class SearchAPIController extends Controller
                 'query' => array(
                   'query_string' => array(
                     'query' => $qs_filter['field'] . ':"' . $qs_filter['value'] . '"',
-                    'default_operator' => 'AND',
+                    'default_operator' => $defaultOperator,
                     'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
                     'fields' => array($qs_filter['field'])
                   )
@@ -251,7 +261,7 @@ class SearchAPIController extends Controller
             } else {
               $query['query']['bool']['must'][]['query_string'] = array(
                 'query' => $qs_filter['field'] . ':"' . $qs_filter['value'] . '"',
-                'default_operator' => 'AND',
+                'default_operator' => $defaultOperator,
                 'analyzer' => $request->get('analyzer') != null ? $request->get('analyzer') : 'standard',
                 'fields' => array($qs_filter['field'])
               );
@@ -290,7 +300,7 @@ class SearchAPIController extends Controller
             foreach ($request->get('facetOptions') as $option) {
               $option_parts = explode(',', $option);
               $option_def = substr($option, strpos($option, ',', strpos($option, ',') + 1) + 1);
-              if (count($option_parts == 3)) {
+              if (count($option_parts) >= 3) {
                 switch ($option_parts[1]) {
                   case 'size':
                     if (isset($query['aggs'][$option_parts[0]]['aggs'][$option_parts[0]]['terms'])) {
@@ -318,16 +328,23 @@ class SearchAPIController extends Controller
             }
           }
 
-          if(isset($query['filter'])) {
-            $stickyFacets = $request->get('sticky_facets') != NULL ? array_map('trim', explode(',', $request->get('sticky_facets'))) : [];
+          if(isset($query['query']['bool']['filter'])) {
             foreach ($query['aggs'] as $agg_name => $agg) {
-              unset($query['aggs'][$agg_name]);
-              $query['aggs'][$agg_name] = array(
-                'filter' => $this->computeFilter($filterQueries, in_array($agg_name, $stickyFacets) ? $agg_name : NULL),//Put null in $skipField to disable sticky facets
-                'aggs' => array(
-                  $agg_name => $agg
-                )
-              );
+              if(in_array($agg_name, $stickyFacets)) {
+                $query['aggs']['sticky_' . $agg_name] = array(
+                  'global' => new \stdClass(),
+                  'aggs' => array(
+                    'sticky_' . $agg_name => array(
+                      'filter' => $this->computeFilter($filterQueries, $agg_name, $stickyFacets),//Put null in $skipField to disable sticky facets
+                      'aggs' => array(
+                        'sticky_' . $agg_name => $agg
+                      )
+                    )
+                  )
+                );
+                //Let's add the global query filter
+                $query['aggs']['sticky_' . $agg_name]['aggs']['sticky_' . $agg_name]['filter']['bool']['must'] = array_merge($query['aggs']['sticky_' . $agg_name]['aggs']['sticky_' . $agg_name]['filter']['bool']['must'], $query['query']['bool']['must']);
+              }
             }
           }
         }
@@ -369,11 +386,19 @@ class SearchAPIController extends Controller
         }
 
 
-        if(SEARCH_API_DEBUG)
-          var_dump($query);
+        if($request->get('no_boosting') == null || $request->get('no_boosting') == 0){
+          $boostQueries = IndexManager::getInstance()->getBoostQueries($request->get('mapping'));
+          foreach($boostQueries as $boostQuery){
+            $query['query']['bool']['should'][] = json_decode($boostQuery->getDefinition(), true);
+          }
+        }
 
+        if(SEARCH_API_DEBUG) {
+          var_dump($query);
+          var_dump(json_encode($query));
+        }
         try {
-          $res = IndexManager::getInstance()->search(explode('.', $request->get('mapping'))[0], json_encode($query), $request->get('from') != null ? $request->get('from') : 0, $request->get('size') != null ? $request->get('size') : 10);
+          $res = IndexManager::getInstance()->search($indexName, json_encode($query), $request->get('from') != null ? $request->get('from') : 0, $request->get('size') != null ? $request->get('size') : 10, $mappingName);
           if($request->get('escapeQuery') == null || $request->get('escapeQuery') == 1) {
             IndexManager::getInstance()->saveStat($request->get('mapping'), $applied_facets, $request->get('query') != null ? $request->get('query') : '', $request->get('analyzer'), $request->getQueryString(), isset($res['hits']['total']) ? $res['hits']['total'] : 0, isset($res['took']) ? $res['took'] : 0, $request->get('clientIp') != null ? $request->get('clientIp') : $request->getClientIp(), $request->get('tag') != null ? $request->get('tag') : '');
           }
@@ -400,6 +425,25 @@ class SearchAPIController extends Controller
             });
             $res['suggest_ctsearch'] = $suggestions;
           }
+          if($query_string != '*' && !empty($query_string) && IndexManager::getInstance()->mappingExists($indexName, 'ctsearch_autopromote')){
+            $autopromoteAnalyzer = IndexManager::getInstance()->getAutopromoteAnalyzer($indexName);
+            $promote_query_r = array(
+              'query' => array(
+                'query_string' => array(
+                  'query' => $query_string,
+                  'default_field' => 'ctsap__keywords'
+                )
+              )
+            );
+            if($autopromoteAnalyzer != NULL) {
+              $promote_query_r['query']['query_string']['analyzer'] = $autopromoteAnalyzer;
+            }
+            $promote_query = json_encode($promote_query_r);
+            $promote = IndexManager::getInstance()->search($indexName, $promote_query, 0, 5, 'ctsearch_autopromote');
+            if(isset($promote['hits']['hits']) && count($promote['hits']['hits']) > 0){
+              $res['autopromote'] = $promote;
+            }
+          }
         } catch (\Exception $ex) {
           return new Response(json_encode(array('error' => $ex->getMessage())), 500, array('Content-type' => 'application/json;charset=utf-8'));
         }
@@ -410,7 +454,14 @@ class SearchAPIController extends Controller
                 $res['aggregations'][$agg_name] = $agg[$agg_name];
               }
             }
+            foreach ($res['aggregations'] as $agg_name => $agg) {
+              if (strpos($agg_name, 'sticky_') === 0) {
+                $res['aggregations'][substr($agg_name, strlen('sticky_'))] = $res['aggregations'][$agg_name][$agg_name];
+                unset($res['aggregations'][$agg_name]);
+              }
+            }
           }
+
           if (isset($res['hits']['hits'])) { //Remove the sort item on hits (pb with json_decode on the client side for too large integer value)
             foreach ($res['hits']['hits'] as $i => $hit) {
               if (isset($hit['sort'])) {
@@ -418,19 +469,19 @@ class SearchAPIController extends Controller
               }
             }
           }
-          return new Response(json_encode($res, JSON_PRETTY_PRINT), 200, array('Content-type' => 'application/json;charset=utf-8'));
+          return new Response(json_encode($res, JSON_PRETTY_PRINT), 200, array('Content-Type' => 'application/json; charset=utf-8', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Headers' => 'Content-Type'));
         } else {
-          return new Response('{"error": "Search failed"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
+          return new Response('{"error": "Search failed"}', 400, array('Content-Type' => 'application/json; charset=utf-8', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Headers' => 'Content-Type'));
         }
       } else {
-        return new Response('{"error": "Mapping does not exists"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
+        return new Response('{"error": "Mapping does not exists"}', 400, array('Content-Type' => 'application/json; charset=utf-8', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Headers' => 'Content-Type'));
       }
     } else {
-      return new Response('{"error": "Missing mapping parameter"}', 400, array('Content-type' => 'application/json;charset=utf-8'));
+      return new Response('{"error": "Missing mapping parameter"}', 400, array('Content-Type' => 'application/json; charset=utf-8', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Headers' => 'Content-Type'));
     }
   }
 
-  private function computeFilter($filterQueries, $skipField = NULL){
+  private function computeFilter($filterQueries, $skipField = NULL, $stickyFacets = []){
     $query_filter = array();
     foreach($filterQueries as $field => $queries){
       if($field == $skipField){
@@ -454,7 +505,7 @@ class SearchAPIController extends Controller
         $field_parts = explode('.', $field);
         foreach($queries as $compoundPart){
           if (count($field_parts) == 2 && $field_parts[1] != 'raw' || count($field_parts) == 3) {
-            $compoundQuery['bool']['should'][] = array(
+            $compoundQuery['bool'][in_array($field, $stickyFacets) ? 'should' : 'must'][] = array(
               'nested' => array(
                 'path' => $field_parts[0],
                 'query' => $compoundPart
@@ -462,7 +513,7 @@ class SearchAPIController extends Controller
             );
           }
           else {
-            $compoundQuery['bool']['should'][] = $compoundPart;
+            $compoundQuery['bool'][in_array($field, $stickyFacets) ? 'should' : 'must'][] = $compoundPart;
           }
         }
         if(SEARCH_API_DEBUG)
@@ -472,7 +523,7 @@ class SearchAPIController extends Controller
     }
     if(empty($query_filter)){
       $query_filter['bool']['must'][] = array(
-        'match_all' => array()
+        'match_all' => array('boost' => 1)
       );
     }
     return $query_filter;
@@ -529,11 +580,32 @@ class SearchAPIController extends Controller
     $group = $request->get('group');
     $text = $request->get('text');
     $text = $this->transliterate($text);
+    $size = $request->get('size') != null ? (int)$request->get('size') : 20;
+    $sizePerGroup = $request->get('size_per_group') != null ? (int)$request->get('size_per_group') : 10;
+    $words = explode(' ', $text);
+    if(count($words) > 1){
+      foreach($words as $word){
+        $textQueries[] = array(
+          'wildcard' => array(
+            $field => '*' . strtolower($word) . '*'
+          )
+        );
+      }
+    }
+    else{
+      $textQueries[] = array(
+        'wildcard' => array(
+          $field => '*' . strtolower($text) . '*'
+        )
+      );
+    }
     if ($group != null && !empty($group)) {
       $body = array(
         'query' => array(
-          'wildcard' => array(
-            $field => '*' . strtolower($text) . '*'
+          'bool' => array(
+            'must' => array(
+              $textQueries
+            )
           )
         ),
         'size' => 0,
@@ -549,7 +621,7 @@ class SearchAPIController extends Controller
             'aggs' => array(
               'tops' => array(
                 'top_hits' => array(
-                  'size' => 5
+                  'size' => $sizePerGroup
                 )
               )
             )
@@ -559,11 +631,20 @@ class SearchAPIController extends Controller
     } else {
       $body = array(
         'query' => array(
-          'wildcard' => array(
-            $field => '*' . strtolower($text) . '*'
+          'bool' => array(
+            'must' => array(
+              $textQueries
+            )
           )
         ),
-        'size' => 10
+        'size' => $size
+      );
+    }
+    if($request->get('filterQuerystring') != null){
+      $body['query']['bool']['must'][] = array(
+        'query_string' => array(
+          'query' => $request->get('filterQuerystring')
+        )
       );
     }
     $index = explode('.', $mapping)[0];
@@ -617,4 +698,21 @@ class SearchAPIController extends Controller
     return $out;
   }
 
+  /**
+   * @Route("/search-api/v2/custom", name="search-api-v2-custom")
+   */
+  public function customSearchAction(Request $request)
+  {
+    ini_set('always_populate_raw_post_data', -1);
+    try {
+      $res = IndexManager::getInstance()->search($request->get('index'), $request->getContent(), $request->get('from') != null ? $request->get('from') : 0, $request->get('size') !== false ? $request->get('size') : 20, $request->get('type'));
+      return new Response(json_encode($res), 200, array('Content-Type' => 'application/json; charset=utf-8', 'Access-Control-Allow-Origin' => '*', 'Access-Control-Allow-Headers' => 'Content-Type, Pragma, If-Modified-Since, Cache-Control'));
+    }
+    catch(Exception $ex){
+      return new Response(json_encode(array('error' => $ex->getMessage())), 200, array('Content-Type' => 'application/json; charset=utf-8'));
+    }
+    catch(\Exception $ex2){
+      return new Response(json_encode(array('error' => $ex2->getMessage())), 200, array('Content-Type' => 'application/json; charset=utf-8'));
+    }
+  }
 }

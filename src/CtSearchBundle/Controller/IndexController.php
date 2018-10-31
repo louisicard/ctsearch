@@ -192,6 +192,7 @@ class IndexController extends Controller {
       'analyzers' => $analyzers,
       'fieldTypes' => $fieldTypes,
       'dateFormats' => $dateFormats,
+      'serverVersion' => IndexManager::getInstance()->getServerMajorVersionNumber()
     );
     return $this->render('ctsearch/indexes.html.twig', $vars);
   }
@@ -229,14 +230,7 @@ class IndexController extends Controller {
       'fields' => 0
     );
     if ($mapping != null) {
-      $query = array(
-        'filter' => array(
-          'type' => array(
-            'value' => $mapping_name,
-          )
-        )
-      );
-      $res = IndexManager::getInstance()->search($index_name, json_encode($query));
+      $res = IndexManager::getInstance()->search($index_name, '{"query":{"match_all":{"boost":1}}}', 0, 0, $mapping_name);
       if (isset($res['hits']['total']) && $res['hits']['total'] > 0) {
         $data['docs'] = $res['hits']['total'];
       }
@@ -256,29 +250,21 @@ class IndexController extends Controller {
       'main_menu_item' => 'indexes'
     );
 
-    $location = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'web' . DIRECTORY_SEPARATOR . 'synonyms';
+    $location = $this->container->getParameter('ct_search.synonyms_path');
     /** @var Translator $translator */
     $translator = $this->get('translator');
-    if(!realpath($location)) {
-      CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('Path @path does not exist', array('@path' => $location)));
+    if($location == null){
+      CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('Parameter ctsearch_synonyms_path must be set'));
     }
-    else{
-      if(!is_writable($location)){
-        CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('Path <strong>@path</strong> is not writable', array('@path' => realpath($location))));
-      }
-      else{
-        $files = scandir($location);
-        $dictionaries = array();
-        foreach($files as $file){
-          if(is_file($location . DIRECTORY_SEPARATOR . $file)){
-            $dictionaries[] = array(
-              'name' => $file,
-              'path' => realpath($location . DIRECTORY_SEPARATOR . $file)
-            );
-          }
+    else {
+      if (!realpath($location)) {
+        CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('Path @path does not exist', array('@path' => $location)));
+      } else {
+        if (!is_writable($location)) {
+          CtSearchBundle::addSessionMessage($this, 'error', $translator->trans('Path <strong>@path</strong> is not writable', array('@path' => realpath($location))));
         }
+        $vars['dictionaries'] = IndexManager::getInstance()->getSynonymsDictionaries();
       }
-      $vars['dictionaries'] = $dictionaries;
     }
 
     return $this->render('ctsearch/synonyms.html.twig', $vars);
@@ -297,7 +283,7 @@ class IndexController extends Controller {
       'main_menu_item' => 'indexes'
     );
 
-    $location = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'web' . DIRECTORY_SEPARATOR . 'synonyms';
+    $location = $this->container->getParameter('ct_search.synonyms_path');
 
     $data = array(
       'name' => $fileName != null ? $fileName : '',
@@ -348,16 +334,18 @@ foo => foo bar, baz',
 
     $form->handleRequest($request);
 
+    $info = pathinfo($fileName);
+
     if($form->isValid()){
       $name = $form->getData()['name'];
       $name = str_replace('.txt', '', $name);
       $name = preg_replace('/\W/i', '_', strtolower($name));
       $file = $location . DIRECTORY_SEPARATOR . $name . '.txt';
       $translator = $this->get('translator');
-      if (!file_exists($file) || rtrim($fileName, '.txt') == $name) {
+      if (!file_exists($file) || $info['filename'] == $name) {
         file_put_contents($file, $form->getData()['content']);
         CtSearchBundle::addSessionMessage($this, 'status', $translator->trans('File <strong>@path</strong> has been updated', array('@path' => realpath($file))));
-        if($fileName !=null && rtrim($fileName, '.txt') != $name) {
+        if($fileName !=null && $info['filename'] != $name) {
           unlink($location . DIRECTORY_SEPARATOR . $fileName);
         }
         return $this->redirectToRoute('synonyms-list');

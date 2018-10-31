@@ -4,9 +4,11 @@
 {%block main_content%}
   {% if dictionaries is defined %}
     <h2>{%trans%}Synonyms dictionaries{%endtrans%}</h2>
+    {% if is_granted('ROLE_ADMIN') %}
     <ul class="actions">
       <li><a href="{{path('synonyms-add')}}" class="synonyms-add">{{'Add a new dictionary'|trans}}</a></li>
     </ul>
+    {% endif %}
     {%if dictionaries|length > 0%}
       <table>
         <thead>
@@ -24,7 +26,9 @@
           <td class="actions">
             <ul>
               <li><a href="{{ path('synonyms-edit', {fileName: dictionary.name}) }}">{{ "Edit"|trans }}</a></li>
+              {% if is_granted('ROLE_ADMIN') %}
               <li><a href="{{ path('synonyms-delete', {fileName: dictionary.name}) }}">{{ "Delete"|trans }}</a></li>
+              {% endif %}
             </ul>
           </td>
         </tr>

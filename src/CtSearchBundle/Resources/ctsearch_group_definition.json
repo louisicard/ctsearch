@@ -1,0 +1,27 @@
+{
+    "name": {
+        "type": "string",
+        "store": true,
+        "analyzer": "case_insensitive_sort"
+    },
+    "indexes": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "datasources": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "matching_lists": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    },
+    "dictionaries": {
+        "type": "string",
+        "index": "not_analyzed",
+        "store": true
+    }
+}

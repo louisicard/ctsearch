@@ -2,9 +2,11 @@
 
 namespace CtSearchBundle\Command;
 
+use CtSearchBundle\Classes\IndexManager;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class DeleteByQueryCommand extends ContainerAwareCommand {
@@ -14,10 +16,15 @@ class DeleteByQueryCommand extends ContainerAwareCommand {
         ->setName('ctsearch:delete-by-query')
         ->setDescription('Delete records by query')
         ->addArgument('id', InputArgument::REQUIRED, 'Saved query id')
+        ->addOption('no-proxy', null, InputOption::VALUE_NONE, 'Bypass proxy to connect to ES server')
     ;
   }
   protected function execute(InputInterface $input, OutputInterface $output)
     {
+      if($input->getOption('no-proxy')){
+        $proxy = getenv("http_proxy");
+        putenv("http_proxy=");
+      }
       $id = $input->getArgument('id');
       $query = IndexManager::getInstance()->getSavedQuery($id);
       if($query != null) {

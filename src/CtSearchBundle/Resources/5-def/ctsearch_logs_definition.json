@@ -1,0 +1,25 @@
+{
+    "date": {
+        "type": "date",
+        "store": true,
+        "format": "date_optional_time"
+    },
+    "message": {
+        "type": "text",
+        "store": true,
+        "analyzer": "standard"
+    },
+    "object": {
+        "type": "text",
+        "store": true,
+        "analyzer": "standard"
+    },
+    "type": {
+        "type": "keyword",
+        "store": true
+    },
+    "log_datasource_name": {
+        "type": "keyword",
+        "store": true
+    }
+}

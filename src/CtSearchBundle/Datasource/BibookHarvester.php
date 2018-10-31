@@ -9,18 +9,12 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class BibookHarvester extends Datasource {
 
-  private $url;
+  protected $url;
 
   public function getSettings() {
     return array(
       'url' => $this->getUrl() != null ? $this->getUrl() : '',
     );
-  }
-
-  public function initFromSettings($settings) {
-    foreach ($settings as $k => $v) {
-      $this->{$k} = $v;
-    }
   }
 
   public function execute($execParams = null) {
@@ -67,6 +61,7 @@ class BibookHarvester extends Datasource {
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     CurlUtils::handleCurlProxy($ch);
     $r = curl_exec($ch);
+    curl_close($ch);
     return $r;
   }
 

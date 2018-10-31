@@ -11,8 +11,11 @@ parameters:
     # A secret key that's used to generate certain security-related tokens
     secret:            ThisTokenIsNotSoSecretChangeIt
 
-    ctsearch_proxy_host:  null
-    ctsearch_proxy_type:  null
-    ctsearch_es_url:      http://localhost:9200
-    ctsearch_debug:       false
-    ctsearch_use_proxy:   false
+    ctsearch_proxy_host:      null
+    ctsearch_proxy_type:      null
+    ctsearch_es_url:          http://localhost:9200
+    ctsearch_debug:           false
+    ctsearch_use_proxy:       false
+
+    #Path to the elastic synonyms directory (must be accessible by elastic within its own directory)
+    ctsearch_synonyms_path:   null

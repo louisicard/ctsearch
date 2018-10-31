@@ -7,6 +7,7 @@
 
     showObjects();
     bindMltLink();
+    bindEditLink();
     sizeElements();
     $(window).load(sizeElements);
     $(window).resize(sizeElements);
@@ -81,6 +82,7 @@
         bindSeeMoreLink();
         showObjects();
         bindMltLink();
+        bindEditLink();
         bindSortingLinks();
       });
       return false;
@@ -105,6 +107,7 @@
         bindPagerLink();
         showObjects();
         bindMltLink();
+        bindEditLink();
       });
       return false;
     });
@@ -141,6 +144,7 @@
         bindSeeMoreLink();
         showObjects();
         bindMltLink();
+        bindEditLink();
         bindSortingLinks();
       });
       return false;
@@ -170,6 +174,161 @@
         link.parents('li').find('.more-like-this-container').slideToggle();
       }
     });
+  }
+
+  function bindEditLink() {
+    $('.results li .edit-link a').unbind('click');
+    $('.results li .edit-link a').click(function (e) {
+      var id = $(this).parents('[data-record-id]').attr('data-record-id');
+      var mapping = $(this).parents('[data-mapping-name]').attr('data-mapping-name');
+
+      var record = null;
+
+      var waitDialog = $('<p class="dialog-container">Chargement en cours. Veuillez patienter...</p>').dialog({
+        title: 'Edit record #' + id,
+        modal: true,
+        width: 300,
+        height: 150,
+        dialogClass: 'edit-dialog',
+        resizable: true,
+        close: function () {
+          $(this).dialog('destroy').remove();
+        },
+        show: {
+          effect: "drop",
+          direction: 'up',
+          duration: 300
+        },
+        hide: {
+          effect: "fadeOut",
+          duration: 200
+        },
+        create: function () {
+          $.ajax({
+            url: __base_url + '/get-edit-record-form?mapping=' + mapping + '&id=' + id,
+            dataType: 'json'
+          }).done(function (r) {
+            record = r.record;
+
+            var updater = function(field) {
+              var index = field.parents('[data-field-index]').attr('data-field-index');
+              var fieldName = field.parents('[data-field-name]').attr('data-field-name');
+              var value = field.val();
+              var valueCount = field.parents('[data-field-name]').find('[data-field-index]').size();
+              if(valueCount == 1) {
+                if(field.val().length > 0) {
+                  r.record._source[fieldName] = field.val();
+                }
+                else {
+                  if(typeof r.record._source[fieldName] !== 'undefined') {
+                    delete r.record._source[fieldName];
+                  }
+                }
+              }
+              else {
+                r.record._source[fieldName] = [];
+                field.parents('[data-field-name]').find('[data-field-index]').each(function() {
+                  if($(this).find('.field-value-widget').val().length > 0) {
+                    r.record._source[fieldName].push($(this).find('.field-value-widget').val());
+                  }
+                });
+              }
+            }
+
+            if(record != null) {
+              var form = $('<form></form>');
+              form.attr('class', 'edit-record-form');
+              for(var key in r.mapping) {
+                var def = r.mapping[key];
+                var fieldContainer = $('<div class="field-item"></div>');
+                fieldContainer.attr('data-field-name', key);
+                fieldContainer.append($('<label>' + key + '</label>'));
+                var valuesContainer = $('<div class="field-values"></div>');
+                if(typeof record._source[key] !== 'undefined') {
+                  if(Array.isArray(record._source[key])) {
+                    for(var i = 0; i < record._source[key].length; i++) {
+                      valuesContainer.append(generateMappingField(def.type, record._source[key][i], i, updater));
+                    }
+                  }
+                  else {
+                    valuesContainer.append(generateMappingField(def.type, record._source[key], 0, updater));
+                  }
+                }
+                else {
+                  valuesContainer.append(generateMappingField(def.type, '', 0, updater));
+                }
+                fieldContainer.append(valuesContainer);
+                var appender = $('<a href="javascript:void(0)" class="field-value-appender">Add</a>');
+                appender.click(function(e) {
+                  e.preventDefault();
+                  $(this).parent().find('.field-values').append(generateMappingField($(this).parent().find('[data-field-type]').attr('data-field-type'), '', $(this).parent().find('.field-value-widget').size(), updater));
+                  return false;
+                });
+                fieldContainer.append(appender);
+                form.append(fieldContainer);
+              }
+              form.append('<div class="submit"><input type="submit" value="OK" /></div>');
+              form.submit(function(e){
+                e.preventDefault();
+                $('*').css('cursor', 'wait');
+                $.ajax({
+                  method: 'POST',
+                  url: __base_url + '/edit-record?mapping=' + mapping + '&id=' + id,
+                  data: JSON.stringify(record._source),
+                  dataType: 'json'
+                }).done(function (r) {
+                  window.location.reload();
+                  $('*').css('cursor', 'default');
+                });
+                return false;
+              });
+              waitDialog.dialog('destroy').remove();
+              form.dialog({
+                  title: 'Edit record #' + id,
+                  modal: true,
+                  width: 800,
+                  maxHeight: $(window).height() - 100,
+                  dialogClass: 'edit-dialog',
+                  resizable: true,
+                  close: function () {
+                    $(this).dialog('destroy').remove();
+                  }
+                });
+            }
+            else {
+              waitDialog.html('Record cannot be found!');
+            }
+          });
+        }
+      });
+    });
+  }
+
+  function generateMappingField(type, value, index, updater) {
+    var parent = $('<div class="field-value"></div>');
+    parent.attr('data-field-type', type);
+    parent.attr('data-field-index', index);
+    var field = null;
+    if(type == 'text' || type == 'string') {
+      field = $('<textarea></textarea>');
+    }
+    else if(type == 'keyword') {
+      field = $('<input />');
+      field.attr('type', 'text');
+    }
+    else if(type == 'date') {
+      field = $('<input />');
+      field.attr('type', 'text');
+    }
+    if(field != null) {
+      field.attr('class', 'field-value-widget');
+      field.val(value);
+      parent.append(field);
+      field.keyup(function() {
+        updater($(this));
+      });
+    }
+    return parent;
   }
 
   function autocomplete() {

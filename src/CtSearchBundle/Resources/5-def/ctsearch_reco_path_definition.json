@@ -1,0 +1,10 @@
+{
+    "host": {
+        "type": "keyword",
+        "store": true
+    },
+    "ids": {
+        "type": "keyword",
+        "store": true
+    }
+}

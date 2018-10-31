@@ -3,10 +3,12 @@
 
 {%block main_content%}
   {%if processors is defined%}
+    {% if is_granted('ROLE_ADMIN') %}
     <ul class="actions">
       <li><a href="{{path('processor-import')}}">{{'Import'|trans}}</a></li>
     </ul>
-    {%if form_add_processor is defined%}
+    {%endif%}
+    {%if form_add_processor is defined and is_granted('ROLE_PROCESSOR_CREATOR')%}
       {{ form(form_add_processor, {'attr': {'id': 'form_add_processor'}}) }}
     {%endif%}
     {%if processors|length > 0%}
@@ -29,7 +31,9 @@
               <ul>
                 <li><a href="{{path('processor-edit', {'id': processor.id})}}">{{'Edit'|trans}}</a></li>
                 <li><a href="{{path('processor-export', {'id': processor.id})}}">{{'Export'|trans}}</a></li>
+                {% if is_granted('ROLE_PROCESSOR_CREATOR') %}
                 <li><a href="{{path('processor-delete', {'id': processor.id})}}" class="processor-delete action-delete">{{'Delete'|trans}}</a></li>
+                {%endif%}
               </ul>
             </td>
           </tr>

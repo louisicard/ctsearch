@@ -9,8 +9,8 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class TextFileParser extends Datasource {
 
-  private $url;
-  private $linesToSkip;
+  protected $url;
+  protected $linesToSkip;
 
   public function getSettings() {
     return array(
@@ -19,18 +19,13 @@ class TextFileParser extends Datasource {
     );
   }
 
-  public function initFromSettings($settings) {
-    foreach ($settings as $k => $v) {
-      $this->{$k} = $v;
-    }
-  }
-
   public function execute($execParams = null) {
     try {
       if(isset($execParams['file']) && !empty($execParams['file'])){
         $file = $execParams['file'];
         /* @var $file \Symfony\Component\HttpFoundation\File\File */
-        $path = $file->getRealPath();
+        //$path = $file->getRealPath();
+        $path = $file;
       }
       elseif(isset($this->getSettings()['url']) && !empty($this->getSettings()['url'])){
         $path = $this->getSettings()['url'];

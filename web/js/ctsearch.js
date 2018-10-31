@@ -1,5 +1,25 @@
 (function ($) {
   $(document).ready(function () {
+
+    $('nav#main-menu li.expandable a').click(function(e){
+      e.preventDefault();
+      var ul = $(this).parents('li.expandable').find('ul');
+      ul.toggle();
+      $('nav#main-menu li.expandable ul').each(function(){
+        if($(this)[0] != ul[0]){
+          $(this).hide();
+        }
+      });
+    });
+    $('nav#main-menu li.expandable li a').unbind('click');
+
+    $(window).click(function(e){
+      if(e.clientX > 0 && e.clientY > 0 && $(e.target).parents('nav#main-menu li.expandable').size() == 0){
+        $('nav#main-menu li.expandable ul').hide();
+      }
+    });
+
+
     $('a.index-delete').click(function (e) {
       e.preventDefault();
       var url = $(this).attr('href');
@@ -54,6 +74,41 @@
       e.preventDefault();
       var url = $(this).attr('href');
       return advConfirm(__ctsearch_js_translations.DeleteSnapshotConfirm, function () {
+        window.location = url;
+      });
+    });
+    $('a.user-delete').click(function (e) {
+      e.preventDefault();
+      var url = $(this).attr('href');
+      return advConfirm(__ctsearch_js_translations.UserDeleteConfirm, function () {
+        window.location = url;
+      });
+    });
+    $('a.group-delete').click(function (e) {
+      e.preventDefault();
+      var url = $(this).attr('href');
+      return advConfirm(__ctsearch_js_translations.GroupDeleteConfirm, function () {
+        window.location = url;
+      });
+    });
+    $('a.autopromote-delete').click(function (e) {
+      e.preventDefault();
+      var url = $(this).attr('href');
+      return advConfirm(__ctsearch_js_translations.AutopromoteDeleteConfirm, function () {
+        window.location = url;
+      });
+    });
+    $('a.boost-query-delete').click(function (e) {
+      e.preventDefault();
+      var url = $(this).attr('href');
+      return advConfirm(__ctsearch_js_translations.BoostQueryDeleteConfirm, function () {
+        window.location = url;
+      });
+    });
+    $('a.parameter-delete').click(function (e) {
+      e.preventDefault();
+      var url = $(this).attr('href');
+      return advConfirm(__ctsearch_js_translations.ParameterDeleteConfirm, function () {
         window.location = url;
       });
     });
@@ -383,6 +438,52 @@
       $('#form_dynamicTemplates').slideToggle();
     })
 
+
+    $('#form_autopromote #form_index').change(function(){
+      var index = $(this).val();
+      $('#form_analyzer').attr('disabled', 'disabled');
+      $.ajax({
+        url: __autopromote_ajax_get_analyzers_url + '?index=' + index
+      }).success(function(data){
+        $('#form_analyzer').removeAttr('disabled');
+        $('#form_analyzer').html('');
+        $('#form_analyzer').append($('<option value="">Select &gt;</option>'));
+        for(var i in data.analyzers){
+          $('#form_analyzer').append($('<option value="' + data.analyzers[i] + '">' + data.analyzers[i] + '</option>'));
+        }
+        if(!data.enabled){
+          $('#form_analyzer').attr('disabled', 'disabled');
+          $('#form_analyzer').val(data.value);
+        }
+        else{
+          $('#form_analyzer').removeAttr('disabled');
+        }
+      });
+    });
+
+    if($('#datasource-output').size() > 0){
+      var id = $('#datasource-output').attr('data-datasource-id');
+      var running = false;
+      setInterval(function(){
+        if(!running && !$('#datasource-output').is(':focus')){
+          running = true;
+          try {
+            $.ajax({
+              url: __datasource_output_ajax_url + '?id=' + encodeURIComponent(id) + '&from=' + $('#datasource-output').val().length
+            }).success(function (data) {
+              $('#datasource-output').val($('#datasource-output').val() + data);
+              if (!$('#datasource-output').is(':focus')) {
+                document.getElementById('datasource-output').scrollTop = document.getElementById('datasource-output').scrollHeight;
+              }
+              running = false;
+            });
+          }catch(e){
+            running = false;
+          }
+        }
+      }, 500);
+    }
+
   });
 
   function reactResponsive() {
@@ -416,7 +517,7 @@
       var type = json[field].type;
       var store = typeof json[field].store !== 'undefined' && !json[field].store ? __ctsearch_js_translations.FieldNotStored : __ctsearch_js_translations.FieldStored;
       var format = typeof json[field].format !== 'undefined' ? json[field].format : '-';
-      var analyzed = typeof json[field].index !== 'undefined' && json[field].index == 'not_analyzed' ? __ctsearch_js_translations.FieldNotAnalyzed : __ctsearch_js_translations.FieldAnalyzed;
+      var analyzed = typeof json[field].analyzer !== 'undefined' ? __ctsearch_js_translations.FieldAnalyzed : __ctsearch_js_translations.FieldNotAnalyzed;
       var analyzer = typeof json[field].analyzer !== 'undefined' ? json[field].analyzer : null;
       var includeRaw = typeof json[field].fields !== 'undefined' && typeof json[field].fields.raw !== 'undefined';
       var includeTransliterated = typeof json[field].fields !== 'undefined' && typeof json[field].fields.transliterated !== 'undefined';
@@ -436,7 +537,6 @@
     }
     format_select += '</select>';
     var analysis_select = '<select id="mapping-definition-field-analysis" tabindex="4">';
-    analysis_select += '<option value="">' + __ctsearch_js_translations.FieldAnalyzed + '</option>';
     analysis_select += '<option value="not_analyzed">' + __ctsearch_js_translations.FieldNotAnalyzed + '</option>';
     for (var i = 0; i < __index_analyzers.length; i++) {
       analysis_select += '<option value="' + __index_analyzers[i] + '">' + __ctsearch_js_translations.FieldAnalyzed + ' (analyzer = ' + __index_analyzers[i] + ')</option>';
@@ -455,7 +555,7 @@
     table.find('tbody').append('<tr><td><input type="text" id="mapping-definition-field-name" placeholder="' + __ctsearch_js_translations.FieldName + '" tabindex="1" /><br /><a href="javascript:void(0)" id="mapping-add-field" tabindex="7">' + __ctsearch_js_translations.FieldAdd + '</a></td><td>' + type_select + '</td><td>' + format_select + '</td><td>' + analysis_select + '</td><td><input id="mapping-definition-field-include-raw" type="checkbox" disabled="disabled" /></td><td><input id="mapping-definition-field-include-transliterated" type="checkbox" disabled="disabled" /></td><td>' + store_select + '</td><td>' + boost_select + '</td><td></td></tr>');
     table.wrap('<div class="mapping-table-container"></div>');
     $('#mapping-definition-field-type, #mapping-definition-field-analysis').change(function(){
-      if($('#mapping-definition-field-type').val() != 'string' || $('#mapping-definition-field-analysis').val() == 'not_analyzed'){
+      if($('#mapping-definition-field-analysis').val() == 'not_analyzed'){
         $('#mapping-definition-field-include-raw').attr('disabled', 'disabled');
         $('#mapping-definition-field-include-raw').removeAttr('checked');
         $('#mapping-definition-field-include-transliterated').attr('disabled', 'disabled');
@@ -478,22 +578,30 @@
             json[field_name].format = $('#mapping-definition-field-format').val();
           }
           if ($('#mapping-definition-field-analysis').val() != '') {
-            if ($('#mapping-definition-field-analysis').val() == 'not_analyzed') {
-              json[field_name].index = 'not_analyzed';
-            }
-            else {
+            if ($('#mapping-definition-field-analysis').val() != 'not_analyzed') {
               json[field_name].analyzer = $('#mapping-definition-field-analysis').val();
             }
+          }
+          if($('#mapping-definition-field-analysis').val() == 'not_analyzed' && __elastic_server_version < 5){
+            json[field_name].index = "not_analyzed";
           }
           if($('#mapping-definition-field-analysis').val() != 'not_analyzed'){
             if($('#mapping-definition-field-include-raw').is(':checked')) {
               if(typeof json[field_name].fields === 'undefined')
                 json[field_name].fields = {};
-              json[field_name].fields.raw = {
-                type: "string",
-                index: "not_analyzed",
-                store: true
-              };
+              if(__elastic_server_version < 5) {
+                json[field_name].fields.raw = {
+                  type: "string",
+                  index: "not_analyzed",
+                  store: true
+                };
+              }
+              else{
+                json[field_name].fields.raw = {
+                  type: "keyword",
+                  store: true
+                };
+              }
             }
           }
           if($('#mapping-definition-field-analysis').val() != 'not_analyzed'){
@@ -961,12 +1069,20 @@
             $('<label for="facet-label-' + rnd + '">Facet label</label>').insertBefore(label);
 
             var stickyLbl = $('<label for="facet-sticky-' + rnd + '">Sticky</label>');
-            var stickyChb = $('<input type="checkbox" id="facet-sticky-' + rnd + '" />');
+            var stickyChb = $('<input type="checkbox" id="facet-sticky-' + rnd + '" class="sticky-facet" />');
             if(typeof def.facets[i][facet_name].sticky !== 'undefined' && def.facets[i][facet_name].sticky){
               stickyChb.attr('checked', 'checked');
             }
             facet_option_container.append(stickyLbl);
             facet_option_container.append(stickyChb);
+
+            var isDateLbl = $('<label for="facet-isdate-' + rnd + '">Is date?</label>');
+            var isDateChb = $('<input type="checkbox" id="facet-isdate-' + rnd + '" class="isdate-facet" />');
+            if(typeof def.facets[i][facet_name].isDate !== 'undefined' && def.facets[i][facet_name].isDate){
+              isDateChb.attr('checked', 'checked');
+            }
+            facet_option_container.append(isDateLbl);
+            facet_option_container.append(isDateChb);
 
             var up = $('<a href="#" class="up">Move up</a>');
             var down = $('<a href="#" class="down">Move down</a>');
@@ -986,6 +1102,7 @@
         var defaultSorting = $('<div class="form-item required"><label for="sp-def-default-sorting">Empty search sorting field:</label></div>');
         var defaultSortingSelect = fieldSelect.clone();
         defaultSortingSelect.find('option[value="_id"]').detach();
+        defaultSortingSelect.append($('<option value="_score">_score</option>'));
         defaultSortingSelect.attr('id', 'sp-def-default-sorting');
         defaultSortingSelect.attr('required', 'required');
         defaultSorting.append(defaultSortingSelect);
@@ -1168,6 +1285,11 @@
       var stickyChb = $('<input type="checkbox" id="sortable-sticky-' + rnd + '" />');
       container.append(stickyLbl);
       container.append(stickyChb);
+
+      var isDateLbl = $('<label for="facet-isdate-' + rnd + '">Is date?</label>');
+      var isDateChb = $('<input type="checkbox" id="facet-isdate-' + rnd + '" class="isdate-facet" />');
+      container.append(isDateLbl);
+      container.append(isDateChb);
     }
 
     var up = $('<a href="#" class="up">Move up</a>');
@@ -1237,7 +1359,8 @@
         var obj = {};
         obj[$(this).find('select').val()] = {
           label: $(this).find('input[type="text"]').val(),
-          sticky: $(this).find('input[type="checkbox"]').is(':checked')
+          sticky: $(this).find('input[type="checkbox"].sticky-facet').is(':checked'),
+          isDate: $(this).find('input[type="checkbox"].isdate-facet').is(':checked')
         };
         config.facets.push(obj);
       }
