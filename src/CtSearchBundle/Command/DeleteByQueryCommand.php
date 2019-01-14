@@ -34,7 +34,7 @@ class DeleteByQueryCommand extends ContainerAwareCommand {
         $mapping = strpos($query['target'], '.') !== 0 ? explode('.', $query['target'])[1] : explode('.', $query['target'])[2];
         $output->writeln('Index name => ' . $index . '');
         $output->writeln('Mapping name => ' . $mapping . '');
-        $r = IndexManager::getInstance()->search($index, $query['definition']);
+        $r = IndexManager::getInstance()->search($index, $query['definition'], 0, 0, $mapping);
         if(isset($r['hits']['total'])){
           $output->writeln('Found ' . $r['hits']['total'] . ' matching record(s)');
         }

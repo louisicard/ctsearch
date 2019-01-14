@@ -1,6 +1,17 @@
-CtSearch : Get the best out of Elastic Search
-=============================================
+CtSearch : Installation guide
+=============================
 
+1. Get the latest version from Git
+https://github.com/louisicard/ctsearch/releases
+
+2. Install sources in some directory
+
+3. Install dependencies
+```shell
+$ composer update
+```
+
+4. Set up your web server 
 CtSearch is a federated search engine build upon [Elastic Search][1].
 
 Default login/password :
