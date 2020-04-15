@@ -113,6 +113,10 @@ services:
     class: CtSearchBundle\Processor\XPathGetterFilter
     tags:
       - { name: ctsearch.filter }
+  ctsearch.filter.XPathGetterFilterDuplicates:
+    class: CtSearchBundle\Processor\XPathGetterFilterDuplicates
+    tags:
+      - { name: ctsearch.filter }
   ctsearch.filter.xpathselectorattributesfilter:
     class: CtSearchBundle\Processor\XPathSelectorAttributesFilter
     tags:
